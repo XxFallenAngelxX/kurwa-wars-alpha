@@ -1,7 +1,7 @@
 name: Validate progression patch
 on:
   push:
-    branches: [fix/remove-vehicle-level-gates]
+    branches: ['fix/**']
 permissions:
   contents: write
 jobs:
@@ -23,4 +23,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Build validated progression patch"
-          git push origin HEAD:fix/remove-vehicle-level-gates
+          git push origin "HEAD:$GITHUB_REF_NAME"
