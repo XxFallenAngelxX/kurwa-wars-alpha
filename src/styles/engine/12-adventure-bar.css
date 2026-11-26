@@ -139,14 +139,13 @@
  #app>.adventureBar::before,#app>#nav span { font-size:16px; line-height:18px; }
 }
 
-/* Use the existing ready state; keep progress, label and layout intact. */
-#app>.adventureBar.ready:not(:disabled) {
- animation:kwAdventureReady 1.2s ease-in-out infinite;
+/* The ready progress fill itself flashes; no overlay or layout changes. */
+#app>.adventureBar.ready:not(:disabled)>.adventureBarFill {
+ background:#765425;
+ animation:kwAdventureReady 1s steps(1,end) infinite;
 }
 @keyframes kwAdventureReady {
- 0%,100% { box-shadow:inset 0 0 0 1px #efc56f; }
- 50% { box-shadow:inset 0 0 0 2px #fff0a0,inset 0 0 16px #f0b84d; }
+ 0%,100% { background-color:#765425; }
+ 50% { background-color:#d99b36; }
 }
-@media(prefers-reduced-motion:reduce) {
- #app>.adventureBar.ready:not(:disabled) { animation:none; box-shadow:inset 0 0 0 2px #efc56f; }
-}
+#app #screen>h2.navSectionHeading { display:none!important; }

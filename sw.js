@@ -1,3 +1,4 @@
+// Mobile Adventure alert and tab heading refresh.
 // Mutable code is network-first. Immutable graphics keep their cache across releases.
 importScripts('./generated/sw-version.js');
 const root=new URL(self.registration.scope);
