@@ -7,6 +7,7 @@
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
     "test:offline-audio": "node scripts/test-offline-audio.mjs",
+    "test:update": "node scripts/test-update-reload.mjs",
     "dev": "node scripts/dev.mjs",
     "assets:unpack": "node scripts/assets.mjs unpack",
     "assets:pack": "node scripts/assets.mjs pack"

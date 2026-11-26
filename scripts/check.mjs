@@ -3,6 +3,8 @@ import {resolve} from 'node:path';
 import {Script} from 'node:vm';
 import {root,read,template,generated} from './engine-build.mjs';
 import assert from 'node:assert/strict';
+import {releaseVersion} from './release-version.mjs';
+assert.equal(read('generated/sw-version.js'),releaseVersion(),'Generated release version is outdated; run npm run build');
 const version=JSON.parse(read('package.json')).version;
 assert(read('src/engine/frame.html').includes('<span class="gameVersion">v'+version+'</span>'),'Header version differs from package.json');
 assert.equal(read('generated/engine-template.js'),generated(),'Generated engine is outdated; run npm run build');

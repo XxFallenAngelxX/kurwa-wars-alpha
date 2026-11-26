@@ -64,6 +64,8 @@ npm run build
 npm run check
 ```
 
+Der Build erzeugt auch `generated/sw-version.js` aus den Laufzeitdateien. Diese Datei zusammen mit den übrigen Änderungen einchecken: Bei neuer Version aktualisiert sich der Service Worker; offene Spieltabs laden nach einem sicheren Zeitpunkt neu. Ein laufender Kampf oder ein offener Dialog wird zunächst nicht unterbrochen. Nach der erstmaligen Einführung dieser Aktualisierungslogik muss ein bereits seit vorher geöffnetes Spiel gegebenenfalls einmal manuell neu geladen werden.
+
 In GitHub Desktop Quelländerungen und generiertes Bundle gemeinsam committen und auf main pushen. GitHub Pages veröffentlicht weiterhin die Projektwurzel; der Build ist bereits eingecheckt. Bei reinem Placement-Update reicht die Änderung an world-layout.js. Normale Spielstände und GM-Entwürfe bleiben im lokalen Browser getrennt. Der GM-Modus ist ein lokaler Testmodus, keine serverseitige Authentifizierung.
 
 ## Bisherige Hosting- und Alpha-Hinweise

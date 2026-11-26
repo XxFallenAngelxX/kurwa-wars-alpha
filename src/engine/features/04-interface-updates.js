@@ -15,6 +15,7 @@ for(const k of ['scene','fx','voice']){const old=AudioGame[k];AudioGame[k]=funct
 AudioGame.unlock=()=>{};AudioGame.status=()=>parent.localAudioStatus();
 window.confirm=()=>!!window.__confirmed;
 window.__controls=new Map();window.__tokens=new Map();window.__gmLevelDraft=null;window.__profileDraft='';
+window.__canReloadForUpdate=()=>page!=='Kampf'&&!battle?.running&&$('modal').hidden;
 function updateAdventureBar(){
  const bar=$('adventureBar');if(!bar)return;
  const blocked=onboard52||page==='Profile'||page==='Kampf'||!!battle?.running;

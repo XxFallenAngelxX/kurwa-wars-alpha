@@ -1,4 +1,5 @@
 // Mutable code is network-first. Immutable graphics keep their cache across releases.
+importScripts('./generated/sw-version.js');
 const root=new URL(self.registration.scope);
 const CACHE='kwars-web-modular-v0619-art-'+root.href;
 const ASSETS='kwars-immutable-packs-'+root.href;

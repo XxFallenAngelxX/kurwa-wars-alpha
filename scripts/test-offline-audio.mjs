@@ -6,7 +6,7 @@ const root=new URL('../',import.meta.url),handlers={},entries=new Map();
 const cache={async match(key){return entries.get(String(key))?.clone()},async put(key,response){entries.set(String(key),response.clone())}};
 let online=true;
 const base='https://example.test/game/';
-const context=createContext({URL,Request,Response,Headers,Promise,Array,Number,String,Math,Error,
+const context=createContext({URL,Request,Response,Headers,Promise,Array,Number,String,Math,Error,importScripts(){},
  self:{registration:{scope:base},skipWaiting:async()=>{},clients:{claim:async()=>{}},addEventListener(type,fn){(handlers[type]??=[]).push(fn)}},
  caches:{open:async()=>cache,keys:async()=>[]},
  fetch:async url=>{if(!online)throw Error('offline');const path=new URL(url).pathname.slice('/game/'.length);return new Response(await readFile(new URL(path,root)),{headers:{'Content-Type':path.endsWith('.mp3')?'audio/mpeg':'application/octet-stream'}})}
