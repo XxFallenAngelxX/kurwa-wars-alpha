@@ -6,20 +6,23 @@ const kwMap55=[
 ['pfand',15,83,3,'Pfandimir',['Pfandspiel','Memory','Пары'],"go('Pfandspiel')",0,1],
 ['fleet',28,43,null,'',['Fuhrpark','Motor pool','Автопарк'],"fleetOpen()",0,1],
 ['mopo',39,98,0,'Mopowitsch',['Aufträge','Quests','Задания'],"go('Missionen')",0,1],
-['upgrade',33,75,null,'',['Garage-Ausbau','Upgrades','Улучшения'],"go('Ausbau')",0,1],
+['upgrade',33,75,null,'',['Garage-Ausbau','Upgrades','Улучшения'],"go('Ausbau')",kwFeatureLevel('Ausbau'),1],
 ['babu',44,72,2,'Babuschka',['Tresen','Bar','Бар'],"go('Kiosk')",0,1],
-['toilet',42,28,null,'',['Toilette','Toilet','Туалет'],"go('Opferraum')",10,1],
-['hq',52,31,null,'',['OROKAI · HQ','OROKAI · HQ','OROKAI · HQ'],"go('Hauptquartier')",0,1],
+['toilet',42,28,null,'',['Toilette','Toilet','Туалет'],"go('Opferraum')",kwFeatureLevel('Opferraum'),1],
+['hq',52,31,null,'',['OROKAI · HQ','OROKAI · HQ','OROKAI · HQ'],"go('Hauptquartier')",kwFeatureLevel('Hauptquartier'),1],
 ['warehouse',66,52,null,'',['Lager','Warehouse','Склад'],"go('Lagerhalle')",0,1],
 ['story',59,49,null,'',['Story-Verliese','Story dungeons','Подземелья'],"worldDungeon('story')",0,1],
-['arena',55,70,null,'',['Arena','Arena','Арена'],"go('Arena')",0,1],
-['tower',85,80,null,'',['Ewige Spalte des Abgrunds','Eternal Abyssal Rift','Вечный разлом бездны'],"worldDungeon('tower')",0,1],
-['event',63.5,86,null,'',['Abwasser-Marathon','Sewer marathon','Канализационный марафон'],"worldDungeon('event')",0,1],
+['arena',55,70,null,'',['Arena','Arena','Арена'],"go('Arena')",kwFeatureLevel('Arena'),1],
+['tower',85,80,null,'',['Ewige Spalte des Abgrunds','Eternal Abyssal Rift','Вечный разлом бездны'],"worldDungeon('tower')",kwFeatureLevel('tower'),1],
+['event',63.5,86,null,'',['Abwasser-Marathon','Sewer marathon','Канализационный марафон'],"worldDungeon('event')",kwFeatureLevel('event'),1],
 ['shift',70,67,null,'',['Nachtdienst','Night shift','Ночная смена'],"go('Nachtdienst')",0,1],
-['fairy',75,41,null,'',['Diskothek','Disco','Дискотека'],"worldDungeon('fairy')",50,1],
+['fairy',75,41,null,'',['Diskothek','Disco','Дискотека'],"worldDungeon('fairy')",kwFeatureLevel('fairy'),1],
 ['gang',85,44,null,'',['Gildenhalle','Gang hall','Зал банды'],"worldFuture('gang')",Infinity,1],
-['gems',37,38,null,'',['Edelsteinwerkbank','Gem workbench','Верстак самоцветов'],"go('Edelsteinwerkbank')",20,1],
-['mine',95,54,null,'',['Kristallmine','Crystal mine','Шахта'],"worldFuture('mine')",Infinity,1]
+['gems',37,38,null,'',['Edelsteinwerkbank','Gem workbench','Верстак самоцветов'],"go('Edelsteinwerkbank')",kwFeatureLevel('Edelsteinwerkbank'),1],
+['mine',95,54,null,'',['Kristallmine','Crystal mine','Шахта'],"go('Kristallmine')",kwFeatureLevel('Kristallmine'),1],
+['board',18,47,null,'',['Schwarzes Brett','Notice board','Доска заданий'],"go('SchwarzesBrett')",kwFeatureLevel('SchwarzesBrett'),1],
+['scrapyard',48,12,null,'',['Schrottsuche','Scrap hunting','Поиск металлолома'],"go('Schrottplatz')",kwFeatureLevel('Schrottplatz'),1],
+['market',90,19,null,'',['Schwarzmarkt','Black market','Чёрный рынок'],"go('Schwarzmarkt')",kwFeatureLevel('Schwarzmarkt'),1]
 ];
 let kwEdit55=false,kwSelected55='miau';
 function kwLayoutDefaults55(){return Object.fromEntries(kwMap55.map(r=>[r[0],{x:r[1],y:r[2],scale:r[8],z:r[3]===null?3:4}]))}
@@ -29,7 +32,7 @@ const kwPublishedLayout55=kwLayoutClean55(parent.KW_WORLD_LAYOUT55);
 let kwLayout55=gmAllowed()?kwLayoutClean55(profileRead(kwLayoutStoreKey55()),kwPublishedLayout55):kwPublishedLayout55;
 function kwCanEdit55(){return gmAllowed()}
 function kwMapToggle55(){if(!kwCanEdit55())return false;kwEdit55=!kwEdit55;go('Garage');return true}
-function kwMapMarkup55(r){const [id,,,npc,name,labels,action,level]=r,L=hubLabel,p=kwLayout55[id],edit=kwEdit55&&kwCanEdit55();if(!edit&&(s.level<level||(id==='story'&&!kwVisibleDungeons55().length)))return '';const label=L(...labels);let html=npc===null?world45Spot(p.x,p.y,label,action):world45Npc(p.x,p.y,npc,name,label,action);const scale=npc===null?'transform:translate(-50%,-50%) scale('+p.scale+');':'width:'+((npc===0?7:8)*p.scale)+'%;height:'+((npc===0?18:29)*p.scale)+'%;max-width:none;';return html.replace('<button ','<button data-map-id="'+id+'" ').replace('style="','style="'+scale+'z-index:'+p.z+';').replace('class="','class="'+(edit&&id===kwSelected55?'kw55MapSelected ':'')+(edit&&s.level<level?'kw55MapLocked ':'') )}
+function kwMapMarkup55(r){const [id,,,npc,name,labels,action,level]=r,L=hubLabel,p=kwLayout55[id],edit=kwEdit55&&kwCanEdit55();if(!edit&&level===Infinity)return '';const locked=s.level<level,label=L(...labels)+(locked&&Number.isFinite(level)?' · Lv '+level:'');const target=locked&&!edit?'kwGate54('+level+')':action;let html=npc===null?world45Spot(p.x,p.y,label,target,locked):world45Npc(p.x,p.y,npc,name,label,target);const scale=npc===null?'transform:translate(-50%,-50%) scale('+p.scale+');':'width:'+((npc===0?7:8)*p.scale)+'%;height:'+((npc===0?18:29)*p.scale)+'%;max-width:none;';return html.replace('<button ','<button data-map-id="'+id+'" ').replace('style="','style="'+scale+'z-index:'+p.z+';').replace('class="','class="'+(edit&&id===kwSelected55?'kw55MapSelected ':'')+(locked?'kw55MapLocked ':'') )}
 garageView=function(){const L=hubLabel,edit=kwEdit55&&kwCanEdit55();return (kwCanEdit55()?'<button class="kw55EditToggle" onclick="kwMapToggle55()">'+(edit?L('Placement-Editor schließen','Close placement editor','Закрыть редактор'):L('Placement-Editor öffnen','Open placement editor','Открыть редактор'))+'</button>':'')+'<div class="worldViewport grow '+(edit?'kw55Editing':'')+'" aria-label="'+L('Spielwelt','World','Мир')+'"><div class="world45Strip" style="background-image:url(\''+WORLD45_ART+'\')">'+kwMap55.map(kwMapMarkup55).join('')+'</div></div><div class="worldHint">'+(edit?L('Objekt ziehen · Größe und Ebene im Editor','Drag objects · adjust size and layer in editor','Перетаскивай объекты · размер и слой в редакторе'):L('Wischen oder ziehen zum Erkunden','Swipe or drag to explore','Листай или перетаскивай карту'))+'</div>'};
 window.__layout55=function(cmd,id,values){if(!kwCanEdit55()||!kwEdit55||page!=='Garage')return false;if(cmd==='select'&&kwLayout55[id])kwSelected55=id;else if(cmd==='update'&&kwLayout55[id]){kwSelected55=id;kwLayout55=kwLayoutClean55({...kwLayout55,[id]:{...kwLayout55[id],...values}});profileWrite(kwLayoutStoreKey55(),kwLayout55)}else if(cmd==='import'){if(!values||typeof values!=='object'||Array.isArray(values)||!Object.keys(values).some(k=>kwLayout55[k]))return false;kwLayout55=kwLayoutClean55(values);profileWrite(kwLayoutStoreKey55(),kwLayout55)}else if(cmd==='reset'){kwLayout55=kwLayoutClean55(parent.KW_WORLD_LAYOUT55);profileWrite(kwLayoutStoreKey55(),kwLayout55)}else return false;render();return true};
 const kwGM55=gmView;gmView=function(){return kwGM55()+(kwCanEdit55()?'<button class="primary" onclick="kwMapToggle55()">'+hubLabel('Welt-Placement bearbeiten','Edit world placement','Редактор мира')+'</button>':'')};
@@ -68,7 +71,7 @@ function kwTourMeta55(){
  if(n===8&&page==='Garage'){kwTourSet55(9);n=9}
  if(n===10&&page==='Missionen'){kwTourSet55(11);n=11}
  if(n===16&&page==='Held'){kwTourSet55(17);n=17}
- if(n===20&&page==='Ausbau'){kwTourSet55(21);n=21}
+ if(n>=19&&n<=23&&!kwFeatureAllowed('Ausbau')){kwTourSet55(99);return null;}if(n===20&&page==='Ausbau'){kwTourSet55(21);n=21}
  const rows={
  1:['Held','#res','Deine Ressourcen','Your resources','Твои ресурсы','Hier siehst du Cash und Kristalle. Cash bezahlt Training, Gegenstände und Ausbauten. Kristalle sind eine separate Spielwährung.','Cash pays for training, items and upgrades. Crystals are a separate currency.','Деньги нужны для обучения, вещей и улучшений. Кристаллы — отдельная валюта.'],
  2:['Held','.hero','Deine Ausrüstung','Your equipment','Твоя экипировка','Die sechs Plätze um deinen Charakter sind seine ausgerüsteten Gegenstände. Die XP-Leiste zeigt den Fortschritt zum nächsten Level.','The six slots around your hero contain equipped items. The XP bar tracks the next level.','Шесть ячеек вокруг героя — экипировка. Полоса опыта ведёт к следующему уровню.'],
@@ -107,7 +110,7 @@ function kwTourMeta55(){
 }
 window.__tour55=function(cmd){if(onboard52||gmAllowed())return false;const m=kwTourMeta55();if(!m)return false;const n=m.n;if(cmd==='exit'){kwTourSet55(99);if(n===0)closeItem();return true}if(cmd==='close'&&m.closeModal){closeItem();return true}if(cmd==='route'&&m.route&&!battle?.running){go(m.route);return true}if(cmd==='next'&&!m.next||cmd==='skip'&&!m.skipStep)return false;if(!['next','skip'].includes(cmd))return false;if(n===0){kwTourReplay55();return true}if(n===23){kwTourSet55(99);closeItem();return true}if([4,7,18,22].includes(n))closeItem();kwTourSet55(n+1);return true};
 const kwAct55=window.__act;window.__act=function(token,value,confirmed){const action=window.__controls?.get(token)?.action||'',n=s.tutorial55,result=kwAct55(token,value,confirmed);if(!result.ok||s.tutorial55!==n)return result;const modal=!$('modal').hidden;let advance=(n===3&&action.startsWith('showItem(')&&modal)||(n===8&&page==='Garage')||(n===10&&page==='Missionen')||(n===12&&!!s.travel)||(n===13&&!!battle)||(n===15&&action==='leave()')||(n===16&&page==='Held')||(n===17&&action.startsWith('showItem(')&&modal)||(n===19&&page==='Garage')||(n===20&&page==='Ausbau')||(n===21&&action.startsWith('roomDetail(')&&modal)||(n===22&&action.startsWith('upgradeRoom(')&&!!s.roomJob);if(advance)kwTourSet55(n+1);return result};
-const kwRender55=render;render=function(){if(page==='Dungeons'){dungeonPage=clamp(dungeonPage,0,Math.max(0,Math.ceil(kwVisibleDungeons55().length/5)-1));if(dungeonMode==='fairy'&&s.level<50)dungeonMode='story';}kwRender55();if(onboard52||battle?.running)return;if(page==='Mehr')$('screen').querySelector('.settings51Group h3')?.parentElement.insertAdjacentHTML('beforeend','<button onclick="kwGuide54()"><span>'+hubLabel('Spielguide & Rundtour','Game guide & tour','Гайд и экскурсия')+'</span><span>›</span></button>');if(!kwCanEdit55())kwEdit55=false};
+const kwRender55=render;render=function(){if(page==='Dungeons'){dungeonPage=clamp(dungeonPage,0,Math.max(0,Math.ceil(kwVisibleDungeons55().length/5)-1));if(!kwFeatureAllowed(dungeonMode))dungeonMode='story';}kwRender55();if(onboard52||battle?.running)return;if(page==='Mehr')$('screen').querySelector('.settings51Group h3')?.parentElement.insertAdjacentHTML('beforeend','<button onclick="kwGuide54()"><span>'+hubLabel('Spielguide & Rundtour','Game guide & tour','Гайд и экскурсия')+'</span><span>›</span></button>');if(!kwCanEdit55())kwEdit55=false};
 const kwSnapshot55=window.__snapshot;window.__snapshot=function(drain=true){const x=kwSnapshot55(drain);x.tour55=kwTourMeta55();x.editor55=kwEdit55&&kwCanEdit55()&&page==='Garage'?{selected:kwSelected55,layout:kwLayout55,items:kwMap55.map(r=>({id:r[0],name:r[4]||hubLabel(...r[5])}))}:null;return x};
 const kwCss55=document.createElement('style');kwCss55.textContent='.kw55Guide{max-height:88%;overflow:auto;gap:10px;text-align:left}.kw55GuideHead{display:flex;align-items:center;gap:8px;flex-shrink:0}.kw55GuideHead h3{flex:1;margin:0}.kw55GuideIntro{display:grid;gap:9px;padding:10px;background:#302431;border-radius:8px}.kw55GuideTile{display:flex!important;align-items:center;justify-content:space-between;gap:12px;min-height:45px;text-align:left;flex-shrink:0}.kw55GuideArticle{padding:10px;line-height:1.5}.kw55GuideArticle h4{margin:12px 0 4px}.kw55Editing [data-map-id]{touch-action:none!important;cursor:move!important;outline:1px dashed #ffd37a}.kw55Editing .kw55MapSelected{outline:3px solid #ffe397!important}.kw55MapLocked{opacity:.55}.kw55EditToggle{flex-shrink:0}';document.head.append(kwCss55);
 

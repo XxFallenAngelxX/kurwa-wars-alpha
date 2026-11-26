@@ -39,6 +39,7 @@
     "src/engine/features/02-chat-dialogue.js",
     "src/engine/features/03-special-loot.js",
     "src/engine/features/04-interface-updates.js",
+    "src/engine/features/08-activities.js",
     "src/engine/features/05-onboarding.js",
     "src/engine/features/06-placement-tutorial-runtime.js",
     "src/engine/features/07-achievements.js"

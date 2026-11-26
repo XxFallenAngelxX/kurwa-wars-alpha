@@ -1,3 +1,8 @@
+// Central character-level gates; vehicle contracts deliberately remain currency-only.
+const KW_FEATURE_LEVELS=Object.freeze({Ausbau:3,Arena:5,SchwarzesBrett:5,Schrottplatz:7,Opferraum:10,Hauptquartier:12,Expedition:15,Edelsteinwerkbank:20,tower:25,Kristallmine:30,event:35,Schwarzmarkt:40,fairy:50});
+function kwFeatureLevel(id){return Object.hasOwn(KW_FEATURE_LEVELS,id)?KW_FEATURE_LEVELS[id]:1}
+function kwFeatureAllowed(id,level=s.level){return level>=kwFeatureLevel(id)}
+function kwCombatFeature(mode){return mode==='arena'?'Arena':mode==='expedition'?'Expedition':['tower','event','fairy'].includes(mode)?mode:null}
 // All upgrades are unlimited; each has a small, diminishing marginal benefit.
 
 let serverSyncMessage='Lokal';function serverSave(){return false}function serverFlush(){return false}function serverPortal(){}

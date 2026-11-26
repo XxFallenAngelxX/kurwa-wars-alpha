@@ -1,8 +1,8 @@
 /* v0.54: profile-scoped onboarding and level gates. */
 function kwLock54(n){return hubLabel('Ab Level ','Level ','С уровня ')+n}
 function kwGate54(n){$('modal').hidden=false;$('modal').innerHTML='<div class="sheet" role="dialog" aria-modal="true"><h3>'+kwLock54(n)+'</h3><p>'+hubLabel('Dieser Bereich wird automatisch freigeschaltet, sobald du das erforderliche Charakterlevel erreichst.','This feature unlocks automatically when your character reaches the required level.','Эта функция откроется автоматически при достижении нужного уровня персонажа.')+'</p><button onclick="closeItem()">'+hubLabel('Schließen','Close','Закрыть')+'</button></div>'}
-const kwGo54=go;go=function(t){if(onboard52||battle?.running)return kwGo54(t);const n=t==='Opferraum'?10:t==='Edelsteinwerkbank'?20:0;if(s.level<n){kwGate54(n);return}return kwGo54(t)};
-const kwRoom54=roomDetail;roomDetail=function(i){const n=i===9?10:i===12?20:0;if(s.level<n){kwGate54(n);return}return kwRoom54(i)};
+const kwGo54=go;go=function(t){if(onboard52||battle?.running)return kwGo54(t);const n=kwFeatureLevel(t);if(s.level<n){kwGate54(n);return}return kwGo54(t)};
+const kwRoom54=roomDetail;roomDetail=function(i){const n=Math.max(kwFeatureLevel('Ausbau'),i===9?kwFeatureLevel('Opferraum'):i===12?kwFeatureLevel('Edelsteinwerkbank'):1);if(s.level<n){kwGate54(n);return}return kwRoom54(i)};
 function kwGuideRows54(){return [
 ['Held','Held & Rucksack','Hero & backpack','Герой и рюкзак','Rüste bessere Gegenstände aus, steigere Attribute mit Cash und verwalte Beute im Rucksack.','Equip better gear, train attributes with cash and manage loot.','Экипируй предметы, повышай характеристики за деньги и управляй добычей.'],
 ['Garage','Spielwelt','World','Мир','Wische oder ziehe die Weltkarte, um Orte und NPCs zu finden.','Swipe or drag the world map to find locations and NPCs.','Листай или перетаскивай карту, чтобы найти места и NPC.'],
