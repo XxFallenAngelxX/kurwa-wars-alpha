@@ -1,6 +1,8 @@
 #app { grid-template-rows: 58px minmax(0,1fr) 38px 61px; }
 #app>header { position:relative; }
 .gameVersion { position:absolute; left:76px; bottom:5px; color:#d2b899; font-size:10px; font-weight:700; pointer-events:none; }
+.heroName { display:none; }
+.stat .statValue { min-width:0; max-width:none; min-height:24px; padding:1px 4px; border:0; background:transparent; box-shadow:none; color:#fff4d8; text-align:right; font-weight:800; text-decoration:underline dotted #b69a72; text-underline-offset:3px; }
 @media(min-width:800px){ .gameVersion { left:108px; } }
 .worldHint,.sceneHint { display:none!important; }
 .kwChatFilters { grid-template-columns:repeat(3,minmax(0,1fr)); }
@@ -10,17 +12,40 @@
 #app .baggrid .slot { width:100%; height:auto; aspect-ratio:1; }
 #app .gearpair .slot { flex:none; width:auto; height:calc(100% - 13px); max-width:100%; aspect-ratio:1; }
 @media(max-width:799px){
- #app main:has(>.hero) { overflow-y:auto; padding-bottom:38px; }
- #app main:has(>.hero)>.hero { order:1; flex:none; height:246px; grid-template-columns:64px minmax(0,1fr) 64px; }
+ #app main:has(>.hero) { overflow:hidden; padding:4px 6px; gap:3px; }
+ #app main:has(>.hero)>h2 { display:none; }
+ #app main:has(>.hero)>.hero { order:1; flex:none; height:clamp(125px,23dvh,200px); grid-template-columns:58px minmax(0,1fr) 58px; }
  #app main:has(>.hero)>.badgeStrip { order:2; }
  #app main:has(>.hero)>.stats { order:3; }
  #app main:has(>.hero)>.baghead { order:4; }
- #app main:has(>.hero)>.baggrid { order:5; flex:none; height:190px; }
- #app main:has(>.hero)>.toast { order:6; position:absolute; z-index:4; bottom:99px; left:8px; right:8px; background:#211923; }
- #app .hero .gearpair .slot { width:58px; height:58px; max-width:100%; }
- #app .hero .gearpair label { font-size:10px; line-height:12px; }
+ #app main:has(>.hero)>.baggrid { order:5; flex:1; min-height:0; overflow:hidden; grid-template-columns:repeat(6,minmax(0,min(76px,calc((100dvh - 460px)/3)))); }
+ #app .hero .gearpair .slot { width:auto; height:calc(100% - 12px); max-width:100%; }
+ #app .hero .gearpair label { font-size:9px; line-height:11px; }
+ #app .heroName { display:block; position:absolute; z-index:2; top:3px; left:4px; right:4px; color:#fff3d6; background:#1c1520bb; text-align:center; font-size:11px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; }
+ #app main:has(>.hero) .stats { padding:2px 4px; gap:1px 5px; }
+ #app main:has(>.hero) .stat { min-height:22px; }
+ #app main:has(>.hero) .stat button { min-height:21px; padding:0 2px; }
 }
-@media(max-width:799px) and (max-height:570px){ #app main:has(>.hero)>.toast { bottom:83px; } }
+.adventureBar { position:absolute; z-index:5; top:46px; left:120px; right:8px; width:auto; height:29px; margin:0; }
+ #app #screen>.toast { display:none; }
+ #app main:has(>.hero) { overflow:hidden; padding:4px 6px; gap:3px; }
+ #app main:has(>.hero)>h2 { display:none; }
+ #app main:has(>.hero)>.hero { order:1; flex:none; height:clamp(115px,21dvh,180px); grid-template-columns:58px minmax(0,1fr) 58px; }
+ #app main:has(>.hero)>.badgeStrip { order:2; }
+ #app main:has(>.hero)>.stats { order:3; }
+ #app main:has(>.hero)>.baghead { order:4; }
+ #app main:has(>.hero)>.baggrid { order:5; flex:1; min-height:0; overflow:hidden; grid-template-columns:repeat(6,minmax(0,min(76px,calc((100dvh - 500px)/3)))); }
+ #app main:has(>.hero)>.toast { display:none; }
+ #app .hero .gearpair .slot { width:auto; height:calc(100% - 12px); max-width:100%; }
+ #app .hero .gearpair label { font-size:9px; line-height:11px; }
+ #app main:has(>.hero) .stats { padding:2px 4px; gap:1px 5px; }
+ #app main:has(>.hero) .stat { min-height:22px; }
+ #app main:has(>.hero) .stat button { min-height:21px; padding:0 2px; }
+}
+@media(max-width:799px) and (max-height:570px){
+ #app { grid-template-rows:80px minmax(0,1fr) 0 49px; }
+ #app main:has(>.hero)>.baggrid { grid-template-columns:repeat(6,minmax(0,min(76px,calc((100dvh - 448px)/3)))); }
+}
 .adventureBar { position:relative; display:flex; align-items:center; justify-content:space-between; gap:8px; width:calc(100% - 16px); min-width:0; height:32px; margin:3px 8px; padding:4px 9px; overflow:hidden; border:1px solid #9c7549; border-radius:6px; background:#281e29; text-align:left; font-size:11px; }
 .adventureBarFill { position:absolute; inset:0 auto 0 0; width:0; background:linear-gradient(90deg,#624a27,#96702f); transition:width .4s linear; pointer-events:none; }
 .adventureBarTitle,.adventureBarState { position:relative; z-index:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -38,3 +63,19 @@
 #app .arena img.enemyProjectile { animation-direction:reverse; }
 @keyframes combatProjectile { 0% { transform:translateX(0) rotate(-35deg) scale(.7); opacity:0; } 20% { opacity:1; } 85% { opacity:1; } 100% { left:calc(75% - clamp(36px,8vw,64px) / 2); transform:rotate(260deg) scale(1.05); opacity:0; } }
 @media(prefers-reduced-motion:reduce){ .combatProjectile { animation:none; display:none; } .fightart.struck,.hit { animation:none; } }
+
+@media(max-width:799px){
+ #app { grid-template-rows:58px minmax(0,1fr) 0 61px; }
+ #app #nav { padding-right:calc(33.333% + 4px); }
+ #app>.adventureBar { position:absolute; z-index:3; bottom:max(5px,env(safe-area-inset-bottom)); top:auto; left:calc(66.666% + 2px); right:calc(16.666% + 2px); width:auto; height:50px; margin:0; padding:2px; display:flex; flex-direction:column; justify-content:center; gap:1px; text-align:center; font-size:9px; }
+ #app>.adventureBar.idle .adventureBarState,#app>.adventureBar:not(.idle) .adventureBarTitle { display:none; }
+ #app #screen>.toast:has(.kwChatButton) { position:absolute; z-index:3; bottom:max(5px,env(safe-area-inset-bottom)); left:calc(83.333% + 2px); right:4px; height:50px; min-height:0; }
+ #app .kwChatButton { height:100%; justify-content:center; text-align:center; font-size:10px; }
+ #app .kwChatButton span { display:none; }
+ #app .kwChatButton b { color:#fff1d4; }
+}
+@media(max-width:799px) and (max-height:570px){
+ #app { grid-template-rows:48px minmax(0,1fr) 0 49px; }
+ #app>.adventureBar,#app #screen>.toast:has(.kwChatButton) { height:40px; }
+ #app main:has(>.hero)>.baggrid { grid-template-columns:repeat(6,minmax(0,min(76px,calc((100dvh - 408px)/3)))); }
+}

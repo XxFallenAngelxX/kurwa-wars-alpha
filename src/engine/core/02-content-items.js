@@ -17,7 +17,7 @@ const ENDGAME_START=zones.length;
 zones.push(...ENDGAME_ZONES.map(z=>[z[0],z[3],z[4].map(b=>[b[3],b[0]])]));
 function storyBossLevel(i,k){return i<ENDGAME_START?zones[i][1]+k:[220,400,600,800][i-ENDGAME_START]+k*[20,30,35,50][i-ENDGAME_START];}
 
-const npcArt=["@@LOCAL:19f05957a7e44ca1c1bf.webp@@", "@@LOCAL:d83925a47041a5f90661.webp@@", "@@LOCAL:25bc9f6be0c65d3f2553.webp@@"],cashArt="@@LOCAL:765bd18d88277aeffb15.webp@@";const BAG_CAP=24; let key='kwars5'; const tabs=['Held','Garage','Dungeons','Nachtdienst'],navicons=['♟','⌂','☠','☾'];let roomPage=0,badgePage=0,shiftHours=2;let page='Held',ip=0,mp=0,dp=0,sel=null,battle=null,timer=null,msg='',offers=[],fast=false;const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const npcArt=["@@LOCAL:19f05957a7e44ca1c1bf.webp@@", "@@LOCAL:d83925a47041a5f90661.webp@@", "@@LOCAL:25bc9f6be0c65d3f2553.webp@@"],cashArt="@@LOCAL:765bd18d88277aeffb15.webp@@";const BAG_CAP=18; let key='kwars5'; const tabs=['Held','Garage','Dungeons','Nachtdienst'],navicons=['♟','⌂','☠','☾'];let roomPage=0,badgePage=0,shiftHours=2;let page='Held',ip=0,mp=0,dp=0,sel=null,battle=null,timer=null,msg='',offers=[],fast=false;const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
 function compact(n){if(!Number.isFinite(n))return '–';let a=Math.abs(n);if(a<10000)return fmt(n);let units=[[1e15,'Brd.'],[1e12,'Bio.'],[1e9,'Mrd.'],[1e6,'Mio.'],[1e3,'k']];if(a>=1e18)return n.toExponential(1);let [d,u]=units.find(q=>a>=q[0]);return (n/d).toLocaleString('de-DE',{maximumFractionDigits:1})+' '+u}
 function num(n){return `<span class="num" title="${fmt(n)}">${compact(n)}</span>`}
 function xpNeed(l=s.level){return Math.round(180+100*Math.pow(Math.max(1,l),1.38)*Math.pow(Math.max(1,l/20),-.08))}
