@@ -1,0 +1,5 @@
+const CACHE='kwars-web-v052-alpha1-'+self.registration.scope;
+const FILES=["./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./assets-1.js", "./assets-2.js", "./assets-3.js", "./assets-4.js"];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('kwars-web-')&&k.endsWith(self.registration.scope)&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;const path=new URL(e.request.url);if(!path.href.startsWith(self.registration.scope))return;if(e.request.mode==='navigate'){e.respondWith(caches.open(CACHE).then(c=>c.match('./index.html')).then(r=>r||fetch(e.request)));return;}e.respondWith(caches.open(CACHE).then(c=>c.match(e.request)).then(r=>r||fetch(e.request)));});
