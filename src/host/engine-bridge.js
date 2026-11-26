@@ -27,7 +27,7 @@ async function kwStartEngine(){
 }
 let kwReady=kwStartEngine();kwReady.catch(()=>{});
 window.localAudioStatus=()=>AudioGame.status();
-let kwStyles=false,kwMarkup='',kwEtag=0;window.kwSwitchProfile=()=>setTimeout(()=>{kwStyles=false;kwMarkup='';kwReady=kwStartEngine();kwReady.then(()=>send('/api/game/view')).catch(e=>{err(e.message);window.kwBoot?.fail(e.message)})},0);
+let kwStyles=false,kwMarkup='',kwEtag=0;window.kwRefreshAssets=()=>{kwStyles=false;};window.kwSwitchProfile=()=>setTimeout(()=>{kwStyles=false;kwMarkup='';kwReady=kwStartEngine();kwReady.then(()=>send('/api/game/view')).catch(e=>{err(e.message);window.kwBoot?.fail(e.message)})},0);
 async function localApi(path,data){
  const ready=kwReady;await ready;if(ready!==kwReady)throw Error('Profil wurde gewechselt.');
  const w=kwFrame.contentWindow;
