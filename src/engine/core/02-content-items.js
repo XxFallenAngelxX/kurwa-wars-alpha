@@ -46,7 +46,411 @@ function combatPct(n){return (n*100).toLocaleString(s.lang==='en'?'en-US':s.lang
 function affixValue(def,l,r,tier,roll){let factor=[0,1.2,1.08,.96,.84,.72][tier],budget=(l+2)*(1+r*.27)*[.92,.72,.63,.62,.51,.46][r],raw=budget*factor*roll*def[4];let cm=combatMods.find(m=>m[0]===def[2]);if(cm)return Math.round(cm[5]*(.40+.60*l/(l+35))*factor*roll*10000)/10000;if(def[2].startsWith('pct'))return Math.round(Math.min(.045,(.006+Math.sqrt(l)*.0018)*factor*roll)*10000)/10000;if(def[2]==='crit')return Math.round(Math.min(.035,raw)*10000)/10000;return Math.max(1,Math.round(raw))}
 function rollAffixTier(l){let best=l>=60?1:l>=35?2:l>=18?3:l>=8?4:5,tiers=Array.from({length:6-best},(_,i)=>best+i);let w=tiers.map((_,i)=>2**i),n=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){n-=w[i];if(n<0)return tiers[i]}return 5}
 function applyAffix(out,d,value){let k=d[2];if(k[0]==='v'){for(let j of k.slice(1))out.v[Number(j)]+=value}else out[k]=(out[k]||0)+value}
-function make(a,l,r){if(r===5&&!relicGate(l))r=4;let slot=catalog[a][1],p=Math.round((4+l*3)*(1+r*.55)*range(85,115)/100),base={v:[0,0,0,0,0],atk:slot===0?p*2:0,def:slot===1||slot===4?Math.max(1,Math.round(p*.65)):slot===5?Math.round(p*.3):0,hp:slot===2?p*4:slot===4?p*2:0,crit:slot===3?Math.min(.20,Math.round(p*.12)/100):0,pctAtk:0,pctDef:0,pctHp:0},out={...base,v:base.v.slice()},mods=[],count=[1,2,3,4,6,6][r],pre=0,suf=0,used=new Set();for(let j=0;j<count;j++){let pool=affixDefs.map((d,i)=>({d,i})).filter(({d,i})=>!used.has(i)&&(d[1]==='P'?pre<3:suf<3));if(!pool.length)break;let {d,i}=pick(pool),tier=rollAffixTier(l),roll=range(85,115)/100,value=affixValue(d,l,r,tier,roll);used.add(i);if(d[1]==='P')pre++;else suf++;applyAffix(out,d,value);mods.push({i,tier,roll,value});}let relic=null;if(r===5){let gate=relicGate(l),all=gate>=50&&Math.random()<.28,indices=all?[0,1,2,3,4]:pick([[0,3,4],[1,3,4],[2,3,4]]),value=Math.round((gate*4+20)*range(90,110)/100*(all?.70:1));relic={gate,indices,value,all};for(let k of indices){base.v[k]+=value;out.v[k]+=value}}return {id:uid(),a,l,r,p,slot,relic,epithet:r>=2?pick(['','TÜV Edition','Sondermodell','Pfand Deluxe','Garagenfund','Sonderprüfung','Oma Approved','Amtlich fragwürdig','Nachtschicht-Edition']):'',...out,implicit:base,mods}}
+// Cosmetic variants: German title is the stable save key; all three languages share one row.
+const ITEM_TITLE_VARIANTS=[
+ [
+  "Kellerzertifikat",
+  "Basement Certified",
+  "Подвальный сертификат",
+  "Im Keller geprüft. Der Prüfer war eine Spinne.",
+  "Tested in the basement. The inspector was a spider.",
+  "Проверено в подвале. Инспектором был паук."
+ ],
+ [
+  "Pfandadel",
+  "Deposit Nobility",
+  "Тарная знать",
+  "Der Stammbaum beginnt am Flaschenautomaten.",
+  "Its family tree begins at the bottle return machine.",
+  "Родословная начинается у таромата."
+ ],
+ [
+  "Montagsproduktion",
+  "Monday Production",
+  "Понедельничная сборка",
+  "Die Qualitätskontrolle hatte noch keinen Kaffee.",
+  "Quality control hadn't had its coffee yet.",
+  "Отдел контроля качества ещё не выпил кофе."
+ ],
+ [
+  "Kofferraumklassiker",
+  "Trunk Classic",
+  "Классика багажника",
+  "Die Originalverpackung war ein Kofferraum.",
+  "The original packaging was a car trunk.",
+  "Оригинальной упаковкой был багажник."
+ ],
+ [
+  "Bürokratenwahl",
+  "Bureaucrat's Choice",
+  "Выбор бюрократа",
+  "Drei Formulare bestätigen, dass ein viertes fehlt.",
+  "Three forms confirm that a fourth is missing.",
+  "Три бланка подтверждают отсутствие четвёртого."
+ ],
+ [
+  "Gulasch-Garantie",
+  "Goulash Warranty",
+  "Гарантия гуляша",
+  "Die Garantie gilt bis zum nächsten Mittagessen.",
+  "The warranty lasts until the next lunch.",
+  "Гарантия действует до следующего обеда."
+ ],
+ [
+  "Klebeband-Spezial",
+  "Duct Tape Special",
+  "Особая изолента",
+  "Die Konstruktion vertraut auf Klebeband und Optimismus.",
+  "The construction relies on duct tape and optimism.",
+  "Конструкция держится на изоленте и оптимизме."
+ ],
+ [
+  "Restposten Royal",
+  "Clearance Royal",
+  "Королевский остаток",
+  "Der letzte Artikel im Regal verlangte einen Thron.",
+  "The last item on the shelf demanded a throne.",
+  "Последний товар на полке потребовал трон."
+ ],
+ [
+  "Hinterhof-Handarbeit",
+  "Backyard Handmade",
+  "Дворовая ручная работа",
+  "Von Hand gefertigt, vermutlich mit geschlossenen Augen.",
+  "Made by hand, presumably with eyes closed.",
+  "Сделано вручную, предположительно с закрытыми глазами."
+ ],
+ [
+  "Schrauberkönig",
+  "Mechanic Royal",
+  "Король ремонтников",
+  "Eine fehlende Schraube gilt als Gewichtsoptimierung.",
+  "A missing screw counts as weight optimization.",
+  "Недостающий винт считается оптимизацией веса."
+ ],
+ [
+  "Kiosk-Legende",
+  "Kiosk Legend",
+  "Легенда киоска",
+  "Am Kiosk kennt man die Geschichte, aber niemand glaubt sie.",
+  "Everyone at the kiosk knows the story, but nobody believes it.",
+  "В киоске все знают эту историю, но никто не верит."
+ ],
+ [
+  "Mietshaus-Mythos",
+  "Apartment Block Myth",
+  "Миф многоэтажки",
+  "Die Hausverwaltung bestreitet jede Beteiligung.",
+  "Building management denies any involvement.",
+  "Управляющая компания отрицает свою причастность."
+ ],
+ [
+  "Rost-Romantik",
+  "Rust Romance",
+  "Романтика ржавчины",
+  "Die Patina hat inzwischen eigene Patina.",
+  "The patina has developed patina of its own.",
+  "У патины уже появилась собственная патина."
+ ],
+ [
+  "Kantinen-Kollektion",
+  "Canteen Collection",
+  "Столовая коллекция",
+  "Der Speiseplan diente als Konstruktionszeichnung.",
+  "The lunch menu served as the blueprint.",
+  "Чертежом послужило меню столовой."
+ ],
+ [
+  "Feierabend-Fund",
+  "Clock-Out Find",
+  "Находка после смены",
+  "Aufgetaucht genau eine Minute vor Schichtende.",
+  "Appeared exactly one minute before the shift ended.",
+  "Появилось ровно за минуту до конца смены."
+ ],
+ [
+  "Quittungsquantum",
+  "Receipt Quantum",
+  "Квант чека",
+  "Der Kassenbon existiert und existiert nicht zugleich.",
+  "The receipt both exists and does not exist.",
+  "Чек одновременно существует и не существует."
+ ],
+ [
+  "Schwarztee-Siegel",
+  "Black Tea Seal",
+  "Печать чёрного чая",
+  "Abgenommen bei einer sehr langen Teepause.",
+  "Approved during a very long tea break.",
+  "Принято во время очень долгого чаепития."
+ ],
+ [
+  "Gurkenprotokoll",
+  "Pickle Protocol",
+  "Огуречный протокол",
+  "Die Prüfkommission bestand aus einem Einmachglas.",
+  "The inspection committee consisted of a pickle jar.",
+  "Приёмочная комиссия состояла из банки огурцов."
+ ],
+ [
+  "Verkehrsamt-Veteran",
+  "Traffic Office Veteran",
+  "Ветеран автоинспекции",
+  "Hat schon fünf Nummernsysteme überlebt.",
+  "Has survived five ticketing systems.",
+  "Пережило пять систем электронной очереди."
+ ],
+ [
+  "Werkbank-Wunder",
+  "Workbench Wonder",
+  "Чудо верстака",
+  "Die Anleitung sagt ausdrücklich: Nicht nachfragen.",
+  "The manual explicitly says not to ask questions.",
+  "В инструкции прямо сказано не задавать вопросов."
+ ],
+ [
+  "Socken-Syndikat",
+  "Sock Syndicate",
+  "Носочный синдикат",
+  "Die linke Socke verweigert jede Aussage.",
+  "The left sock refuses to comment.",
+  "Левый носок отказывается от комментариев."
+ ],
+ [
+  "Treppenhaus-Trophäe",
+  "Stairwell Trophy",
+  "Трофей подъезда",
+  "Seit Jahren ungeklärter Sieger der Hausordnung.",
+  "The undisputed champion of house rules for years.",
+  "Многолетний непобедимый чемпион правил общежития."
+ ],
+ [
+  "Rabatt-Ritter",
+  "Discount Knight",
+  "Рыцарь скидок",
+  "Ritterlich im Preis, fragwürdig in der Verarbeitung.",
+  "Noble in price, questionable in workmanship.",
+  "Благородная цена, сомнительное качество сборки."
+ ],
+ [
+  "Sperrmüll-Sensation",
+  "Curbside Sensation",
+  "Сенсация крупногабаритного мусора",
+  "Sogar der Sperrmüllkalender führte es als Sonderfall.",
+  "Even the bulk waste schedule listed it as a special case.",
+  "Даже график вывоза крупного мусора отметил это как особый случай."
+ ],
+ [
+  "Kassensturz-Kult",
+  "Cash Count Cult",
+  "Культ пересчёта кассы",
+  "Der Kassenbestand stimmt nur bei geschlossenen Augen.",
+  "The cash drawer balances only with eyes closed.",
+  "Касса сходится только с закрытыми глазами."
+ ],
+ [
+  "Zollstock-Zepter",
+  "Folding Ruler Sceptre",
+  "Скипетр складного метра",
+  "Gemessen wurde nach Gefühl, nicht nach Skala.",
+  "Measurements were based on instinct, not the scale.",
+  "Измеряли на глаз, а не по шкале."
+ ],
+ [
+  "Warteschlangen-Ware",
+  "Queue Collection",
+  "Коллекция очередей",
+  "Die Herstellung dauerte kürzer als das Anstehen.",
+  "Production took less time than standing in line.",
+  "Изготовление заняло меньше времени, чем очередь."
+ ],
+ [
+  "Neon-Nostalgie",
+  "Neon Nostalgia",
+  "Неоновая ностальгия",
+  "Erinnert an ein flackerndes Schild vor dem Discounter.",
+  "Reminiscent of a flickering discount store sign.",
+  "Напоминает мигающую вывеску у дискаунтера."
+ ],
+ [
+  "Balkon-Basar",
+  "Balcony Bazaar",
+  "Балконный базар",
+  "Drei Nachbarn haben unterschiedliche Kaufpreise genannt.",
+  "Three neighbors quoted different purchase prices.",
+  "Трое соседей назвали разные цены покупки."
+ ],
+ [
+  "Fundbüro-Finale",
+  "Lost Property Finale",
+  "Финал бюро находок",
+  "Niemand wollte es abholen, also wurde es zur Legende.",
+  "Nobody claimed it, so it became a legend.",
+  "Никто не забрал находку, и она стала легендой."
+ ],
+ [
+  "Pausenbrot-Premium",
+  "Lunchbox Premium",
+  "Премиум обеденного бутерброда",
+  "Die Abnahme erfolgte zwischen zwei belegten Broten.",
+  "Approved between two sandwiches.",
+  "Принято между двумя бутербродами."
+ ],
+ [
+  "Regenrinnen-Rarität",
+  "Gutter Rarity",
+  "Редкость водостока",
+  "Hat einen ganzen Sommer Regen überstanden.",
+  "Survived an entire summer of rain.",
+  "Пережило целое дождливое лето."
+ ],
+ [
+  "Haushaltsheld",
+  "Household Hero",
+  "Герой хозяйства",
+  "Laut Beipackzettel auch für schlechte Laune geeignet.",
+  "The instructions recommend it for bad moods too.",
+  "По инструкции подходит и для плохого настроения."
+ ],
+ [
+  "Fahrstuhl-Favorit",
+  "Elevator Favorite",
+  "Любимец лифта",
+  "Der Fahrstuhl steckte fest. Das Produkt blieb gelassen.",
+  "The elevator got stuck. The product stayed calm.",
+  "Лифт застрял. Изделие сохраняло спокойствие."
+ ],
+ [
+  "Stempel-Sensation",
+  "Stamp Sensation",
+  "Сенсация со штампом",
+  "Zwei Stempel sind echt. Der dritte ist dekorativ.",
+  "Two stamps are genuine. The third is decorative.",
+  "Две печати настоящие. Третья декоративная."
+ ],
+ [
+  "Schnäppchen-Samurai",
+  "Bargain Samurai",
+  "Самурай распродаж",
+  "Der Preis wurde im letzten Moment halbiert.",
+  "The price was halved at the last moment.",
+  "Цену снизили вдвое в последний момент."
+ ],
+ [
+  "Kabelsalat-Kult",
+  "Cable Tangle Cult",
+  "Культ спутанных проводов",
+  "Die Verkabelung wurde nie vollständig verstanden.",
+  "The wiring was never fully understood.",
+  "В проводке так никто до конца и не разобрался."
+ ],
+ [
+  "Asphalt-Andenken",
+  "Asphalt Souvenir",
+  "Асфальтовый сувенир",
+  "Ein Souvenir vom Parkplatz mit unklarer Herkunft.",
+  "A parking lot souvenir of uncertain origin.",
+  "Сувенир с парковки неизвестного происхождения."
+ ],
+ [
+  "Notizblock-Nobel",
+  "Notepad Noble",
+  "Благородный блокнот",
+  "Die technische Dokumentation passt auf einen Notizzettel.",
+  "The technical documentation fits on a sticky note.",
+  "Техническая документация помещается на стикере."
+ ],
+ [
+  "Mopowitsch-Muster",
+  "Mopovich Prototype",
+  "Прототип Моповича",
+  "Mopowitsch nickte einmal und erklärte das Projekt für fertig.",
+  "Mopovich nodded once and declared the project finished.",
+  "Мопович один раз кивнул и объявил проект завершённым."
+ ],
+ [
+  "Discounter-Dynastie",
+  "Discount Dynasty",
+  "Династия дискаунтера",
+  "Seit drei Generationen im selben Sonderangebotsregal.",
+  "Three generations on the same bargain shelf.",
+  "Три поколения на одной полке распродаж."
+ ],
+ [
+  "Pförtner-Prädikat",
+  "Gatekeeper's Seal",
+  "Знак привратника",
+  "Der Pförtner hat es gesehen und freiwillig durchgewunken.",
+  "The gatekeeper saw it and waved it through.",
+  "Привратник увидел это и добровольно пропустил."
+ ],
+ [
+  "Plattenbau-Prestige",
+  "Panel Block Prestige",
+  "Престиж панельного дома",
+  "Die Nachbarn halten es für moderne Kunst.",
+  "The neighbors consider it modern art.",
+  "Соседи считают это современным искусством."
+ ],
+ [
+  "Mopp-Manufaktur",
+  "Mop Workshop",
+  "Мануфактура швабр",
+  "Hergestellt zwischen Eimer und Putzplan.",
+  "Manufactured between a bucket and a cleaning schedule.",
+  "Изготовлено между ведром и графиком уборки."
+ ],
+ [
+  "Dosen-Diplomat",
+  "Tin Can Diplomat",
+  "Дипломат жестяных банок",
+  "Hat einen Streit zwischen zwei Konservendosen geschlichtet.",
+  "Settled a dispute between two tin cans.",
+  "Уладило спор между двумя консервными банками."
+ ],
+ [
+  "Thermos-Tradition",
+  "Thermos Tradition",
+  "Термосная традиция",
+  "Die Qualitätsprüfung endete mit lauwarmem Kaffee.",
+  "Quality testing ended with lukewarm coffee.",
+  "Проверка качества закончилась чуть тёплым кофе."
+ ],
+ [
+  "Lagerhallen-Luxus",
+  "Warehouse Luxury",
+  "Складская роскошь",
+  "Der Lagerist hat es absichtlich ganz hinten versteckt.",
+  "The warehouse keeper hid it at the back on purpose.",
+  "Кладовщик специально спрятал это в самом конце склада."
+ ],
+ [
+  "Schlüsselbund-Saga",
+  "Keyring Saga",
+  "Сага связки ключей",
+  "Niemand weiß, zu welcher Tür die Geschichte gehört.",
+  "Nobody knows which door the story belongs to.",
+  "Никто не знает, к какой двери относится эта история."
+ ],
+ [
+  "Endpreis-Exklusiv",
+  "Final Price Exclusive",
+  "Эксклюзив окончательной цены",
+  "Der Endpreis wurde dreimal neu verhandelt.",
+  "The final price was renegotiated three times.",
+  "Окончательную цену пересогласовали трижды."
+ ],
+ [
+  "Garagen-Orakel",
+  "Garage Oracle",
+  "Гаражный оракул",
+  "Die Prognose lautet: Morgen wird wieder geschraubt.",
+  "The prediction: more repairs tomorrow.",
+  "Прогноз: завтра снова ремонт."
+ ]
+];
+const ITEM_TITLE_VARIANT_MAP=new Map(ITEM_TITLE_VARIANTS.map(row=>[row[0],row]));
+function make(a,l,r){if(r===5&&!relicGate(l))r=4;let slot=catalog[a][1],p=Math.round((4+l*3)*(1+r*.55)*range(85,115)/100),base={v:[0,0,0,0,0],atk:slot===0?p*2:0,def:slot===1||slot===4?Math.max(1,Math.round(p*.65)):slot===5?Math.round(p*.3):0,hp:slot===2?p*4:slot===4?p*2:0,crit:slot===3?Math.min(.20,Math.round(p*.12)/100):0,pctAtk:0,pctDef:0,pctHp:0},out={...base,v:base.v.slice()},mods=[],count=[1,2,3,4,6,6][r],pre=0,suf=0,used=new Set();for(let j=0;j<count;j++){let pool=affixDefs.map((d,i)=>({d,i})).filter(({d,i})=>!used.has(i)&&(d[1]==='P'?pre<3:suf<3));if(!pool.length)break;let {d,i}=pick(pool),tier=rollAffixTier(l),roll=range(85,115)/100,value=affixValue(d,l,r,tier,roll);used.add(i);if(d[1]==='P')pre++;else suf++;applyAffix(out,d,value);mods.push({i,tier,roll,value});}let relic=null;if(r===5){let gate=relicGate(l),all=gate>=50&&Math.random()<.28,indices=all?[0,1,2,3,4]:pick([[0,3,4],[1,3,4],[2,3,4]]),value=Math.round((gate*4+20)*range(90,110)/100*(all?.70:1));relic={gate,indices,value,all};for(let k of indices){base.v[k]+=value;out.v[k]+=value}}return {id:uid(),a,l,r,p,slot,relic,epithet:r>=2?pick(['','TÜV Edition','Sondermodell','Pfand Deluxe','Garagenfund','Sonderprüfung','Oma Approved','Amtlich fragwürdig','Nachtschicht-Edition',...ITEM_TITLE_VARIANTS.map(row=>row[0])]):'',...out,implicit:base,mods}}
 
 const UNIQUE_BASE=catalog.length;const UNIQUE_BONUS_LABELS={pctAtk:["Schaden","damage","урона"],crit:["Kritbonus","crit bonus","бонуса крита"],pctHp:["Leben","health","здоровья"],pctDef:["Rüstung","armor","брони"]};
 function uniquePct(v,lang){let n=(v*100).toFixed(1);return (lang==='en'?n:n.replace('.',','))+' %';}

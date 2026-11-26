@@ -81,7 +81,7 @@
   for(const lang of ['en','ru'])for(const [k,v] of KW_REPLACE[lang])dict[lang].set(k.trim(),v.trim());
   for(const a of polishRows)add(...a);add("Wachhäuschen der selektiven Aufmerksamkeit","Watch booth of selective attention","Будка выборочного внимания");add("Edelsteinwerkbank","Gem workbench","Верстак самоцветов");add("Kürzere Fusionszeit","Shorter fusion time","Меньше времени слияния");
   contentNames.forEach((a,i)=>add(catalog[i][0],...a));
-  UNIQUES.forEach(u=>add(u[0],u[6],u[7]));REGULAR_EXTRA.forEach(r=>add(r[1],r[2],r[3]));
+  UNIQUES.forEach(u=>add(u[0],u[6],u[7]));REGULAR_EXTRA.forEach(r=>add(r[1],r[2],r[3]));ITEM_TITLE_VARIANTS.forEach(r=>add(r[0],r[1],r[2]));
   foeTranslations.forEach((a,i)=>add(foeTypes[i][0],...a));
   MEME_FOES.forEach(m=>add(m[0],m[1],m[2]));NEW_FOE_NAMES.forEach(n=>add(...n));KW47_FOES.forEach(n=>add(...n.slice(0,3)));RETRO_MEMES.forEach(r=>{add(...r[0]);r[3].forEach(n=>add(...n))});
   zones.flatMap(z=>z[2]).forEach((b,i)=>add(b[1],...(bossTranslations[i]||[])));
@@ -277,6 +277,8 @@ const SPECIAL_LORE={
   // No repeated rarity boilerplate: the illustration and item ID drive a stable joke.
   function loreHash(v){let h=2166136261;for(const ch of String(v)){h=Math.imul(h^ch.charCodeAt(0),16777619);}return h>>>0;}
   flavor=function(i){const extra=REGULAR_EXTRA[i.a-REGULAR_EXTRA_START];if(extra)return extra[s.lang==='en'?5:s.lang==='ru'?6:4];const lang=s.lang||'de',li=lang==='en'?2:lang==='ru'?4:0,k=i.unique??(isUniqueBase(i.a)?i.a-UNIQUE_BASE:undefined);if(k!==undefined&&UNIQUES[k])return uniqueFlavorText(k,lang);const row=SPECIAL_LORE[catalog[i.a]?.[0]]||ITEM_LORE[spriteMap[i.a]];if(!row)return catalog[i.a]?.[0]||'';return row[li+(loreHash(i.id??`${i.a}:${i.l}:${i.r}`)%2)];};
+  const baseVariantFlavor=flavor;
+  flavor=function(i){const base=baseVariantFlavor(i),variant=ITEM_TITLE_VARIANT_MAP.get(i?.epithet);if(!variant||i.unique!==undefined||isUniqueBase(i.a))return base;return base+' '+variant[s.lang==='en'?4:s.lang==='ru'?5:3];};
   window.kwContentDiagnostics=()=>({quests:KW_QUESTS.length,oldQuests:jobs.length,enemyCoverage:new Set(KW_QUESTS.map(q=>q.type)).size,enemyCount:foeTypes.length,loreFamilies:ITEM_LORE.length,ids:new Set(KW_QUESTS.map(q=>q.id)).size,assets:sprites.length});
 
 
