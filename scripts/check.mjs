@@ -9,7 +9,7 @@ for(const page of ['index.html','gm.html']){
  const html=read(page);
  for(const m of html.matchAll(/<script\b[^>]*\bsrc="\.\/([^"?]+)(?:\?[^"]*)?"[^>]*><\/script>/g))paths.add(m[1]);
 }
-for(let i=1;i<=4;i++)paths.add('assets/packs/assets-'+i+'.js');
+for(let i=1;i<=5;i++)paths.add('assets/packs/assets-'+i+'.js');
 paths.add('assets/audio/host-audio.js');
 const assetKeys=new Set();
 for(const p of paths){

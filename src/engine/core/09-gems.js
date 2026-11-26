@@ -7,11 +7,12 @@ const GEM_FAMILIES=[
  {id:'topaz',stat:4,color:'#efbd4d',n:['Topas','Topaz','Топаз']}
 ];
 const GEM_CACHE=new Map();
-roomArt.push('data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><rect width="160" height="160" fill="#231b28"/><path d="M12 91h136v17H12zm8 17h17v44H20zm105 0h17v44h-17z" fill="#a76b37" stroke="#2a1415" stroke-width="4"/><path d="M25 85 42 42 61 84 42 95Z" fill="#dc535d" stroke="#ffcfab" stroke-width="2"/><path d="M63 88 83 23 104 88 83 97Z" fill="#a967e9" stroke="#efcfff" stroke-width="2"/><path d="M102 86 121 50 142 86 121 96Z" fill="#48c88e" stroke="#d2ffe3" stroke-width="2"/><path d="m42 42 0 53m41-72v74m38-47v46" stroke="#fff" stroke-opacity=".5"/><path d="M12 10h136v9H12z" fill="#69505a"/></svg>`));
+roomArt.push('@@LOCAL:kw_gem_workbench.webp@@');
 function gemId(f,t){return 'gem:'+f+':'+t}
 function gemData(k){if(typeof k!=='string')return null;let m=/^gem:([a-z]+):([1-9]\d*)$/.exec(k);if(!m)return null;let family=GEM_FAMILIES.find(f=>f.id===m[1]),tier=Number(m[2]);return family&&Number.isSafeInteger(tier)&&tier<=100?{family,tier}:null}
 function gemPower(t){return Math.round(6*Math.pow(t,1.8))}
-function gemArt(f){return 'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs><radialGradient id="bg"><stop stop-color="#423444"/><stop offset="1" stop-color="#17131b"/></radialGradient><linearGradient id="g" x2="1" y2="1"><stop stop-color="#fff6df"/><stop offset=".35" stop-color="${f.color}"/><stop offset="1" stop-color="#20162f"/></linearGradient></defs><rect width="96" height="96" rx="8" fill="url(#bg)"/><path d="M48 6 78 21 88 42 48 90 8 42 18 21Z" fill="url(#g)" stroke="#130f16" stroke-width="4"/><path d="M18 21 39 31 48 6 57 31 78 21 88 42 57 31 48 90 39 31 8 42 18 21M8 42 48 53 88 42M39 31 48 53 57 31" fill="none" stroke="#fff1dc" stroke-opacity=".52" stroke-width="1.8"/><path d="m22 26 6 6-6 6-6-6Z" fill="#fff"/></svg>`)}
+const GEM_ART=Object.freeze({"ruby":"@@LOCAL:kw_gem_ruby.webp@@","emerald":"@@LOCAL:kw_gem_emerald.webp@@","sapphire":"@@LOCAL:kw_gem_sapphire.webp@@","amethyst":"@@LOCAL:kw_gem_amethyst.webp@@","topaz":"@@LOCAL:kw_gem_topaz.webp@@"});
+function gemArt(f){return GEM_ART[f.id]??''}
 const baseMaterialDef=materialDef;
 materialDef=function(k){let g=gemData(k);if(!g)return baseMaterialDef(k);if(!GEM_CACHE.has(k)){let {family:f,tier:t}=g;GEM_CACHE.set(k,{id:k,art:gemArt(f),n:f.n.map((n,j)=>n+' · '+['Stufe','Tier','Уровень'][j]+' '+t),d:['Drei gleiche Steine ergeben einen besseren. Einmal eingesetzt, bleibt der Stein im Item.','Fuse three matching gems into a higher tier. Socketing is permanent.','Три одинаковых камня дают один лучшего уровня. Вставка необратима.']})}return GEM_CACHE.get(k)};
 const baseIsMaterial=isMaterial;isMaterial=function(i){return baseIsMaterial(i)||!!gemData(i?.material)};

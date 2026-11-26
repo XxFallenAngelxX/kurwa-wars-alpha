@@ -95,8 +95,20 @@ for path in PACKS:
             errors.append({"key": key, "error": str(exc)})
         images.append(row)
 
+for row in known:
+    asset_id = row["id"]
+    if asset_id.startswith("dungeon-key-"):
+        key = "kw_dungeon_key_" + asset_id.rsplit("-", 1)[1].zfill(2) + ".webp"
+    elif asset_id.startswith("gem:"):
+        key = "kw_gem_" + asset_id.split(":", 1)[1] + ".webp"
+    else:
+        key = "kw_gem_workbench.webp"
+    row["asset_key"] = key
+    row["resolved"] = key in registered and key in refs
+
 print(json.dumps({
-    "known_provisional_art": known,
+    "known_provisional_art": [r for r in known if not r["resolved"]],
+    "replaced_provisional_art": [r for r in known if r["resolved"]],
     "svg_source_locations": svg_sources,
     "missing_local_references": sorted(set(refs) - registered),
     "identical_image_groups": [v for v in duplicates.values() if len(v) > 1],

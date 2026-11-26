@@ -1,6 +1,6 @@
 // Mutable code is network-first. Immutable graphics keep their cache across releases.
 const root=new URL(self.registration.scope);
-const CACHE='kwars-web-modular-v0618-'+root.href;
+const CACHE='kwars-web-modular-v0619-art-'+root.href;
 const ASSETS='kwars-immutable-packs-'+root.href;
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
@@ -10,7 +10,7 @@ self.addEventListener('fetch',e=>{
  if(req.method!=='GET'||u.origin!==root.origin||!u.href.startsWith(root.href))return;
  const path=u.pathname.slice(root.pathname.length);
  const navigation=req.mode==='navigate'||path===''||path==='index.html'||path==='gm.html';
- const immutable=/^assets\/packs\/assets-[1-4]\.js$/.test(path)&&!!u.searchParams.get('v');
+ const immutable=/^assets\/packs\/assets-[1-5]\.js$/.test(path)&&!!u.searchParams.get('v');
  const force=req.cache==='reload'||req.cache==='no-store';
  const key=navigation?new URL(path==='gm.html'?'gm.html':'index.html',root).href:req.url;
  e.respondWith((async()=>{

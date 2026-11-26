@@ -2,7 +2,7 @@ import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
 import {resolve,dirname,basename} from 'node:path';
 import {root,read} from './engine-build.mjs';
 const mode=process.argv[2];if(!['unpack','pack'].includes(mode))throw Error('Use unpack or pack');
-const packFiles=Array.from({length:4},(_,i)=>'assets/packs/assets-'+(i+1)+'.js');
+const packFiles=Array.from({length:5},(_,i)=>'assets/packs/assets-'+(i+1)+'.js');
 const audioFile='assets/audio/host-audio.js';
 const manifestPath=resolve(root,'assets/raw/manifest.json');
 const decode=s=>{const m=s.match(/^data:([^;]+);base64,([A-Za-z0-9+/=]+)$/);if(!m)throw Error('Unsupported asset URI');return [m[1],m[2]]};
