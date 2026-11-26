@@ -106,5 +106,23 @@ window.KW_WORLD_LAYOUT55 = {
     "y": 54.79,
     "scale": 1,
     "z": 3
+  },
+  "board": {
+    "x": 18,
+    "y": 47,
+    "scale": 1,
+    "z": 3
+  },
+  "scrapyard": {
+    "x": 48,
+    "y": 12,
+    "scale": 1,
+    "z": 3
+  },
+  "market": {
+    "x": 90,
+    "y": 19,
+    "scale": 1,
+    "z": 3
   }
 };

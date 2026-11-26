@@ -8,6 +8,7 @@ assert.equal(read('generated/sw-version.js'),releaseVersion(),'Generated release
 const version=JSON.parse(read('package.json')).version;
 assert(read('src/engine/frame.html').includes('<span class="gameVersion">v'+version+'</span>'),'Header version differs from package.json');
 assert.equal(read('generated/engine-template.js'),generated(),'Generated engine is outdated; run npm run build');
+for(const name of ['container','electronics','expedition','mine','pickaxe','scrapyard']){const p='assets/activities/'+name+'.webp';assert(existsSync(resolve(root,p)),'Missing activity artwork: '+p);}
 const paths=new Set();
 const webManifest=JSON.parse(read('manifest.webmanifest'));
 for(const icon of webManifest.icons){
@@ -33,7 +34,7 @@ for(const p of paths){
 }
 for(const m of template().matchAll(/@@LOCAL:([^@]+)@@/g))assert(assetKeys.has(m[1]),'Missing asset: '+m[1]);
 const layout=JSON.parse(read('world-layout.js').match(/=\s*(\{[\s\S]*\})\s*;/)[1]);
-assert.equal(Object.keys(layout).length,18);
+assert.equal(Object.keys(layout).length,21);
 for(const [id,v] of Object.entries(layout)){assert(v.x>=1&&v.x<=99&&v.y>=1&&v.y<=99&&v.scale>=.4&&v.scale<=2.5&&Number.isInteger(v.z)&&v.z>=1&&v.z<=20,id)}
 new Script(read('sw.js'),{filename:'sw.js'});
-console.log('OK: engine assembly, JS syntax, entry points, '+assetKeys.size+' asset keys, 18 world positions');
+console.log('OK: engine assembly, JS syntax, entry points, '+assetKeys.size+' asset keys, 21 world positions');

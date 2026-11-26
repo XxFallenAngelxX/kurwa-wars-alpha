@@ -50,7 +50,7 @@ self.addEventListener('fetch',e=>{
  const path=u.pathname.slice(root.pathname.length);
  if(path.startsWith('assets/audio/')||req.headers.has('range'))return;
  const navigation=req.mode==='navigate'||path===''||path==='index.html'||path==='gm.html';
- const immutable=/^assets\/packs\/assets-[1-5]\.js$/.test(path)&&!!u.searchParams.get('v');
+ const immutable=(/^assets\/packs\/assets-[1-5]\.js$/.test(path)||/^assets\/activities\/[a-z]+\.webp$/.test(path))&&!!u.searchParams.get('v');
  const force=req.cache==='reload'||req.cache==='no-store';
  const key=navigation?new URL(path==='gm.html'?'gm.html':'index.html',root).href:req.url;
  e.respondWith((async()=>{
