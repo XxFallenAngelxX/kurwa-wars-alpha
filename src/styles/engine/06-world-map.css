@@ -17,3 +17,6 @@
 .kiosk .npcSpeech{max-width:95%;flex:none}.kiosk .npcSpeech:after{bottom:auto;top:-7px;left:50%;transform:rotate(225deg)}
 .questDialogue{display:flex;align-items:center;gap:8px;flex:none;min-height:38px}.questDialogue img{width:38px;height:45px;object-fit:contain}.questSpeech{flex:1}.questSpeech:after{bottom:auto;top:45%;left:-6px;transform:rotate(135deg)}
 @media(max-height:570px){.world45Pin{font-size:10px;min-height:22px;padding:3px 4px}.world45Npc span{font-size:9px}.kwSpeech{font-size:10px;padding:4px 6px}}
+
+/* Merchant dialogue stays within the shop layer, below the modal (z-index:5). */
+#app #screen .shophead.dialogueAnchor { isolation:isolate; }
