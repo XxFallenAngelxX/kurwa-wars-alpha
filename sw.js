@@ -1,4 +1,4 @@
-const CACHE='kwars-web-modular-v058-achievements-2-'+self.registration.scope;
+const CACHE='kwars-web-modular-v058-achievements-3-'+self.registration.scope;
 const FILES=[
   "./index.html",
   "./gm.html",
@@ -36,7 +36,7 @@ self.addEventListener('fetch',e=>{
  e.respondWith((async()=>{
   const cache=await caches.open(CACHE);
   try{
-   const response=await fetch(e.request,{cache:'no-cache'});
+   const response=await fetch(e.request,{cache:'reload'});
    if(response.ok){try{await cache.put(key,response.clone())}catch{}return response}
    return (await cache.match(key))||response;
   }catch{return (await cache.match(key))||Response.error()}
