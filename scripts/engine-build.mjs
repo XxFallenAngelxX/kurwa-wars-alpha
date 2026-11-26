@@ -3,7 +3,7 @@ import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Script} from 'node:vm';
 export const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-export const read=p=>readFileSync(resolve(root,p),'utf8');
+export const read=p=>readFileSync(resolve(root,p),'utf8').replace(/\r\n/g,'\n');
 export function template(){
  const manifest=JSON.parse(read('src/engine/manifest.json'));
  const used=new Set();

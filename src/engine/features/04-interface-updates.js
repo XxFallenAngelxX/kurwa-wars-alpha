@@ -19,6 +19,7 @@ window.__snapshot=function(drain=true){
  chat46Sync();const app=$('app'),modal=$('modal'),isModal=!modal.hidden;if(page==='Admin'&&window.__gmLevelDraft!==null&&$('gmLevel'))$('gmLevel').value=window.__gmLevelDraft;
  if($('profileInput'))$('profileInput').value=window.__profileDraft;const roots=[...app.querySelectorAll('button,input,select,[onclick]')];
  const clone=app.cloneNode(true),copies=[...clone.querySelectorAll('button,input,select,[onclick]')];
+ const audioStatus=clone.querySelector('#audioStatus');if(audioStatus)audioStatus.textContent=parent.localAudioStatus();
  const old=window.__tokens, next=new Map(),controls=new Map(),counts=new Map();
   let context=page+'|'+(isModal?'modal':'main')+'|'+(sel||'');
   if(page==='Händler')context+='|'+s.shop.map(q=>q.i?.id+':'+q.sold).join(',');

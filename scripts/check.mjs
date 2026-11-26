@@ -5,8 +5,15 @@ import {root,read,template,generated} from './engine-build.mjs';
 import assert from 'node:assert/strict';
 assert.equal(read('generated/engine-template.js'),generated(),'Generated engine is outdated; run npm run build');
 const paths=new Set();
+const webManifest=JSON.parse(read('manifest.webmanifest'));
+for(const icon of webManifest.icons){
+ const iconPath=new URL(icon.src,'https://example.invalid/').pathname.slice(1);
+ assert(existsSync(resolve(root,iconPath)),'Missing manifest icon: '+icon.src);
+}
 for(const page of ['index.html','gm.html']){
  const html=read(page);
+ for(const m of html.matchAll(/(?:href|src)="\.\/(assets\/icons\/[^"?]+)(?:\?[^" ]*)?"/g))
+  assert(existsSync(resolve(root,m[1])),'Missing page icon: '+m[1]);
  for(const m of html.matchAll(/<script\b[^>]*\bsrc="\.\/([^"?]+)(?:\?[^"]*)?"[^>]*><\/script>/g))paths.add(m[1]);
 }
 for(let i=1;i<=5;i++)paths.add('assets/packs/assets-'+i+'.js');

@@ -24,11 +24,15 @@ Keine npm-Pakete und kein Build-Server nötig. Der Dev-Server baut den Engine-HT
 | src/host/ | Browser-Bridge, Audio, GM-Zugang, Eingabe/Oberfläche, Desktop |
 | src/styles/ | UI-Stylesheets |
 | assets/packs/ | Bestehende, unveränderte Laufzeit-Asset-Pakete |
+| assets/icons/ | App- und Startbildschirm-Icons in 192 und 512 Pixeln |
 | assets/audio/ | Separates Audio-Datenpaket |
 | assets/raw/ | Einzelne bearbeitbare Bild-/Audio-Dateien nach Unpack |
 | generated/engine-template.js | Generiertes Laufzeit-Bundle, nicht manuell bearbeiten |
 | world-layout.js | Veröffentlichtes Layout für alle Spieler |
 | scripts/ | Build, Checks, Dev-Server, Asset-Tools |
+| backup/legacy-root/ | Archivierte Dateien aus der alten Projektwurzel; nicht Teil der aktuellen Laufzeit |
+
+In der Projektwurzel bleiben die Einstiegspunkte `index.html` und `gm.html`, das Web-App-Manifest und der Service Worker. `world-layout.js` bleibt dort, weil die GM-Veröffentlichung diesen Pfad verwendet. `.nojekyll` gehört für GitHub Pages in das veröffentlichte Wurzelverzeichnis; `.gitignore`, `package.json` und `README.md` sind Projektdateien.
 
 ## Assets einzeln bearbeiten
 
@@ -43,7 +47,13 @@ npm run assets:pack
 npm run check
 ```
 
-Die alten Asset-Pfade im Hauptverzeichnis bleiben vorerst als Kompatibilitätskopien für bereits installierte PWA-Versionen erhalten. Neue Startseiten laden ausschließlich die strukturierten Pfade.
+Die aktuellen Startseiten laden die Pakete aus `assets/packs/`. Die früheren Kopien aus der Projektwurzel liegen unter `backup/legacy-root/` und werden beim Packen nicht mehr aktualisiert. Alte Installationen, die noch die früheren Pfade benötigen, müssen auf die aktuelle Version wechseln. Die Assets im Manifest behalten ihre ursprünglichen IDs; die Extraktion verändert keine Bilddaten.
+
+## Offline und Installation
+
+Die veröffentlichte HTTPS-Seite kann in unterstützten Browsern als Web-App installiert werden. Das Spiel zunächst online öffnen, das Laden abwarten und einmal neu laden, damit der Service Worker die Startdateien erfassen kann. Beim Installieren des Service Workers werden die zwei Musikstücke, die Level-Stimmen und die verwendeten Soundeffekte für Offline-Nutzung heruntergeladen. Schlägt ein einzelner Download fehl oder räumt der Browser den Speicher auf, muss die Datei erneut online geladen werden. Die Audiowiedergabe muss nach Browser-Vorgabe durch eine Nutzeraktion aktiviert werden.
+
+`npm run test:offline-audio` prüft die gespeicherten Audiodateien sowie vollständige und partielle Offline-Antworten. Ein Android-Store-Paket oder ein eigenständiger Steam-Build wird dadurch noch nicht erstellt. Lokale Spielstände sind an Browser und Origin gebunden und werden nicht automatisch zwischen Plattformen übertragen.
 
 ## Source-Code ändern und veröffentlichen
 

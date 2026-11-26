@@ -31,7 +31,6 @@ if(mode==='unpack'){
   const obj=Object.fromEntries(entries.filter(e=>e.pack===pack).map(e=>[e.key,data(e)]));
   const content='Object.assign(KW_ASSETS,'+JSON.stringify(obj)+');';
   writeFileSync(resolve(root,pack),content);
-  writeFileSync(resolve(root,basename(pack)),content); // legacy startup compatibility
  }
  const audio={};for(const e of entries.filter(e=>e.pack===audioFile)){const [g,k]=e.key.split('/');(audio[g]??={})[k]=data(e)}
  writeFileSync(resolve(root,audioFile),'const AUDIO_ASSETS = '+JSON.stringify(audio)+';\n');
