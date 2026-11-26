@@ -30,10 +30,23 @@
 }
 @media(min-width:800px) and (max-height:650px){#app main:has(>.hero){grid-template-rows:auto auto minmax(120px,1fr) auto auto;} #app main:has(>.hero)>.hero{min-height:180px;} #app main:has(>.hero)>.baggrid{min-height:180px;}}
 `;
+  const ambientCSS=`
+.world45Strip>.kwAmbient{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+.kwAmbient i{position:absolute;display:block;pointer-events:none}
+.kwAmbient .lamp{width:7%;height:32%;transform:translate(-50%,-20%);background:radial-gradient(ellipse at 50% 20%,#ffd18b55,transparent 70%);mix-blend-mode:screen;animation:kwLamp 7s infinite alternate}
+.kwAmbient .haze{width:12%;height:18%;background:radial-gradient(ellipse,#c7b6a51c,transparent 70%);animation:kwHaze 13s ease-in-out infinite alternate}
+.kwAmbient .dust{width:3px;height:3px;border-radius:50%;background:#f6c68b;box-shadow:0 0 5px #ffc87b;animation:kwDust 9s linear infinite}
+@keyframes kwLamp{0%,19%,24%,70%,100%{opacity:.65}20%,22%{opacity:.25}72%{opacity:.9}}
+@keyframes kwHaze{from{transform:translate(-15%,10%);opacity:.3}to{transform:translate(20%,-15%);opacity:.8}}
+@keyframes kwDust{0%{transform:translate(0,20px);opacity:0}25%{opacity:.45}80%{opacity:.2}100%{transform:translate(22px,-35px);opacity:0}}
+@media(prefers-reduced-motion:reduce){.kwAmbient i{animation:none!important}.kwAmbient .dust{display:none}}
+`;
+  const ambientStyle=document.createElement('style');ambientStyle.textContent=ambientCSS;document.head.append(ambientStyle);
+  function ambient(strip){if(!strip||strip.querySelector(':scope > .kwAmbient'))return;const layer=document.createElement('div');layer.className='kwAmbient';layer.setAttribute('aria-hidden','true');const add=(kind,x,y,delay)=>{const e=document.createElement('i');e.className=kind;e.style.cssText='left:'+x+'%;top:'+y+'%;animation-delay:'+delay+'s';layer.append(e)};[[8,22],[29,19],[43,18],[65,17],[77,23],[91,20]].forEach(([x,y],i)=>add('lamp',x,y,-i*1.7));[[18,68],[48,74],[80,70]].forEach(([x,y],i)=>add('haze',x,y,-i*3));for(let i=0;i<14;i++)add('dust',4+i*6.7,45+(i*17)%38,-i*.7);strip.prepend(layer)}
   const style=document.createElement('style');style.textContent=css;document.head.append(style);
   const mount=document.getElementById('mount');
   const world=()=>mount.querySelector('.worldViewport');
-  function enhance(){const el=world();if(!el)return;el.tabIndex=0;const hint=el.nextElementSibling;if(hint?.classList.contains('worldHint')||hint?.classList.contains('sceneHint')){if(matchMedia('(any-pointer:fine)').matches){const l=document.documentElement.lang;const msg=l==='ru'?'Перетаскивание мышью · колесо · ← →':l==='en'?'Drag with mouse · wheel · ← →':'Maus ziehen · Mausrad · ← →';if(hint.textContent!==msg)hint.textContent=msg;}}}
+  function enhance(){const el=world();if(!el)return;ambient(el.querySelector('.world45Strip'));el.tabIndex=0;const hint=el.nextElementSibling;if(hint?.classList.contains('worldHint')||hint?.classList.contains('sceneHint')){if(matchMedia('(any-pointer:fine)').matches){const l=document.documentElement.lang;const msg=l==='ru'?'Перетаскивание мышью · колесо · ← →':l==='en'?'Drag with mouse · wheel · ← →':'Maus ziehen · Mausrad · ← →';if(hint.textContent!==msg)hint.textContent=msg;}}}
   let drag=null, suppressUntil=0;
   mount.addEventListener('pointerdown',e=>{const el=e.target.closest('.worldViewport');if(!el||e.pointerType==='touch'||e.button!==0||!e.isPrimary)return; if(e.target.closest('input,select,textarea'))return;suppressUntil=0;const r=el.getBoundingClientRect();if(e.clientY>=r.top+el.clientHeight&&e.clientY<=r.bottom)return;drag={el,id:e.pointerId,x:e.clientX,y:e.clientY,left:el.scrollLeft,moved:false};},true);
   document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;if(!(e.buttons&1)){finish();return;}const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<6)return;if(!drag.moved){drag.moved=true;drag.el.classList.add('kwDragging');try{drag.el.setPointerCapture(e.pointerId)}catch{}window.getSelection()?.removeAllRanges();}drag.el.scrollLeft=drag.left-dx;e.preventDefault();},{capture:true,passive:false});
