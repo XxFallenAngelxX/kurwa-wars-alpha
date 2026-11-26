@@ -1,4 +1,4 @@
-const CACHE='kwars-web-modular-v058-achievements-3-'+self.registration.scope;
+const CACHE='kwars-web-modular-v059-startup-1-'+self.registration.scope;
 const FILES=[
   "./index.html",
   "./gm.html",

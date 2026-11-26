@@ -7,7 +7,7 @@ assert.equal(read('generated/engine-template.js'),generated(),'Generated engine 
 const paths=new Set();
 for(const page of ['index.html','gm.html']){
  const html=read(page);
- for(const m of html.matchAll(/<script src="\.\/([^"]+)"><\/script>/g))paths.add(m[1]);
+ for(const m of html.matchAll(/<script\b[^>]*\bsrc="\.\/([^"?]+)(?:\?[^"]*)?"[^>]*><\/script>/g))paths.add(m[1]);
 }
 const assetKeys=new Set();
 for(const p of paths){
