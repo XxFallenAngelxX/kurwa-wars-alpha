@@ -1,4 +1,4 @@
-// Mobile Adventure alert and tab heading refresh.
+// Combat portrait spacing release; existing update handling unchanged.
 // Mutable code is network-first. Immutable graphics keep their cache across releases.
 importScripts('./generated/sw-version.js');
 const root=new URL(self.registration.scope);
