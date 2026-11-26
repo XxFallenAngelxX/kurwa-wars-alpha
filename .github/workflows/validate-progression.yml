@@ -1,0 +1,26 @@
+name: Validate progression patch
+on:
+  push:
+    branches: [fix/remove-vehicle-level-gates]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-activities.mjs
+      - run: npm run build
+      - run: npm run check
+      - name: Commit generated build on patch branch
+        run: |
+          git add generated/engine-template.js generated/sw-version.js
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Build validated progression patch"
+          git push origin HEAD:fix/remove-vehicle-level-gates
