@@ -5,23 +5,23 @@ const AudioGame = (()=>{
  const cache=new Map();let talking=false,voiceTimer=null,subtitleTimer=null,activeKey=null;const lastLine={};
  function persist(){try{localStorage.setItem('kwars_audio_v1',JSON.stringify(cfg))}catch(e){}}
  function statusUI(){let el=document.getElementById('audioStatus');if(el)el.textContent=status;let b=document.getElementById('audioMute');if(b)b.textContent=cfg.muted?'Ton einschalten':'Alles stumm';}
- function init(){if(ctx)return true;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw Error('Web Audio nicht unterstützt');ctx=new AC();master=ctx.createGain();musicGain=ctx.createGain();fxGain=ctx.createGain();voiceGain=ctx.createGain();let lim=ctx.createDynamicsCompressor();lim.threshold.value=-12;lim.knee.value=10;lim.ratio.value=6;for(let g of [musicGain,fxGain,voiceGain])g.connect(master);master.connect(lim);lim.connect(ctx.destination);noise=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.35),ctx.sampleRate);let d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;apply();return true}catch(e){status='Audio ist in diesem Browser nicht verfügbar.';statusUI();return false}}
- function apply(){if(!ctx)return;let t=ctx.currentTime;for(let [g,v] of [[master,cfg.muted?0:.9],[musicGain,cfg.music/100*.75*(talking?.52:1)],[fxGain,cfg.sfx/100*.7*(talking?.75:1)],[voiceGain,cfg.voice/100*.95]])g.gain.setTargetAtTime(v,t,.025);}
- function unlock(){if(!init())return;const r=ctx.state==='running'?Promise.resolve():ctx.resume();sync(true);r.then(()=>{if(ctx.state==='running')sync()}).catch(()=>{status='Audio blockiert – erneut tippen.';statusUI()});}
+ function init(){if(ctx)return true;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw Error('Web Audio nicht unterstützt');ctx=new AC();master=ctx.createGain();musicGain=ctx.createGain();fxGain=ctx.createGain();voiceGain=ctx.createGain();let lim=ctx.createDynamicsCompressor();lim.threshold.value=-12;lim.knee.value=10;lim.ratio.value=6;for(let g of [musicGain,fxGain,voiceGain])g.connect(master);master.connect(lim);lim.connect(ctx.destination);noise=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.35),ctx.sampleRate);let d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;apply();return true}catch(e){console.error('WebAudio init',e);ctx=null;status='Effekt-Engine: '+e.message;statusUI();return false}}
+ function apply(){if(media)media.volume=cfg.muted?0:cfg.music/100*.75*(talking?.52:1);if(!ctx)return;let t=ctx.currentTime;for(let [g,v] of [[master,cfg.muted?0:.9],[musicGain,cfg.music/100*.75*(talking?.52:1)],[fxGain,cfg.sfx/100*.7*(talking?.75:1)],[voiceGain,cfg.voice/100*.95]])g.gain.setTargetAtTime(v,t,.025);}
+ function unlock(){sync(true);if(!init())return;const r=ctx.state==='running'?Promise.resolve():ctx.resume();r.catch(e=>{console.warn('SFX resume',e)});}
  function buffer(id){if(!cache.has(id)){let p=Promise.resolve().then(async()=>{await window.kwLoadHostAudio();let src=id.startsWith('m:')?(AUDIO_ASSETS.tracks[id.slice(2)]||AUDIO_ASSETS.tracks.garage):AUDIO_ASSETS.voices[id.slice(2)];let raw=atob(src.split(',')[1]),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return ctx.decodeAudioData(bytes.buffer)}).catch(e=>{cache.delete(id);throw e});cache.set(id,p)}return cache.get(id)}
  const playlist=["Kurwa Wars - Rise of the Underground.mp3","Kurwa Wars - Unnamed song.mp3"];
  let media=null,mediaNode=null,trackIndex=0,pending=null;
  function stopMusic(){if(media)media.pause();pending=null;}
  function sync(gesture=false){
-  if(!ctx||(!gesture&&ctx.state!=='running')||document.hidden||cfg.muted||!cfg.music){stopMusic();return}
+  if(document.hidden||cfg.muted||!cfg.music){stopMusic();return}
   if(!media){
    media=new Audio();media.preload='none';
-   mediaNode=ctx.createMediaElementSource(media);mediaNode.connect(musicGain);
+   media.volume=cfg.music/100*.75;
    media.addEventListener('ended',()=>{trackIndex=(trackIndex+1)%playlist.length;media.src='./assets/audio/music/'+encodeURIComponent(playlist[trackIndex]);sync()});
    media.addEventListener('error',()=>{status='Musikfehler '+(media.error?.code||'unbekannt');statusUI()});
    media.src='./assets/audio/music/'+encodeURIComponent(playlist[trackIndex]);
   }
-  if(!media.paused||pending)return;
+  media.volume=cfg.music/100*.75*(talking?.52:1);if(!media.paused||pending)return;
   const attempt=media.play();pending=attempt;
   Promise.resolve(attempt).then(()=>{status='Musik: '+playlist[trackIndex].replace('.mp3','');statusUI()},()=>{status='Musik wartet auf Aktivierung.';statusUI()}).finally(()=>{if(pending===attempt)pending=null});
  }
