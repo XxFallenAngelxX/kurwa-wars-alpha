@@ -1,11 +1,43 @@
 function kwComparableMarkup(old,next){if(!old.querySelector('.world45Strip'))return old.outerHTML;const copy=old.cloneNode(true);copy.querySelectorAll('.kwAmbient').forEach(e=>e.remove());const viewport=copy.querySelector('.worldViewport');if(viewport&&!next.querySelector('.worldViewport')?.hasAttribute('tabindex'))viewport.removeAttribute('tabindex');return copy.outerHTML;}
 
 'use strict';
+// Retain the connected world map when only the surrounding UI or action tokens change.
+const kwWorldActionAttrs=['data-control','data-confirm','data-audio','data-portal'];
+function kwWorldStableMarkup(view){
+ const copy=view.cloneNode(true);
+ copy.querySelectorAll('.kwAmbient').forEach(e=>e.remove());
+ copy.removeAttribute('tabindex');
+ copy.classList.remove('kwDragging');
+ for(const el of copy.querySelectorAll('button'))for(const attr of kwWorldActionAttrs)el.removeAttribute(attr);
+ return copy.outerHTML;
+}
+function kwPatchWorldScreen(old,next){
+ if(old.id!=='screen'||next.id!=='screen')return false;
+ const before=[...old.children],after=[...next.children];
+ const i=before.findIndex(e=>e.matches('.worldViewport'));
+ if(i<0||before.length!==after.length||!after[i].matches('.worldViewport'))return false;
+ const view=before[i],incoming=after[i];
+ if(!view.querySelector('.world45Strip')||!incoming.querySelector('.world45Strip')||
+    kwWorldStableMarkup(view)!==kwWorldStableMarkup(incoming))return false;
+ // The engine may issue fresh control tokens after an action or modal transition.
+ const buttons=[...view.querySelectorAll('button')],newButtons=[...incoming.querySelectorAll('button')];
+ if(buttons.length!==newButtons.length)return false;
+ for(let n=0;n<buttons.length;n++)for(const attr of kwWorldActionAttrs){
+  const value=newButtons[n].getAttribute(attr);
+  if(value===null)buttons[n].removeAttribute(attr);
+  else if(buttons[n].getAttribute(attr)!==value)buttons[n].setAttribute(attr,value);
+ }
+ for(const attr of [...old.attributes])if(!next.hasAttribute(attr.name))old.removeAttribute(attr.name);
+ for(const attr of [...next.attributes])if(old.getAttribute(attr.name)!==attr.value)old.setAttribute(attr.name,attr.value);
+ for(let n=0;n<before.length;n++)if(n!==i&&before[n].outerHTML!==after[n].outerHTML)before[n].replaceWith(after[n]);
+ return true;
+}
+
 const mount=document.getElementById('mount'), status=document.getElementById('connection');let csrf='',etag='',busy=false,editing=false,queued=null,kwWorldScroll=0;
 function err(t){status.hidden=!t;status.textContent=t||''}
 async function api(path,data){return localApi(path,data)}
 function apply(x){if(x.styles)document.getElementById('gameStyles').textContent=x.styles;if(x.lang)document.documentElement.lang=x.lang;
- if(x.markup!==undefined){let oldScreen=mount.querySelector('main'),oldHeading=oldScreen?.querySelector('h2')?.textContent;let scrolls=[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.baggrid')].map(e=>e.scrollTop);let details=[...mount.querySelectorAll('details')].map(e=>e.open);let worldOld=mount.querySelector('.worldViewport');if(worldOld)kwWorldScroll=worldOld.scrollLeft;if(!mount.firstElementChild||mount.firstElementChild.id!=='app'){mount.innerHTML=x.markup}else{let tmp=document.createElement('template');tmp.innerHTML=x.markup;let next=tmp.content.firstElementChild,cur=mount.firstElementChild;if(!next||next.id!=='app'){mount.innerHTML=x.markup}else{let parts=[...next.children],old=[...cur.children];if(parts.length!==old.length||parts.some((el,i)=>el.tagName!==old[i].tagName||el.id!==old[i].id)){mount.innerHTML=x.markup}else{for(let i=0;i<parts.length;i++){if(kwComparableMarkup(old[i],parts[i])!==parts[i].outerHTML)old[i].replaceWith(parts[i])}}}}let worldNew=mount.querySelector('.worldViewport');if(worldNew)worldNew.scrollLeft=kwWorldScroll;[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.baggrid')].forEach((e,i)=>e.scrollTop=e.matches('main,.kwAchievementList')&&e.closest('main')?.querySelector('h2')?.textContent!==oldHeading?0:scrolls[i]||0);[...mount.querySelectorAll('details')].forEach((e,i)=>e.open=!!details[i]);}etag=x.etag||etag;
+ if(x.markup!==undefined){let oldScreen=mount.querySelector('main'),oldHeading=oldScreen?.querySelector('h2')?.textContent;let scrolls=[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.baggrid')].map(e=>e.scrollTop);let details=[...mount.querySelectorAll('details')].map(e=>e.open);let worldOld=mount.querySelector('.worldViewport');if(worldOld)kwWorldScroll=worldOld.scrollLeft;if(!mount.firstElementChild||mount.firstElementChild.id!=='app'){mount.innerHTML=x.markup}else{let tmp=document.createElement('template');tmp.innerHTML=x.markup;let next=tmp.content.firstElementChild,cur=mount.firstElementChild;if(!next||next.id!=='app'){mount.innerHTML=x.markup}else{let parts=[...next.children],old=[...cur.children];if(parts.length!==old.length||parts.some((el,i)=>el.tagName!==old[i].tagName||el.id!==old[i].id)){mount.innerHTML=x.markup}else{for(let i=0;i<parts.length;i++){if(kwComparableMarkup(old[i],parts[i])!==parts[i].outerHTML&&!kwPatchWorldScreen(old[i],parts[i]))old[i].replaceWith(parts[i])}}}}let worldNew=mount.querySelector('.worldViewport');if(worldNew)worldNew.scrollLeft=kwWorldScroll;[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.baggrid')].forEach((e,i)=>e.scrollTop=e.matches('main,.kwAchievementList')&&e.closest('main')?.querySelector('h2')?.textContent!==oldHeading?0:scrolls[i]||0);[...mount.querySelectorAll('details')].forEach((e,i)=>e.open=!!details[i]);}etag=x.etag||etag;
  try{AudioGame.scene(x.scene);for(let [k,v] of x.events||[])if(k==='fx'||k==='voice')AudioGame[k](v);}catch{}if(x.result?.portal){location.href='/';return}err(!kwStorageOK?'Browser blockiert lokale Speicherung. Spielstand bleibt nur bis zum Schließen erhalten.':x.result?.ok===false?x.result.reason:'');}
 async function send(path,data){if(busy){if(path==='/api/game/action')queued=[path,data];return}busy=true;try{let x=await api(path,data);apply(x);if(mount.querySelector('#app'))window.kwBoot?.ready()}catch(e){err(e.message+' – Verbindung wird erneut versucht.')}finally{busy=false;if(queued){let q=queued;queued=null;send(...q)}}}
 function action(e,value){if(!e.dataset.control)return;let name=mount.querySelector('#profileInput');if(name&&e!==name)kwFrame.contentWindow.__profileDraft=name.value;let confirmed=!e.dataset.confirm||confirm('Diese Aktion wirklich ausführen?');if(!confirmed)return;send('/api/game/action',{token:e.dataset.control,...(value===undefined?{}:{value:String(value)}),confirmed,etag})}
