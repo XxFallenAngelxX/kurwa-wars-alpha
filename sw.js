@@ -1,4 +1,4 @@
-// Persistent kiosk dialogue release; existing update handling unchanged.
+// Mission and fleet heading release; existing update handling unchanged.
 // Mutable code is network-first. Immutable graphics keep their cache across releases.
 importScripts('./generated/sw-version.js');
 const root=new URL(self.registration.scope);
