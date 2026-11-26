@@ -3,6 +3,9 @@
 .gameVersion { position:absolute; left:76px; bottom:5px; color:#d2b899; font-size:10px; font-weight:700; pointer-events:none; }
 @media(min-width:800px){ .gameVersion { left:108px; } }
 .worldHint,.sceneHint { display:none!important; }
+.kwChatFilters { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.kwChatLine.loot { border-color:#e6b95c; }
+.kwChatLine.loot b { color:#ffdb88; }
 #app .baggrid { grid-template-columns:repeat(6,minmax(0,76px)); justify-content:center; grid-template-rows:none; grid-auto-rows:max-content; align-content:start; overflow-y:auto; overscroll-behavior:contain; }
 #app .baggrid .slot { width:100%; height:auto; aspect-ratio:1; }
 #app .gearpair .slot { flex:none; width:auto; height:calc(100% - 13px); max-width:100%; aspect-ratio:1; }
