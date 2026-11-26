@@ -4,9 +4,10 @@
   const ownerId=50654704, repository='XxFallenAngelxX/kurwa-wars-alpha';
   const apiRoot='https://api.github.com', endpoint='/repos/'+repository+'/contents/world-layout.js';
   const params=new URLSearchParams(location.search);
+  const test=params.get('gm')==='test';
   const requested=params.get('dev')==='1'||params.get('gm')==='1';
   const local=['localhost','127.0.0.1','[::1]'].includes(location.hostname);
-  window.KW_DEV_BUILD55=local&&requested;
+  window.KW_DEV_BUILD55=test||(local&&requested);
   window.KW_GM_REMOTE55=false;
   window.KW_GM_BASE55='';
   let credential='', baseSha='', publishing=false;
@@ -59,7 +60,16 @@
       return result.commit.sha;
     }finally{publishing=false}
   };
+  let testStarted=false;
   window.kwGMStart55=function(){
+    if(test){
+      if(testStarted)return;
+      testStarted=true;
+      window.kwLocalStore.setItem('kwars_profile_active_gm_v1','"gm_dev"');
+      window.KW_DEV_BUILD55=true;
+      window.kwSwitchProfile();
+      return;
+    }
     if(!requested||local||window.KW_GM_REMOTE55)return;
     const overlay=document.createElement('div');
     overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','GM-Anmeldung');
