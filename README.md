@@ -1,3 +1,63 @@
+# KURWA WARS – Modular Browser Alpha
+
+## Starten und entwickeln (Node.js 18+)
+
+```sh
+npm run dev
+```
+
+- Spieler: http://127.0.0.1:8080/
+- GM: http://127.0.0.1:8080/gm.html
+- Live Spieler: https://xxfallenangelxx.github.io/kurwa-wars-alpha/
+- Live GM: https://xxfallenangelxx.github.io/kurwa-wars-alpha/gm.html
+
+Keine npm-Pakete und kein Build-Server nötig. Der Dev-Server baut den Engine-HTML-String bei jeder Anforderung aus den lesbaren Quellen neu. Browser neu laden, um Änderungen zu sehen.
+
+## Struktur
+
+| Pfad | Aufgabe |
+|---|---|
+| index.html / gm.html | Separate kurze Startseiten, gemeinsamer Spielkern |
+| src/engine/core/ | Grundsysteme, Inhalte, Items, Spielstände, Kampf, HQ, Expeditionen |
+| src/engine/features/ | Quests, Lokalisierung, Chat, Loot, Tutorial, Placement |
+| src/engine/frame.html / manifest.json | Exakte Reihenfolge der Engine-Script- und CSS-Blöcke |
+| src/host/ | Browser-Bridge, Audio, GM-Zugang, Eingabe/Oberfläche, Desktop |
+| src/styles/ | UI-Stylesheets |
+| assets/packs/ | Bestehende, unveränderte Laufzeit-Asset-Pakete |
+| assets/audio/ | Separates Audio-Datenpaket |
+| assets/raw/ | Einzelne bearbeitbare Bild-/Audio-Dateien nach Unpack |
+| generated/engine-template.js | Generiertes Laufzeit-Bundle, nicht manuell bearbeiten |
+| world-layout.js | Veröffentlichtes Layout für alle Spieler |
+| scripts/ | Build, Checks, Dev-Server, Asset-Tools |
+
+## Assets einzeln bearbeiten
+
+```sh
+npm run assets:unpack
+```
+
+Entpackt die bestehenden Pakete verlustfrei in echte WebP-/Audio-Dateien unter assets/raw. Bereits entpackte/bearbeitete Dateien werden nicht überschrieben. Die Zuordnung zu den alten IDs steht in assets/raw/manifest.json. Nach Medienänderungen:
+
+```sh
+npm run assets:pack
+npm run check
+```
+
+Die alten Asset-Pfade im Hauptverzeichnis bleiben vorerst als Kompatibilitätskopien für bereits installierte PWA-Versionen erhalten. Neue Startseiten laden ausschließlich die strukturierten Pfade.
+
+## Source-Code ändern und veröffentlichen
+
+Die Engine verwendet bewusst klassische Scripts mit gemeinsamem globalem Scope. Die Manifest-Reihenfolge und die bisherigen Script-Grenzen bleiben erhalten; kein ungeprüfter ES-Modul-Umbau. Dadurch bleiben Hoisting, überschreibende Feature-Patches und Save-Keys erhalten. Einheiten innerhalb eines ursprünglichen Script-Blocks werden beim Build exakt zusammengefügt. Änderungen in src/host werden direkt geladen.
+
+```sh
+npm run build
+npm run check
+```
+
+In GitHub Desktop Quelländerungen und generiertes Bundle gemeinsam committen und auf main pushen. GitHub Pages veröffentlicht weiterhin die Projektwurzel; der Build ist bereits eingecheckt. Bei reinem Placement-Update reicht die Änderung an world-layout.js. Normale Spielstände und GM-Entwürfe bleiben im lokalen Browser getrennt. Der GM-Modus ist ein lokaler Testmodus, keine serverseitige Authentifizierung.
+
+## Bisherige Hosting- und Alpha-Hinweise
+
 # KURWA WARS – Browser Alpha v0.52
 
 ## GitHub Desktop + GitHub Pages

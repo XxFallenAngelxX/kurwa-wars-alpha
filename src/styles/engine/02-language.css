@@ -1,0 +1,12 @@
+
+#kwLangBar{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+#kwLangBar .langTitle{font-size:11px;opacity:.7;letter-spacing:.08em;text-transform:uppercase}
+#kwLangBar button{min-width:42px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:#1c222a;color:#f3f5f8;cursor:pointer;font-weight:700}
+#kwLangBar button.active{background:#3b4e63;border-color:#85b0ff;box-shadow:0 0 0 1px rgba(133,176,255,.25) inset}
+#screen .kw-mission-bg,#screen .kw-fight-bg{position:relative;overflow:hidden;isolation:isolate}
+#screen .kw-mission-bg>* ,#screen .kw-fight-bg>*{position:relative;z-index:1}
+#screen .kw-mission-bg::before,#screen .kw-fight-bg::before{content:"";position:absolute;inset:0;z-index:0;background-image:linear-gradient(180deg,rgba(10,12,16,.20),rgba(10,12,16,.78)),var(--kw-mission-bg);background-size:cover;background-position:center;filter:saturate(1.03)}
+#screen .kw-fight-bg::before{background-image:linear-gradient(180deg,rgba(8,10,14,.35),rgba(8,10,14,.88)),var(--kw-mission-bg)}
+#screen .kw-mission-bg img,#screen .kw-fight-bg img{background:rgba(0,0,0,.22);backdrop-filter:blur(1px);border-radius:16px;padding:4px}
+#screen .kw-mission-bg h3,#screen .kw-fight-bg .name{ text-shadow:0 2px 8px rgba(0,0,0,.55)}
+#screen .kw-backdrop-tag{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:6px 10px;border-radius:999px;background:rgba(10,12,16,.56);border:1px solid rgba(255,255,255,.12);font-size:12px}

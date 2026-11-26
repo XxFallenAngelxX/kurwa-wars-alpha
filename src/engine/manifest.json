@@ -1,0 +1,63 @@
+{
+  "@@KW_BLOCK_00@@": [
+    "src/engine/00-frame-bootstrap.js"
+  ],
+  "@@KW_BLOCK_01@@": [
+    "src/styles/engine/01-base.css"
+  ],
+  "@@KW_BLOCK_02@@": [
+    "src/engine/core/01-audio.js",
+    "src/engine/core/02-content-items.js",
+    "src/engine/core/03-profiles-saves-gm.js",
+    "src/engine/core/04-progression.js",
+    "src/engine/core/05-materials-enemies.js",
+    "src/engine/core/06-combat-world-ui.js",
+    "src/engine/core/07-arena-qol.js",
+    "src/engine/core/08-inventory-loot.js",
+    "src/engine/core/09-gems.js",
+    "src/engine/core/10-headquarters.js",
+    "src/engine/core/11-expeditions.js",
+    "src/engine/core/12-milestones-profiles.js"
+  ],
+  "@@KW_BLOCK_03@@": [
+    "src/styles/engine/02-language.css"
+  ],
+  "@@KW_BLOCK_04@@": [
+    "src/engine/features/quests-localization.js"
+  ],
+  "@@KW_BLOCK_05@@": [
+    "src/styles/engine/03-mission-world.css"
+  ],
+  "@@KW_BLOCK_06@@": [
+    "src/styles/engine/04-arena.css"
+  ],
+  "@@KW_BLOCK_07@@": [
+    "src/styles/engine/05-combat-inventory.css"
+  ],
+  "@@KW_BLOCK_08@@": [
+    "src/engine/features/01-inventory-world.js",
+    "src/engine/features/02-chat-dialogue.js",
+    "src/engine/features/03-special-loot.js",
+    "src/engine/features/04-interface-updates.js",
+    "src/engine/features/05-onboarding.js",
+    "src/engine/features/06-placement-tutorial-runtime.js"
+  ],
+  "@@KW_BLOCK_09@@": [
+    "src/styles/engine/06-world-map.css"
+  ],
+  "@@KW_BLOCK_10@@": [
+    "src/styles/engine/07-chat.css"
+  ],
+  "@@KW_BLOCK_11@@": [
+    "src/styles/engine/08-item-rarity.css"
+  ],
+  "@@KW_BLOCK_12@@": [
+    "src/styles/engine/09-chamber.css"
+  ],
+  "@@KW_BLOCK_13@@": [
+    "src/styles/engine/10-settings-header.css"
+  ],
+  "@@KW_BLOCK_14@@": [
+    "src/styles/engine/11-responsive-header.css"
+  ]
+}

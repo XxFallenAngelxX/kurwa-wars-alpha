@@ -1,0 +1,1 @@
+const KW_ASSETS={};

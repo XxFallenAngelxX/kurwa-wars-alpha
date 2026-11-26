@@ -1,0 +1,1 @@
+Object.defineProperty(window,'localStorage',{value:parent.kwLocalStore});window.AudioContext=undefined;window.webkitAudioContext=undefined;

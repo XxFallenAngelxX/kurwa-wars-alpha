@@ -1,0 +1,19 @@
+
+/* v0.45 single continuous illustrated world; UI localized independently */
+.world45Strip{height:100%;aspect-ratio:3/1;width:auto;min-width:100%;position:relative;flex:none;background-size:100% 100%;background-position:center; background-repeat:no-repeat;isolation:isolate}
+.world45Pin{position:absolute;transform:translate(-50%,-50%);z-index:3;max-width:13%;min-height:26px;padding:4px 7px;background:#211923ed;border:1px solid #d7a45b;border-radius:6px;box-shadow:0 2px 5px #0009;color:#ffe9b8;font-size:clamp(10px,3vw,13px);line-height:1.1;white-space:normal;touch-action:pan-x;overflow-wrap:anywhere}
+.world45Pin.future{border-style:dashed;color:#e0c9ad}
+.world45Npc{position:absolute;transform:translate(-50%,-100%);z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:8%;height:29%;max-width:170px;padding:0;background:transparent!important;box-shadow:none;border:0;overflow:visible;touch-action:pan-x;gap:0}
+.world45Npc.worldMopo50{height:18%;width:7%;min-height:0}
+.world45Npc img{width:100%;height:calc(100% - 28px);min-height:0;object-fit:contain;object-position:bottom center;pointer-events:none;filter:drop-shadow(2px 4px 2px #0008)}
+.world45Npc span{display:block;max-width:100%;background:#201923e8;border:1px solid #b78c52;border-radius:5px;padding:3px 5px;color:#ffe6b0;text-shadow:0 1px #000;font-size:clamp(10px,2.9vw,12px);line-height:1.05;pointer-events:none;overflow-wrap:anywhere}
+.world45Npc span small{display:block;color:#e5cda5;font-size:.9em;line-height:1.05;margin-top:2px}
+.world45Npc:focus-visible,.world45Pin:focus-visible{outline:2px solid #ffd578}
+.worldViewport{display:block;scrollbar-width:thin;touch-action:pan-x}
+.kwSpeech{position:relative;color:#281b18;background:#fff0ce;border:1px solid #af804c;border-radius:9px;padding:6px 8px;font-size:11px;line-height:1.2;font-weight:700;text-align:left;box-shadow:0 2px 6px #0006;overflow-wrap:anywhere;z-index:8;pointer-events:none}
+.kwSpeech:after{content:'';position:absolute;left:12px;bottom:-7px;width:10px;height:10px;background:#fff0ce;border-right:1px solid #af804c;border-bottom:1px solid #af804c;transform:rotate(45deg)}
+.fighter{position:relative}.fightSpeech{position:absolute;top:0;left:0;right:0;max-width:100%;font-size:clamp(10px,2.8vw,12px)}
+.dialogueAnchor{position:relative}.shophead.dialogueAnchor,.pfHost.dialogueAnchor{flex-wrap:wrap}.shophead .npcSpeech,.pfHost .npcSpeech{flex:1 0 100%;margin-bottom:3px}.shophead .npcSpeech:after,.pfHost .npcSpeech:after{bottom:auto;top:-7px;transform:rotate(225deg)}
+.kiosk .npcSpeech{max-width:95%;flex:none}.kiosk .npcSpeech:after{bottom:auto;top:-7px;left:50%;transform:rotate(225deg)}
+.questDialogue{display:flex;align-items:center;gap:8px;flex:none;min-height:38px}.questDialogue img{width:38px;height:45px;object-fit:contain}.questSpeech{flex:1}.questSpeech:after{bottom:auto;top:45%;left:-6px;transform:rotate(135deg)}
+@media(max-height:570px){.world45Pin{font-size:10px;min-height:22px;padding:3px 4px}.world45Npc span{font-size:9px}.kwSpeech{font-size:10px;padding:4px 6px}}
