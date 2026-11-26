@@ -78,3 +78,7 @@ Einmal online laden, Offline-Cache benötigt erfolgreichen Service-Worker-Instal
 ## Achievement-System (v0.58)
 
 `src/engine/features/07-achievements.js` erweitert die bisherigen 18 Erfolge auf 100 kosmetische Erfolge. Die alten Save-Keys bleiben unverändert; neue IDs sind stabil. Das Modul wird vom Engine-Bridge nach den bisherigen klassischen Scripts geladen. Die Bilder liegen in einem 10×10-Atlas (`assets/achievements/atlas.webp`, 1280×1280). Die Karten verwenden positionsgenaue CSS-Sprites; bei fehlendem Atlas bleiben sie mit Symbol-Fallback spielbar. Der Atlas wird bei erfolgreichem Abruf vom Service Worker zur Offline-Nutzung gecacht. Die neue Liste scrollt separat, ihre Position bleibt bei UI-Updates erhalten.
+
+## Fast startup v0.60
+
+The initial engine starts with stable image placeholders. Four legacy image packs load asynchronously after the first interactive screen; only referenced images in visible markup and styles are converted to object URLs. Host music is loaded on demand when audio is activated. Versioned assets use a cache-first service worker; HTML and the world layout stay network-first. Offline files are cached as they are requested, not eagerly precached on every release. This is pack-level deferred loading, not individual-image network loading.

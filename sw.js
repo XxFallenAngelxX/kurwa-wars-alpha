@@ -1,44 +1,22 @@
-const CACHE='kwars-web-modular-v059-startup-1-'+self.registration.scope;
-const FILES=[
-  "./index.html",
-  "./gm.html",
-  "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png",
-  "./src/styles/shell.css",
-  "./assets/audio/host-audio.js",
-  "./src/host/npc-dialogue.js",
-  "./src/host/audio.js",
-  "./assets/registry.js",
-  "./assets/packs/assets-1.js",
-  "./assets/packs/assets-2.js",
-  "./assets/packs/assets-3.js",
-  "./assets/packs/assets-4.js",
-  "./world-layout.js",
-  "./src/host/gm-access.js",
-  "./generated/engine-template.js",
-  "./assets/achievements/atlas.webp",
-  "./src/engine/features/07-achievements.js",
-  "./src/host/engine-bridge.js",
-  "./src/host/browser-ui.js",
-  "./src/host/register-sw.js",
-  "./src/host/desktop.js"
-];
-const absolute=p=>new URL(p,self.registration.scope).href;
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES.map(f=>new Request(absolute(f),{cache:'reload'})))).then(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('kwars-web-')&&k.endsWith(self.registration.scope)&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+// Network-first HTML and mutable layout; versioned assets cache-first.
+const CACHE='kwars-web-modular-v060-fast-1-'+self.registration.scope;
+const root=new URL(self.registration.scope);
+self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',e=>{
- if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin||!e.request.url.startsWith(self.registration.scope))return;
- const u=new URL(e.request.url), root=new URL(self.registration.scope);
+ const req=e.request,u=new URL(req.url);if(req.method!=='GET'||u.origin!==root.origin||!u.href.startsWith(root.href))return;
  const path=u.pathname.slice(root.pathname.length);
- const entry=path===''||path==='index.html'?'index.html':path==='gm.html'?'gm.html':path;
- const key=absolute(entry);
+ const navigation=req.mode==='navigate'||path===''||path==='index.html'||path==='gm.html';
+ const versioned=!!u.searchParams.get('v')&&path!=='world-layout.js';
+ const key=navigation?new URL(path==='gm.html'?'gm.html':'index.html',root).href:req.url;
  e.respondWith((async()=>{
   const cache=await caches.open(CACHE);
+  const cached=await cache.match(key);
+  if(versioned&&!navigation&&cached)return cached;
   try{
-   const response=await fetch(e.request,{cache:'reload'});
+   const response=await fetch(req,{cache:navigation||path==='world-layout.js'?'no-cache':'default'});
    if(response.ok){try{await cache.put(key,response.clone())}catch{}return response}
-   return (await cache.match(key))||response;
-  }catch{return (await cache.match(key))||Response.error()}
+   return cached||response;
+  }catch{return cached||Response.error()}
  })());
 });
