@@ -83,3 +83,12 @@ main.gmScreen>*{flex:0 0 auto;min-height:auto}
 #app .fleetPicker>button>img { object-fit:contain; width:100%; height:100%; }
 #app .fleetButtons { grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); }
 #app .fleetButtons>button { min-width:0; white-space:normal; overflow-wrap:anywhere; }
+
+/* Bag item comparisons: compact actions without losing any controls or values. */
+#app .bagCompareSheet .cmpHeads>div:first-child:not(:has(img)) { justify-content:center; }
+#app .bagCompareSheet .invActions { grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
+#app .bagCompareSheet .invActions>button { min-width:0; min-height:36px; padding:5px; font-size:12px; white-space:normal; overflow-wrap:anywhere; }
+#app .bagCompareSheet .invActions>small { grid-column:1/-1; }
+#app .bagCompareSheet .quickDelta { gap:6px; }
+#app .bagCompareSheet .quickDelta>span { min-width:0; overflow-wrap:anywhere; }
+#app .bagCompareSheet .quickDelta>b { flex:none; }
