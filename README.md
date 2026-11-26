@@ -74,3 +74,7 @@ Ordner in VS Code Insiders öffnen. Terminal: `python -m http.server 8080 --bind
 
 ## Alpha-Hinweise
 Einmal online laden, Offline-Cache benötigt erfolgreichen Service-Worker-Install. Spielstände bleiben lokal pro Browser/Origin, keine Synchronisierung. Browserdaten nicht löschen. Keine echten Zahlungen, kein globales PvP, kein Anti-Cheat. GM-Menü in dieser Spielerversion deaktiviert, clientseitig nicht manipulationssicher. Safari/iPhone auf echtem Gerät noch zu testen. Keine bestehenden Deep-Frontier-Repositories verändert.
+
+## Achievement-System (v0.58)
+
+`src/engine/features/07-achievements.js` erweitert die bisherigen 18 Erfolge auf 100 kosmetische Erfolge. Die alten Save-Keys bleiben unverändert; neue IDs sind stabil. Das Modul wird vom Engine-Bridge nach den bisherigen klassischen Scripts geladen. Die Bilder liegen in einem 10×10-Atlas (`assets/achievements/atlas.webp`, 1280×1280). Die Karten verwenden positionsgenaue CSS-Sprites; bei fehlendem Atlas bleiben sie mit Symbol-Fallback spielbar. Der Atlas wird bei erfolgreichem Abruf vom Service Worker zur Offline-Nutzung gecacht. Die neue Liste scrollt separat, ihre Position bleibt bei UI-Updates erhalten.
