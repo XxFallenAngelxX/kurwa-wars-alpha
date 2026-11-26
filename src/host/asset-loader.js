@@ -22,14 +22,14 @@ function kwPackReady(i){return Object.keys(kwAssetPackIndex).every(k=>kwAssetPac
 // The packs are immutable, content-addressed and shared between sessions.
 async function kwFetchPack(path,i,retry=false){
  const url=new URL(path,document.baseURI);
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),90000);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
  try{
   const response=await fetch(url,{signal:controller.signal,cache:retry?'reload':'default'});
   if(!response.ok)throw Error('HTTP '+response.status+' '+url.pathname);
   const source=(await response.text()).trim();
-  const prefix='Object.assign(KW_ASSETS,';
-  if(!source.startsWith(prefix)||!source.endsWith(');'))throw Error('Ungültiges Grafikpaket: '+url.pathname);
-  const data=JSON.parse(source.slice(prefix.length,-2));
+  const match=source.match(/^Object\.assign\(\s*KW_ASSETS\s*,\s*([\s\S]*?)\s*\)\s*;?$/);
+  if(!match)throw Error('Ungültiges Grafikpaket: '+url.pathname);
+  const data=JSON.parse(match[1]);
   const keys=Object.keys(kwAssetPackIndex).filter(k=>kwAssetPackIndex[k]===i);
   if(!keys.every(k=>typeof data[k]==='string'&&data[k].startsWith('data:')))throw Error('Unvollständiges Grafikpaket '+(i+1));
   for(const k of keys)KW_ASSETS[k]=data[k];
@@ -81,7 +81,7 @@ async function kwPrepareAssets(markup,styles){
  const keys=kwFindAssetKeys(markup,styles);
  for(const key of keys)if(Object.hasOwn(kwAssetPackIndex,key))kwRequiredPacks.add(kwAssetPackIndex[key]);
  // Never block a game view on a graphics transfer. Polling refreshes resolved assets.
- kwKickPacks();
+ setTimeout(kwKickPacks,0);
  return {markup:kwResolveAssets(markup),styles:kwResolveAssets(styles)};
 }
 window.kwLoadHostAudio=()=>typeof AUDIO_ASSETS!=='undefined'?Promise.resolve():kwLoadScript('./assets/audio/host-audio.js?v=f8eeb461');
