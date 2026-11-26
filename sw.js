@@ -1,4 +1,4 @@
-const CACHE='kwars-web-modular-v057-1-'+self.registration.scope;
+const CACHE='kwars-web-modular-v058-achievements-1-'+self.registration.scope;
 const FILES=[
   "./index.html",
   "./gm.html",
@@ -17,6 +17,7 @@ const FILES=[
   "./world-layout.js",
   "./src/host/gm-access.js",
   "./generated/engine-template.js",
+  "./src/engine/features/07-achievements.js",
   "./src/host/engine-bridge.js",
   "./src/host/browser-ui.js",
   "./src/host/register-sw.js",
