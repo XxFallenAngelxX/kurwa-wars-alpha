@@ -59,6 +59,7 @@
     "src/styles/engine/10-settings-header.css"
   ],
   "@@KW_BLOCK_14@@": [
-    "src/styles/engine/11-responsive-header.css"
+    "src/styles/engine/11-responsive-header.css",
+    "src/styles/engine/12-adventure-bar.css"
   ]
 }

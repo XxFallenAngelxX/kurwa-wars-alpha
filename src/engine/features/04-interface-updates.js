@@ -15,8 +15,22 @@ for(const k of ['scene','fx','voice']){const old=AudioGame[k];AudioGame[k]=funct
 AudioGame.unlock=()=>{};AudioGame.status=()=>parent.localAudioStatus();
 window.confirm=()=>!!window.__confirmed;
 window.__controls=new Map();window.__tokens=new Map();window.__gmLevelDraft=null;window.__profileDraft='';
+function updateAdventureBar(){
+ const bar=$('adventureBar');if(!bar)return;
+ const blocked=onboard52||page==='Profile'||page==='Kampf'||!!battle?.running;
+ const trip=s.travel,left=trip?Math.max(0,trip.end-Date.now()):0;
+ const progress=trip?clamp(100*(Date.now()-trip.start)/Math.max(1,trip.end-trip.start),0,100):0;
+ const title=trip?(trip.o?.name||missionLabel('Abenteuer','Adventure','Приключение')):missionLabel('Abenteuer','Adventure','Приключение');
+ let state=page==='Kampf'?(battle?.running?missionLabel('Kampf läuft','In combat','Идёт бой'):missionLabel('Kampf beendet','Combat finished','Бой окончен')):trip?(left?missionTime(left):missionLabel('Bereit','Ready','Готово')):missionLabel('Aufträge öffnen','Open quests','Открыть задания');
+ if(trip&&!left&&bagFull()&&page!=='Kampf')state=missionLabel('Rucksack voll','Backpack full','Рюкзак полон');
+ bar.disabled=blocked;bar.classList.toggle('ready',!!trip&&!left&&page!=='Kampf');
+ bar.querySelector('.adventureBarTitle').textContent=title;
+ bar.querySelector('.adventureBarState').textContent=state;
+ bar.querySelector('.adventureBarFill').style.width=progress+'%';
+ bar.setAttribute('aria-label',title+' · '+state);
+}
 window.__snapshot=function(drain=true){
- chat46Sync();const app=$('app'),modal=$('modal'),isModal=!modal.hidden;if(page==='Admin'&&window.__gmLevelDraft!==null&&$('gmLevel'))$('gmLevel').value=window.__gmLevelDraft;
+ chat46Sync();updateAdventureBar();const app=$('app'),modal=$('modal'),isModal=!modal.hidden;if(page==='Admin'&&window.__gmLevelDraft!==null&&$('gmLevel'))$('gmLevel').value=window.__gmLevelDraft;
  if($('profileInput'))$('profileInput').value=window.__profileDraft;const roots=[...app.querySelectorAll('button,input,select,[onclick]')];
  const clone=app.cloneNode(true),copies=[...clone.querySelectorAll('button,input,select,[onclick]')];
  const audioStatus=clone.querySelector('#audioStatus');if(audioStatus)audioStatus.textContent=parent.localAudioStatus();

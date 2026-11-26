@@ -1,0 +1,9 @@
+#app { grid-template-rows: 58px minmax(0,1fr) 38px 61px; }
+.adventureBar { position:relative; display:flex; align-items:center; justify-content:space-between; gap:8px; width:calc(100% - 16px); min-width:0; height:32px; margin:3px 8px; padding:4px 9px; overflow:hidden; border:1px solid #9c7549; border-radius:6px; background:#281e29; text-align:left; font-size:11px; }
+.adventureBarFill { position:absolute; inset:0 auto 0 0; width:0; background:linear-gradient(90deg,#624a27,#96702f); transition:width .4s linear; pointer-events:none; }
+.adventureBarTitle,.adventureBarState { position:relative; z-index:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.adventureBarTitle { color:#ffe2a3; }
+.adventureBarState { flex:none; color:#fff2d7; font-variant-numeric:tabular-nums; }
+.adventureBar.ready { border-color:#efc56f; }
+.journeyNotice { bottom:102px; }
+@media(max-height:570px){ #app { grid-template-rows:48px minmax(0,1fr) 34px 49px; } .adventureBar { height:28px; margin-top:3px; margin-bottom:3px; } .journeyNotice { bottom:86px; } }

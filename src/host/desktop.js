@@ -7,7 +7,7 @@
 .worldViewport:focus-visible { outline:2px solid #ffe6a5; outline-offset:-2px; }
 @media (any-pointer:fine) { .worldViewport {cursor:grab} .worldViewport.kwDragging,.worldViewport.kwDragging * {cursor:grabbing!important} #app button:not(:disabled){cursor:pointer} }
 @media (min-width:800px) {
- #app {max-width:1440px;width:100%;height:100dvh;grid-template-rows:68px minmax(0,1fr) 68px;}
+ #app {max-width:1440px;width:100%;height:100dvh;grid-template-rows:68px minmax(0,1fr) 38px 68px;}
  #app>header {grid-template-columns:90px minmax(0,1fr) 48px 48px;gap:10px;padding:8px 16px;}
  #app>header #res {font-size:16px;} #app>header img{height:50px}
  #app .settings51Btn,#app .shop52Btn {width:48px;height:48px;}
