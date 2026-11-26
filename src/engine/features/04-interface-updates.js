@@ -24,8 +24,8 @@ function updateAdventureBar(){
  const title=trip?(trip.o?.name||missionLabel('Abenteuer','Adventure','Приключение')):missionLabel('Abenteuer','Adventure','Приключение');
  let state=page==='Kampf'?(battle?.running?missionLabel('Kampf läuft','In combat','Идёт бой'):missionLabel('Kampf beendet','Combat finished','Бой окончен')):trip?(left?missionTime(left):missionLabel('Bereit','Ready','Готово')):missionLabel('Aufträge öffnen','Open quests','Открыть задания');
  if(trip&&!left&&bagFull()&&page!=='Kampf')state=missionLabel('Rucksack voll','Backpack full','Рюкзак полон');
- bar.disabled=blocked;bar.classList.toggle('ready',!!trip&&!left&&!blocked);bar.classList.toggle('idle',!trip);
- bar.querySelector('.adventureBarTitle').textContent=missionLabel('Abenteuer','Adventure','Приключение');
+ bar.disabled=blocked;bar.classList.toggle('ready',!!trip&&!left&&page!=='Kampf');bar.classList.toggle('idle',!trip);
+ bar.querySelector('.adventureBarTitle').textContent=title;
  bar.querySelector('.adventureBarState').textContent=state;
  bar.querySelector('.adventureBarFill').style.width=progress+'%';
  bar.setAttribute('aria-label',title+' · '+state);
