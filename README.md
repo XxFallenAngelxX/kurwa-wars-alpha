@@ -82,3 +82,7 @@ Einmal online laden, Offline-Cache benötigt erfolgreichen Service-Worker-Instal
 ## Fast startup v0.60
 
 The initial engine starts with stable image placeholders. Four legacy image packs load asynchronously after the first interactive screen; only referenced images in visible markup and styles are converted to object URLs. Host music is loaded on demand when audio is activated. Versioned assets use a cache-first service worker; HTML and the world layout stay network-first. Offline files are cached as they are requested, not eagerly precached on every release. This is pack-level deferred loading, not individual-image network loading.
+
+## Asset integrity v0.60.2
+
+All 541 referenced engine assets were checked against the original four packs. Each view resolves its image references before being displayed. Only required packs are requested, with an original root-path fallback and a timeout. Audio stays deferred. No image placeholder is intentionally exposed in the visible UI. The old pack files, saves, world layout and engine are unchanged.

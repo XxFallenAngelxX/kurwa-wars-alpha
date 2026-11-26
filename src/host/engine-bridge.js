@@ -27,5 +27,18 @@ async function kwStartEngine(){
 }
 let kwReady=kwStartEngine();kwReady.catch(()=>{});
 window.localAudioStatus=()=>AudioGame.status();
-let kwStyles=false,kwStylesRevision=-1,kwMarkup='',kwEtag=0;window.kwSwitchProfile=()=>setTimeout(()=>{kwStyles=false;kwMarkup='';kwReady=kwStartEngine();kwReady.then(()=>send('/api/game/view')).catch(e=>{err(e.message);window.kwBoot?.fail(e.message)})},0);
-async function localApi(path,data){await kwReady;let w=kwFrame.contentWindow;if(path==='/api/me')return {account:true,csrf:'local'};let result={};if(path==='/api/game/action')result=w.__act(data.token,data.value,data.confirmed);let x=w.__snapshot();x.markup=kwResolveAssets(x.markup);if(x.markup!==kwMarkup){kwMarkup=x.markup;kwEtag++}else if(data?.etag===String(kwEtag))delete x.markup;x.etag=String(kwEtag);if(!kwStyles||kwStylesRevision!==kwAssetRevision){x.styles=kwResolveAssets(Array.from(w.document.querySelectorAll('style'),e=>e.textContent).join('\n'));kwStyles=true;kwStylesRevision=kwAssetRevision;}x.result=result;return x;}
+let kwStyles=false,kwMarkup='',kwEtag=0;window.kwSwitchProfile=()=>setTimeout(()=>{kwStyles=false;kwMarkup='';kwReady=kwStartEngine();kwReady.then(()=>send('/api/game/view')).catch(e=>{err(e.message);window.kwBoot?.fail(e.message)})},0);
+async function localApi(path,data){
+ const ready=kwReady;await ready;if(ready!==kwReady)throw Error('Profil wurde gewechselt.');
+ const w=kwFrame.contentWindow;
+ if(path==='/api/me')return {account:true,csrf:'local'};
+ let result={};if(path==='/api/game/action')result=w.__act(data.token,data.value,data.confirmed);
+ const x=w.__snapshot(),rawStyles=!kwStyles?Array.from(w.document.querySelectorAll('style'),e=>e.textContent).join('\n'):undefined;
+ const prepared=await kwPrepareAssets(x.markup,rawStyles);
+ if(ready!==kwReady)throw Error('Profil wurde gewechselt.');
+ x.markup=prepared.markup;
+ if(x.markup!==kwMarkup){kwMarkup=x.markup;kwEtag++}else if(data?.etag===String(kwEtag))delete x.markup;
+ x.etag=String(kwEtag);
+ if(rawStyles!==undefined){x.styles=prepared.styles;kwStyles=true;}
+ x.result=result;return x;
+}
