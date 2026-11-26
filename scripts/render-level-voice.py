@@ -1,4 +1,4 @@
-"""Render Russian Garage FM clips. Run from repository root with Piper and FFmpeg installed."""
+"""Render 14 short Russian Garage FM shouts. Run from repository root with Piper and FFmpeg installed."""
 import json, pathlib, re, subprocess, tempfile, urllib.request
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "src/host/audio.js"
