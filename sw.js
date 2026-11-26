@@ -1,5 +1,5 @@
 // Network-first HTML and mutable layout; versioned assets cache-first.
-const CACHE='kwars-web-modular-v0603-assets-recovery-1-'+self.registration.scope;
+const CACHE='kwars-web-modular-v0603-assets-recovery-2-'+self.registration.scope;
 const root=new URL(self.registration.scope);
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
@@ -12,7 +12,7 @@ self.addEventListener('fetch',e=>{
  e.respondWith((async()=>{
   const cache=await caches.open(CACHE);
   const cached=await cache.match(key);
-  if(versioned&&!navigation&&cached)return cached;
+  if(versioned&&!navigation&&cached&&path.startsWith('assets/packs/'))return cached;
   try{
    const response=await fetch(req,{cache:navigation||path==='world-layout.js'?'no-cache':'default'});
    if(response.ok){try{await cache.put(key,response.clone())}catch{}return response}
