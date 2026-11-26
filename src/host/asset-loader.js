@@ -19,16 +19,17 @@ function kwLoadScript(path){
 function kwAssetPlaceholder(key){return key.endsWith('.mp3')?'data:audio/mp3;base64,':kwAssetPrefix+key}
 function kwFindAssetKeys(...texts){return [...new Set(texts.flatMap(t=>typeof t==='string'?Array.from(t.matchAll(kwAssetMarker),m=>m[1]):[]))]}
 function kwPackReady(i){return Object.keys(kwAssetPackIndex).every(k=>kwAssetPackIndex[k]!==i||typeof KW_ASSETS[k]==='string'&&KW_ASSETS[k].startsWith('data:'))}
+// The packs are immutable, content-addressed and shared between sessions.
 async function kwFetchPack(path,i,retry=false){
  const url=new URL(path,document.baseURI);
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
  try{
-  const response=await fetch(url,{signal:controller.signal,cache:'reload'});
+  const response=await fetch(url,{signal:controller.signal,cache:retry?'reload':'default'});
   if(!response.ok)throw Error('HTTP '+response.status+' '+url.pathname);
   const source=(await response.text()).trim();
-  const match=/^Object\.assign\(KW_ASSETS,\s*(\{[\s\S]*\})\s*\);?$/.exec(source);
-  if(!match)throw Error('Ungültiges Grafikpaket: '+url.pathname);
-  const data=JSON.parse(match[1]);
+  const prefix='Object.assign(KW_ASSETS,';
+  if(!source.startsWith(prefix)||!source.endsWith(');'))throw Error('Ungültiges Grafikpaket: '+url.pathname);
+  const data=JSON.parse(source.slice(prefix.length,-2));
   const keys=Object.keys(kwAssetPackIndex).filter(k=>kwAssetPackIndex[k]===i);
   if(!keys.every(k=>typeof data[k]==='string'&&data[k].startsWith('data:')))throw Error('Unvollständiges Grafikpaket '+(i+1));
   for(const k of keys)KW_ASSETS[k]=data[k];
@@ -37,21 +38,25 @@ async function kwFetchPack(path,i,retry=false){
 function kwLoadPack(i){
  if(kwPackReady(i))return Promise.resolve();
  if(kwPackRequests.has(i))return kwPackRequests.get(i);
- const name='assets-'+(i+1)+'.js',v=kwPackVersions[i]+'-r4';
- const paths=['./assets/packs/'+name+'?v='+v,'./'+name+'?v='+v];
+ const path='./assets/packs/assets-'+(i+1)+'.js?v='+kwPackVersions[i]+'-r4';
  const promise=(async()=>{
-  for(let j=0;j<paths.length;j++){
-   try{await kwFetchPack(paths[j],i,j>0);if(kwPackReady(i))return}catch(e){console.warn('Grafikpaket '+(i+1)+':',e.message)}
+  try{await kwFetchPack(path,i)}catch(first){
+   console.warn('Grafikpaket '+(i+1)+':',first.message);
+   try{await kwFetchPack(path,i,true)}catch(last){throw Error('Grafikpaket '+(i+1)+': '+last.message)}
   }
-  // Compatibility fallback for older HTML or browsers that disallow fetch.
-  for(const path of paths){
-   try{await kwLoadScript(path);if(kwPackReady(i))return;kwAssetRequests.delete(path)}catch(e){console.warn(e.message)}
-  }
-  throw Error('Grafikpaket '+(i+1)+' konnte nicht geladen werden.');
+  if(!kwPackReady(i))throw Error('Grafikpaket '+(i+1)+' unvollständig');
  })();
  kwPackRequests.set(i,promise);
- promise.then(()=>{kwPackRequests.delete(i)},()=>{kwPackRequests.delete(i)});
+ promise.then(()=>kwPackRequests.delete(i),()=>kwPackRequests.delete(i));
  return promise;
+}
+async function kwPreloadAssets(){
+ let loaded=0;
+ await Promise.all([0,1,2,3].map(async i=>{
+  await kwLoadPack(i);
+  loaded++;
+  window.kwBoot?.stage('Grafikpakete '+loaded+'/4 vollständig geladen',70+loaded*6);
+ }));
 }
 const kwRequiredPacks=new Set(),kwLoadingPacks=new Set(),kwRetryAfter=new Map();
 function kwKickPacks(){
