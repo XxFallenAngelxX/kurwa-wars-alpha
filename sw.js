@@ -1,5 +1,5 @@
 // Network-first HTML and mutable layout; versioned assets cache-first.
-const CACHE='kwars-web-modular-v0602-assetfix-1-'+self.registration.scope;
+const CACHE='kwars-web-modular-v0603-assets-recovery-1-'+self.registration.scope;
 const root=new URL(self.registration.scope);
 self.addEventListener('install',e=>e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
