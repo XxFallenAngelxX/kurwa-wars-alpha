@@ -23,7 +23,7 @@ async function kwFetchPack(path,i,retry=false){
  const url=new URL(path,document.baseURI);
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
  try{
-  const response=await fetch(url,{signal:controller.signal,cache:retry?'reload':'default'});
+  const response=await fetch(url,{signal:controller.signal,cache:'reload'});
   if(!response.ok)throw Error('HTTP '+response.status+' '+url.pathname);
   const source=(await response.text()).trim();
   const match=/^Object\.assign\(KW_ASSETS,\s*(\{[\s\S]*\})\s*\);?$/.exec(source);
@@ -37,7 +37,7 @@ async function kwFetchPack(path,i,retry=false){
 function kwLoadPack(i){
  if(kwPackReady(i))return Promise.resolve();
  if(kwPackRequests.has(i))return kwPackRequests.get(i);
- const name='assets-'+(i+1)+'.js',v=kwPackVersions[i]+'-r3';
+ const name='assets-'+(i+1)+'.js',v=kwPackVersions[i]+'-r4';
  const paths=['./assets/packs/'+name+'?v='+v,'./'+name+'?v='+v];
  const promise=(async()=>{
   for(let j=0;j<paths.length;j++){
@@ -75,8 +75,7 @@ function kwResolveAssets(text){
 async function kwPrepareAssets(markup,styles){
  const keys=kwFindAssetKeys(markup,styles);
  for(const key of keys)if(Object.hasOwn(kwAssetPackIndex,key))kwRequiredPacks.add(kwAssetPackIndex[key]);
- kwKickPacks();
- // The game remains usable while graphics arrive; the next snapshot refreshes them.
+ await Promise.all([...kwRequiredPacks].map(i=>kwLoadPack(i)));
  return {markup:kwResolveAssets(markup),styles:kwResolveAssets(styles)};
 }
 window.kwLoadHostAudio=()=>typeof AUDIO_ASSETS!=='undefined'?Promise.resolve():kwLoadScript('./assets/audio/host-audio.js?v=f8eeb461');
