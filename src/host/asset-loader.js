@@ -22,7 +22,7 @@ function kwPackReady(i){return Object.keys(kwAssetPackIndex).every(k=>kwAssetPac
 // The packs are immutable, content-addressed and shared between sessions.
 async function kwFetchPack(path,i,retry=false){
  const url=new URL(path,document.baseURI);
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),90000);
  try{
   const response=await fetch(url,{signal:controller.signal,cache:retry?'reload':'default'});
   if(!response.ok)throw Error('HTTP '+response.status+' '+url.pathname);
@@ -80,7 +80,8 @@ function kwResolveAssets(text){
 async function kwPrepareAssets(markup,styles){
  const keys=kwFindAssetKeys(markup,styles);
  for(const key of keys)if(Object.hasOwn(kwAssetPackIndex,key))kwRequiredPacks.add(kwAssetPackIndex[key]);
- await Promise.all([...kwRequiredPacks].map(i=>kwLoadPack(i)));
+ // Never block a game view on a graphics transfer. Polling refreshes resolved assets.
+ kwKickPacks();
  return {markup:kwResolveAssets(markup),styles:kwResolveAssets(styles)};
 }
 window.kwLoadHostAudio=()=>typeof AUDIO_ASSETS!=='undefined'?Promise.resolve():kwLoadScript('./assets/audio/host-audio.js?v=f8eeb461');

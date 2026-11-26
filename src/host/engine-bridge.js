@@ -11,10 +11,9 @@ function kwAssets(t){
 async function kwStartEngine(){
  const generation=++kwBootGeneration;
  window.kwBoot?.stage('Spielkern vorbereiten …',75);await kwYield();
- const assets=kwPreloadAssets();assets.catch(()=>{});
  const html=kwAssets(KW_TEMPLATE);
  if(generation!==kwBootGeneration)throw Error('Start durch Profilwechsel ersetzt.');
- window.kwBoot?.stage('Spielkern und Grafikpakete werden parallel geladen …',70);
+ window.kwBoot?.stage('Spielkern wird initialisiert …',70);
  const engine=new Promise((resolve,reject)=>{
   let done=false;
   const finish=(error)=>{if(done)return;done=true;clearTimeout(timer);if(error)reject(Error(error));else resolve()};
@@ -25,7 +24,7 @@ async function kwStartEngine(){
   kwFrame.onload=()=>{if(done||generation!==kwBootGeneration)return;try{const w=kwFrame.contentWindow;if(typeof w.__snapshot==='function'&&typeof w.__checkpoint==='function'&&w.document.querySelector('#screen')?.children.length)finish()}catch(e){finish(e.message)}};
   try{kwFrame.srcdoc=html.replace('<head>','<head>'+pre).replace('</body>',()=>post+'</body>');if(!kwFrame.isConnected)document.body.appendChild(kwFrame)}catch(e){finish(e.message)}
  });
- await Promise.all([engine,assets]);
+ await engine;
 }
 let kwReady=kwStartEngine();kwReady.catch(()=>{});
 window.localAudioStatus=()=>AudioGame.status();
