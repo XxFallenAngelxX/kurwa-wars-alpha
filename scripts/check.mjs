@@ -8,6 +8,7 @@ assert.equal(read('generated/sw-version.js'),releaseVersion(),'Generated release
 const version=JSON.parse(read('package.json')).version;
 assert(read('src/engine/frame.html').includes('<span class="gameVersion">v'+version+'</span>'),'Header version differs from package.json');
 assert.equal(read('generated/engine-template.js'),generated(),'Generated engine is outdated; run npm run build');
+for(const name of ['container','electronics','expedition','mine','pickaxe','scrapyard']){const p='assets/activities/'+name+'.webp';assert(existsSync(resolve(root,p)),'Missing activity artwork: '+p);}
 const paths=new Set();
 const webManifest=JSON.parse(read('manifest.webmanifest'));
 for(const icon of webManifest.icons){
