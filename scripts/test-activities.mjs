@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const activity=read('src/engine/features/08-activities.js');
+const expedition=read('src/engine/core/11-expeditions.js');
 const core=read('src/engine/core/04-progression.js');
 const gate=core.split('// Central character-level gates; vehicle contracts deliberately remain currency-only.')[1].split('function kwCombatFeature')[0];
 const setup=`
@@ -9,6 +10,7 @@ let s={level:7,energy:100,gold:10000,premium:0,wins:0,arena:{wins:0}},page='Schr
 let rng=.99; Math.random=()=>rng;
 function setInterval(){}
 function save(){} function render(){} function hubLabel(de){return de}
+function rand(n){return Math.floor(rng*n)} function fmt(n){return String(n)} function logEscape(t){return t} const parent={location:{href:'https://example.test/game/index.html'}};
 function spendEnergy(n){if(s.energy<n)return false;s.energy-=n;return true}
 const MATERIAL_GATES={scrap:1,bolts:1,rubber:1,tape:1,oil:8,wire:8,electronics:8,precision:25};
 function materialPool(level){return Object.keys(MATERIAL_GATES).filter(k=>MATERIAL_GATES[k]<=level).map(id=>({id}))}
@@ -37,8 +39,23 @@ s.level=40;page='Schwarzmarkt';kwActivityTick();let offer=kwMarketOffers(kwActiv
 test("market limits 3 trades",()=>kwMarketTrade(0)&&kwMarketTrade(0)&&kwMarketTrade(0)&&!kwMarketTrade(0));
 let old=kwActivityState().board;old.day--;kwActivityTick();
 test("daily reset",()=>kwActivityState().board!==old&&!kwActivityState().board.claimed.wins&&kwBoardProgress(kwBoardTasks()[0])===0);
+s.level=30;page='Kristallmine';s.energy=100;let a=kwActivityState();a.tool=0;
+test('depth gate prevents mining without tool',()=>!kwMineDig(1)&&s.energy===100);a.tool=3;
+test('violet vein charges 14 energy',()=>kwMineDig(1)&&s.energy===86);a.tool=7;
+test('deep chamber charges 18 energy',()=>kwMineDig(2)&&s.energy===68);
+test('mine artwork is wired',()=>kwActivityView('Kristallmine').includes('assets/activities/mine.webp')&&kwActivityView('Kristallmine').includes('assets/activities/pickaxe.webp'));
+page='Expedition';s.level=14;s.energy=100;test('expedition gated below 15',()=>!expeditionStart(0)&&s.energy===100);
+s.level=21;test('scrap route gated below 22',()=>!expeditionStart(1)&&s.energy===100);
+s.level=30;test('route menu links original art',()=>expeditionView().includes('assets/activities/expedition.webp')&&expeditionView().includes('assets/activities/scrapyard.webp'));
+test('scrap expedition creates seven unique stages',()=>expeditionStart(1)&&s.energy===75&&expeditionState().run.ids.length===7&&new Set(expeditionState().run.ids).size===7);
+let run=expeditionState().run;test('cannot retreat before stage two',()=>!expeditionWithdraw());run.step=2;run.cash=100;run.status='choice';
+test('retreat keeps loot without granting completion',()=>expeditionWithdraw()&&run.status==='finished'&&run.cash===100&&expeditionState().completed===0);
+test('retreat collection cannot duplicate rewards',()=>{let gold=s.gold;return expeditionCollect()&&s.gold===gold+100&&!expeditionCollect()});
+test('mine expedition has eight unique stages',()=>expeditionStart(2)&&s.energy===45&&expeditionState().run.ids.length===8&&new Set(expeditionState().run.ids).size===8);
+test('old expedition route falls back to Panzerheld',()=>kwExpRoute({}).level===15);
+test('all event rules match event count',()=>EXP_EVENTS.length===21&&EXP_RULES.length===21&&EXP_RULES.every(r=>r[0].every(w=>w.reduce((a,b)=>a+b,0)===100)));
 results;
 `;
-const result=runInNewContext(setup+gate+activity+cases);
+const result=runInNewContext(setup+gate+expedition+activity+cases,{URL});
 for(const name of result)console.log('PASS '+name);
 console.log(result.length+' activity regression checks passed.');
