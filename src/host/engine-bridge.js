@@ -11,6 +11,14 @@ function kwAssets(t){
 async function kwStartEngine(){
  const generation=++kwBootGeneration;
  window.kwBoot?.stage('Spielkern vorbereiten …',75);await kwYield();
+ window.kwBoot?.stage('Grafikpakete werden vollständig geladen …',76);
+ let loaded=0;
+ await Promise.all([0,1,2,3].map(async i=>{
+  await kwLoadPack(i);
+  if(!kwPackReady(i))throw Error('Grafikpaket '+(i+1)+' unvollständig');
+  loaded++;
+  window.kwBoot?.stage('Grafikpakete '+loaded+'/4 vollständig geladen',76+loaded*3);
+ }));
  const html=kwAssets(KW_TEMPLATE);
  if(generation!==kwBootGeneration)throw Error('Start durch Profilwechsel ersetzt.');
  window.kwBoot?.stage('Spielkern initialisieren …',90);
