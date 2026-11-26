@@ -1,7 +1,7 @@
 {
   "name": "kurwa-wars-alpha",
   "private": true,
-  "version": "0.57.0",
+  "version": "0.62.0",
   "description": "Modular browser game sources; no external dependencies",
   "scripts": {
     "build": "node scripts/build.mjs",
