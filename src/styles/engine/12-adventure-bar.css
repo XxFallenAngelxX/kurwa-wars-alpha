@@ -53,11 +53,11 @@
 .journeyNotice { bottom:102px; }
 @media(max-height:570px){ #app { grid-template-rows:48px minmax(0,1fr) 34px 49px; } .adventureBar { height:28px; margin-top:3px; margin-bottom:3px; } .journeyNotice { bottom:86px; } }
 .arena { position:relative; min-height:210px; }
-#app .arena .fighter { justify-content:flex-start; padding-top:44px; }
+#app .arena .fighter { justify-content:flex-start; padding-top:0; }
 #app .arena .fighter>.bar { width:100%; height:10px; flex:none; }
 #app .arena .fightart { width:min(100%, 18dvh, 130px); height:auto; max-height:none; aspect-ratio:1; flex:none; align-self:center; }
 #app .arena .fightart img { width:100%; height:100%; object-fit:contain; }
-#app .arena img.combatProjectile { position:absolute; z-index:3; width:clamp(36px,8vw,64px); height:clamp(36px,8vw,64px); object-fit:contain; pointer-events:none; top:calc(53px + min(18dvh, 130px) / 2 - clamp(36px,8vw,64px) / 2); left:calc(25% - clamp(36px,8vw,64px) / 2); filter:drop-shadow(0 0 6px #ffda8a); animation:combatProjectile var(--attack-travel) ease-in calc(-1 * var(--attack-elapsed)) both; }
+#app .arena img.combatProjectile { position:absolute; z-index:3; width:clamp(36px,8vw,64px); height:clamp(36px,8vw,64px); object-fit:contain; pointer-events:none; top:calc(9px + min(18dvh, 130px) / 2 - clamp(36px,8vw,64px) / 2); left:calc(25% - clamp(36px,8vw,64px) / 2); filter:drop-shadow(0 0 6px #ffda8a); animation:combatProjectile var(--attack-travel) ease-in calc(-1 * var(--attack-elapsed)) both; }
 #app .arena img.rangedProjectile { animation-name:rangedProjectile; animation-timing-function:linear; }
 #app .arena img.arcaneProjectile { filter:drop-shadow(0 0 9px #c689ff); }
 #app .arena img.enemyProjectile { animation-direction:reverse; }
@@ -102,6 +102,7 @@
  overflow-y:auto;
  overscroll-behavior-y:contain;
 }
+#app #screen:has(>.arena)>h2 { display:none; }
 #app #screen:has(>.arena)>:not(.arena) { flex-shrink:0; }
 #app .raidRecentRunning {
  height:clamp(75px,18dvh,118px);
