@@ -67,3 +67,15 @@ results;
 const result=runInNewContext(setup+gate+expedition+activity+cases,{URL});
 for(const name of result)console.log('PASS '+name);
 console.log(result.length+' activity regression checks passed.');
+
+
+// Mission-card UI: level belongs in the heading; only distinct opponent names survive.
+const missionUI=read('src/engine/core/12-milestones-profiles.js');
+const identityCode=missionUI.split('\n').filter(l=>l.startsWith('function kwMissionIdentity')).join('\n');
+const identity=runInNewContext('function num(n){return String(n)}\n'+identityCode+'\nkwMissionIdentityMarkup');
+const duplicate=identity({name:'Ritter Restmülltonne',enemy:'Ritter Restmülltonne',l:4,desc:'Beschreibung'});
+if(duplicate!=='<h3>Ritter Restmülltonne · Lv 4</h3><small class="missionDesc">Beschreibung</small>')throw Error('Mission name/level duplication: '+duplicate);
+const distinct=identity({name:'Sondereinsatz',enemy:'Ritter Restmülltonne',l:4,desc:'Beschreibung'});
+if(!distinct.includes('<h3>Sondereinsatz · Lv 4</h3>')||!distinct.includes('<p>Ritter Restmülltonne</p>'))throw Error('Distinct opponent name lost');
+if(!missionUI.includes('${kwMissionIdentityMarkup(t.o)}')||!missionUI.includes('${kwMissionIdentityMarkup(o)}'))throw Error('Mission identity not used in both views');
+console.log('OK: mission identity before departure and on arrival');
