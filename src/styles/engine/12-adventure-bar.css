@@ -314,3 +314,22 @@
 #app .hero .heroart>.heroXp>.bar {
  width:100%; height:100%; margin:0; border:0; border-radius:0; box-sizing:border-box;
 }
+
+/* Compact backpack comparison: put the close control into the new item card. */
+#app .bagCompareSheet {
+ gap:4px; padding:8px; align-content:start;
+}
+#app .bagCompareSheet>.cmpHeads>div:nth-child(2) { position:relative; }
+#app .bagCompareSheet .itemCardClose {
+ position:absolute; top:2px; right:2px; z-index:2;
+ width:26px; height:26px; min-width:26px; min-height:26px;
+ padding:0; margin:0; display:grid; place-items:center; line-height:1;
+ font-size:15px; border-radius:6px;
+}
+#app .bagCompareSheet>.cmpHeads>div { padding:4px; gap:1px; }
+#app .bagCompareSheet>.quickCompare { padding:5px 6px; gap:1px; }
+#app .bagCompareSheet .quickDelta { padding:2px 0; }
+#app .bagCompareSheet>.cpCompare { padding:5px 7px; }
+#app .bagCompareSheet .cmpDetails>summary { padding:3px 4px; }
+#app .bagCompareSheet>.tagline { margin:0; }
+#app .bagCompareSheet>.invActions { gap:4px; }
