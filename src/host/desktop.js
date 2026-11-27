@@ -24,7 +24,7 @@
  #app .gearpair .slot{max-width:106px;} #app .gearpair label{font-size:12px;line-height:15px;}
  #app .stat{font-size:13px;min-height:34px;grid-template-columns:minmax(0,1fr) auto minmax(48px,auto);} #app .stat button{min-height:30px;font-size:12px;} #app .summary{font-size:13px;}
  #app .baggrid .slot img{object-fit:contain;} #app .baghead{font-size:14px;} #app .slot .il,#app .slot .rank{font-size:12px;}
- #app .worldViewport{flex:1;min-height:240px;} #app .world45Strip{height:100%;aspect-ratio:3/1;min-width:100%;} #app .world45Pin{font-size:13px;} #app .world45Npc span{font-size:13px;}
+ #app .worldViewport{flex:1;min-height:240px;} #app .world45Pin{font-size:13px;} #app .world45Npc span{font-size:13px;}
  #app .sheet{max-width:560px;} #app .kwChatSheet{max-width:760px;} #app .fightart{height:clamp(120px,34dvh,360px);max-height:70%;} #app .fighter .name{font-size:16px;}
  #app .settings51Panel{max-width:850px;width:100%;align-self:center;}
 }
