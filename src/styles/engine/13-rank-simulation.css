@@ -59,3 +59,32 @@
 #app .kwSimTimeGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
 #app .kwSimControl button { min-height:40px; min-width:0; line-height:1.2; font-size:13px; padding:6px 4px; white-space:normal; overflow-wrap:anywhere; }
 @media(max-width:350px) { #app .kwSimMetrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+/* Read-only character inspection, scoped to the leaderboard/arena modal. */
+#app .kwRankHeaderActions { display:flex; align-items:center; flex:none; gap:6px; }
+#app .kwRankRefresh { width:34px; min-height:34px; font-size:19px; line-height:1; }
+#app button.kwRankEntry { width:100%; font-weight:400; cursor:pointer; color:var(--ink); }
+#app button.kwRankEntry:focus-visible { outline:2px solid var(--gold); outline-offset:-2px; }
+#app .kwRankGM { border-style:dashed; }
+#app .kwArenaInspect { min-height:30px; align-self:center; padding:5px 12px; }
+#app .kwInspectSheet { display:flex; flex-direction:column; gap:8px; max-height:92%; overflow-y:auto; overflow-x:hidden; }
+#app .kwInspectSheet > * { flex-shrink:0; min-width:0; }
+#app .kwInspectHead { display:flex; align-items:center; gap:10px; }
+#app .kwInspectHead img { width:70px; height:70px; object-fit:cover; border:1px solid #b78d54; border-radius:8px; flex:none; }
+#app .kwInspectHead > div { display:grid; gap:3px; min-width:0; overflow-wrap:anywhere; }
+#app .kwInspectXP { display:grid; gap:4px; }
+#app .kwInspectMetrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+#app .kwInspectMetrics > div { display:grid; gap:3px; min-width:0; padding:6px; border:1px solid #604956; background:#201a25; border-radius:6px; }
+#app .kwInspectMetrics small,#app .kwInspectStats small { font-size:11px; overflow-wrap:anywhere; }
+#app .kwInspectMetrics b { color:var(--gold); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+#app .kwInspectStats { display:grid; gap:5px; }
+#app .kwInspectGearGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; align-items:start; }
+#app .kwInspectGear,#app .kwInspectEmpty { min-width:0; padding:6px; border:1px solid #604956; border-radius:6px; background:#201a25; }
+#app .kwInspectGear summary { display:flex; gap:5px; cursor:pointer; align-items:center; min-width:0; }
+#app .kwInspectGear summary img { width:34px; height:34px; object-fit:contain; flex:none; }
+#app .kwInspectGear summary span { display:grid; gap:3px; min-width:0; }
+#app .kwInspectGear summary b { font-size:11px; line-height:1.2; overflow-wrap:anywhere; }
+#app .kwInspectGear summary small,#app .kwInspectAffixes small { font-size:10px; line-height:1.25; overflow-wrap:anywhere; }
+#app .kwInspectAffixes { display:grid; gap:3px; margin-top:6px; padding-top:5px; border-top:1px solid #604956; }
+#app .kwInspectEmpty { min-height:50px; display:grid; place-content:center; text-align:center; }
+@media(max-width:350px){#app .kwInspectMetrics{grid-template-columns:repeat(2,minmax(0,1fr));}#app .kwInspectGearGrid{grid-template-columns:1fr;}}

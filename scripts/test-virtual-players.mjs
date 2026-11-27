@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import assert from 'node:assert/strict';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-const core=read('src/engine/core/04-progression.js'), sim=read('src/engine/core/13-virtual-players.js');
+const core=read('src/engine/core/04-progression.js'), sim=read('src/engine/core/13-virtual-players.js'), inspect=read('src/engine/core/14-rank-inspection.js');
 assert.match(core,/Arena:1/);
 assert.match(read('src/engine/features/03-special-loot.js'),/totals=function\(eq=s\.eq,state=s\)\{let p=old47Totals\(eq,state\)/);
 assert.match(read('src/engine/core/06-combat-world-ui.js'),/if\(b\.o\.rival\)\{kwSimArenaTick\(b\);return;\}/);
@@ -18,11 +18,12 @@ assert.match(sim,/kwSimMetrics/);assert.match(sim,/kwSimStyleTable/);
 assert.match(read('src/engine/core/12-milestones-profiles.js'),/kwRankEntry/);
 const setup=`
 let s={level:77,gold:4321,energy:44},serverBoot=null,gm=false,battle=null,onboard52=false,page='Held';
+let activeProfile={id:'real',role:'player',name:'Real',avatar:0},profiles=[activeProfile,{id:'other',role:'player',name:'Other',avatar:1},{id:'gm_dev',role:'gm'}];function profileKey(p){return 'save:'+p.id}
 const PROFILE_AVATARS=['a','b'],ARENA_COOLDOWN=600000,catalog=[['a'],['b']],foeTypes=[['f']];
 const rand=n=>Math.floor(Math.random()*n),pick=a=>a[rand(a.length)];
 const memory=new Map();function profileRead(k){return JSON.parse(memory.get(k)||'null')}function profileWrite(k,v){memory.set(k,JSON.stringify(v));return true}
 function gmAllowed(){return gm}function setInterval(){}function xpNeed(){return 100}
-function fresh(){return {level:1,gold:500,xp:0,energy:100,stats:[10,10,10,10,10],rooms:Array(13).fill(0),eq:[{a:0,slot:0},null,null,null,null,null],wins:0}}
+function fresh(){return {level:1,gold:500,xp:0,energy:100,stats:[10,10,10,10,10],rooms:Array(13).fill(0),eq:[{a:0,slot:0,v:[0,0,0,0,0]},null,null,null,null,null],wins:0}}
 function totals(eq,state){return {hp:100+state.level*10,atk:20+state.stats[0],def:10,crit:.1,dodge:.05,a:state.stats}}
 function combatPower(p,l){return p.hp+p.atk+l}function reduction(a,l){return a/(a+45+11*l)}
 function codexCount(){return {ratio:0}}function trainCost(){return 100}
@@ -33,7 +34,7 @@ function kwGenerateGear(){throw Error('unexpected drop')}function profileEscape(
 `;
 const apply=core.split('\n').find(x=>x.startsWith('function kwApplyProgress('));
 const damage=read('src/engine/core/06-combat-world-ui.js').split('\n').find(x=>x.startsWith('function kwCombatDamage('));
-const out=runInNewContext(setup+apply+'\n'+damage+'\n'+sim+`
+const out=runInNewContext(setup+apply+'\n'+damage+'\n'+sim+'\n'+inspect+`
 const results=[];
 function test(n,f){if(!f())throw Error(n);results.push(n)}
 const original=JSON.stringify(s),w=kwSimCreate(100,0);
@@ -50,5 +51,12 @@ test('matchmaking excludes engaged opponents',()=>{const w2=kwSimCreate(2,0),p=w
 test('shared damage formula',()=>kwCombatDamage(100,0,1,1,true,1)===175);
 test('mythic third attack damage applies',()=>{let p={hp:1000,atk:100,def:0,crit:0,myth47:[1,0,0]},q={hp:1000,atk:1,def:0,crit:0};let d=kwSimDuel(p,1,q,1);for(let i=0;i<5;i++)kwSimTurn(d,()=>.5);return d.fighters[1].hp<680});
 test('GM factors and active save unchanged',()=>JSON.stringify(s)===original);
+const beforeRank=s;s=fresh();profileWrite('kwars_rank:real',{cp:1,level:1});
+test('active rank ignores stale snapshot and updates instantly',()=>{const a=kwRankLocalRecord(activeProfile).cp;s.stats[0]+=400000;return kwRankLocalRecord(activeProfile).cp-a===400000});
+test('inactive rank uses saved character not stale snapshot',()=>{let q=fresh();q.stats[0]+=300;profileWrite('save:other',q);profileWrite('kwars_rank:other',{cp:1,level:1});return kwRankLocalRecord(profiles[1]).cp>300});
+test('GM excluded from real ranking',()=>kwRankLocalRecord(profiles[2])===null);
+test('GM reference position reflects current CP',()=>kwRankGMPosition([{p:profiles[1],r:{cp:100,level:1}}],kwRankRecord(s))===1);
+test('NPC inspection copies actual XP and equipment without changing active save',()=>{let old=JSON.stringify(s),v=kwRankResolve('npc','npc_0');if(!v?.q)return false;let oldNpc=v.q.eq[0].v[0];v.q.eq[0].v[0]=999;return kwRankResolve('npc','npc_0').q.eq[0].v[0]===oldNpc&&JSON.stringify(s)===old});
+test('no server inspection',()=>{serverBoot={};let x=kwRankResolve('npc','npc_0');serverBoot=null;return x===null});s=beforeRank;
 results;`);
 console.log('OK virtual players:',out.join('; '));
