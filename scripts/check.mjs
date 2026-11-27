@@ -67,3 +67,31 @@ const dialogue=read('src/engine/features/02-chat-dialogue.js'),dialogueContext={
 for(const [i,row] of dialogueContext.lines.entries())assert(row.length===3&&row.every(v=>typeof v==='string'&&v.trim()),'Incomplete dialogue '+i);
 for(let lang=0;lang<3;lang++)assert.equal(new Set(dialogueContext.lines.map(row=>row[lang])).size,dialogueContext.lines.length,'Duplicate combat dialogue in language '+lang);
 console.log('OK: '+dialogueContext.lines.length+' combat lines, '+data.audit.UNIQUES.length+' unique descriptions, '+data.audit.ITEM_TITLE_VARIANTS.length+' item title variants in DE/EN/RU');
+
+
+// Commercial foundation: no external scripts, public reports are explicit drafts, rails only on wide desktop.
+const commercialContext={URL};runInNewContext(read('src/host/commercial.js'),commercialContext);
+const commercial=commercialContext.KWCommercial;
+assert.equal(commercial.platform({ua:'Android',coarse:false}),'mobile-web');
+assert.equal(commercial.platform({ua:'Macintosh',touch:5}),'mobile-web');
+assert.equal(commercial.platform({native:'android'}),'android-app');
+assert.equal(commercial.platform({native:'ios'}),'ios-app');
+assert.equal(commercial.platform({native:'steam'}),'steam');
+assert.equal(commercial.platform({ua:'Windows'}),'desktop-web');
+assert.equal(commercial.sponsor({label:'test',image:'https://tracker.invalid/banner.png',url:'https://example.com'}),null);
+assert.equal(commercial.sponsor({label:'test',image:'assets/sponsors/banner.webp',url:'javascript:alert(1)'}),null);
+assert.equal(commercial.sponsor({label:'test',image:'assets/sponsors/banner.webp',url:'https://example.com'}).label,'test');
+assert.equal(commercial.report({subject:'',message:'abc'}),null);
+const reportDraft=commercial.report({category:'idea',subject:'A & B',message:'Test #1',rating:4,context:true},{version:'v0.62.0',platform:'mobile-web',lang:'de'});
+assert(reportDraft.body.includes('Platform: mobile-web'));
+assert(!commercial.report({subject:'A',message:'B',context:false}).body.includes('Platform:'));
+const reportLink=new URL(commercial.issueDraft('https://github.com/XxFallenAngelxX/kurwa-wars-alpha/issues/new',reportDraft));
+assert.equal(reportLink.searchParams.get('title'),'[idea] A & B');
+assert.equal(reportLink.searchParams.get('body'),reportDraft.body);
+assert.equal(commercial.issueDraft('https://example.com',reportDraft),'');
+assert(read('src/engine/core/12-milestones-profiles.js').includes('data-kw-feedback'));
+assert(read('src/styles/shell.css').includes('@media(min-width:1200px) and (pointer:fine)'));
+assert(read('index.html').includes('id="kwSponsorLeft"')&&read('index.html').includes('id="kwSponsorRight"'));
+assert(!read('gm.html').includes('id="kwSponsorLeft"'));
+for(const p of ['index.html','gm.html'])assert(read(p).includes('./src/host/commercial.js'));
+console.log('OK: commercial platform routing, local sponsor validation, public feedback drafts and responsive shell');

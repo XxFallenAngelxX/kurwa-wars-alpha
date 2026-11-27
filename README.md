@@ -104,3 +104,11 @@ Arena ab Stufe 1. Die lokale Rangliste enthält klar als NPC gekennzeichnete, pe
 
 ## Branding
 KURVFLICT – Legendary Bullshit · Gang Shit. Original repository URLs, localStorage keys, manifest ID and gameplay IDs are intentionally retained for existing saves and installations. Artwork import: place the selected image at `assets/branding/kurvflict-source.webp`, then run `python scripts/import-branding.py` (Pillow), `npm run build`, `npm run check`. The import updates the existing header asset in pack 2, the loading art and both PWA icons; only the affected pack version is invalidated.
+
+
+## Commercial / feedback foundation (no external API)
+- Public web: at 1200px and above with fine pointer, two 160px sponsor rails outside the game. Phones/tablets and native apps retain the full gameplay viewport. GM has no ad rails.
+- Settings → Feedback & contact: bugs, ideas, balancing, general feedback and business contact. Optional rating and opt-in technical context; no account IDs, personal details or save files included automatically. GitHub button opens a PUBLIC issue draft requiring the player to sign in and submit; copy/download are offline alternatives. No private endpoint is configured yet. Set `privateFeedbackUrl` to a real HTTPS contact-form URL after the owner has created it. Do not include sensitive information in public issues.
+- Direct sponsor configuration: edit `src/host/commercial-config.js` slots and add an approved local image under `assets/sponsors/`. Slots are vacant by default; actual ads are labeled and use HTTPS links. No impression tracking, network ads, payments or revenue are enabled. Use suitable commercial hosting and review applicable privacy/advertising obligations before activating paid ads.
+- Android preparation: platform detection supports a future Capacitor native host. The game is still a browser/PWA; no Android package, AdMob SDK, ad account, consent SDK, signing keys or Google Play registration has been created. The mobile layout reserves no banner space until a native placement is deliberately implemented. Native ads remain disabled.
+- Play release: recruit at least 12 eligible testers for a new personal account (target extra testers for dropouts), verify current Play Console requirements, complete closed testing, store listing, privacy and content rating before public release.
