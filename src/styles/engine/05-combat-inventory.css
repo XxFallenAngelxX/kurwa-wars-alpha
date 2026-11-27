@@ -58,25 +58,59 @@ main.gmScreen>*{flex:0 0 auto;min-height:auto}
 .worldViewport{min-height:0;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;border:1px solid #a47b47;border-radius:10px;scrollbar-width:thin;scrollbar-color:#a47b47 #201923;position:relative;background:#1b1520}
 .worldStrip{height:100%;display:flex;width:max-content;min-width:100%}.worldTile{height:100%;aspect-ratio:1.7775;flex:none;position:relative;background-position:center;background-size:100% 100%;background-repeat:no-repeat}.worldDistrict{position:absolute;top:8px;left:10px;background:#18131cdd;border:1px solid #a47b47;border-radius:6px;padding:5px 8px;font-weight:bold;color:#ffd58a;font-size:12px}.worldSpot{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;flex-direction:column;gap:2px;max-width:25%;min-width:50px;background:#211923d9;border:1px solid #d7a45b;border-radius:7px;padding:5px;color:#ffe9b8;box-shadow:0 2px 8px #000a;white-space:normal;line-height:1.1;font-size:clamp(10px,3.1vw,13px);text-shadow:0 1px 2px #000;touch-action:pan-x}.worldSpot img{width:clamp(40px,15vw,78px);height:clamp(40px,15vw,78px);object-fit:contain;pointer-events:none}.worldSpot span{pointer-events:none}.worldFuture{border-style:dashed;color:#d1b9a6}.worldHint{text-align:center;flex:none;color:#d8b37f;font-size:11px}
 
-/* Fleet: match each square sprite to its own frame, without crop or stretching. */
+/* Fleet: the square artwork takes only the space left after text, bonuses and controls. */
 #app #screen:has(>.fleetCard) {
- overflow-y:auto; overscroll-behavior-y:contain;
+ overflow:hidden; gap:4px; padding:5px 6px; min-height:0;
 }
-#app #screen:has(>.fleetCard)>* { flex-shrink:0; }
+#app #screen:has(>.fleetCard)>:not(.fleetCard) { flex:0 0 auto; }
 #app #screen>.fleetCard {
- flex:1 0 auto; min-height:0; justify-content:center; gap:5px;
+ flex:1 1 0px; min-height:0; min-width:0; justify-content:flex-start; gap:4px;
+ display:grid; grid-template-rows:minmax(0,1fr) auto auto auto auto;
+ align-items:center; padding:5px;
 }
-#app .fleetCard>.fleetArt {
- flex:none; align-self:center; width:min(100%,max(112px,40dvh),320px);
- height:auto; aspect-ratio:1 / 1;
+#app .fleetCard>.fleetArtSpace {
+ min-width:0; min-height:0; width:100%; height:100%;
+ display:grid; place-items:center; container-type:size; overflow:hidden;
 }
-#app .fleetCard>.fleetArt>img {
+#app .fleetArtSpace>.fleetArt {
+ flex:none; width:100%; height:100%; max-width:320px; min-height:0;
+}
+@supports(width:1cqh) {
+ #app .fleetArtSpace>.fleetArt {
+  width:min(100cqw,100cqh,320px); height:min(100cqw,100cqh,320px); aspect-ratio:1 / 1;
+ }
+}
+#app .fleetArtSpace>.fleetArt>img {
  display:block; width:100%; height:100%; object-fit:contain; object-position:center;
 }
-#app .fleetCard>.fleetArt>span {
+#app .fleetArtSpace>.fleetArt>span {
  max-width:calc(50% - 7px); white-space:normal; overflow-wrap:anywhere; line-height:1.15;
 }
+#app .fleetCard>h3 { margin:0; min-width:0; overflow-wrap:anywhere; }
 #app .fleetCard>.fleetDesc { overflow-wrap:anywhere; }
+#app .fleetCard>.fleetBonuses { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px; }
+#app .fleetCard>.fleetBonuses>div { padding:3px 2px; min-width:0; overflow-wrap:anywhere; }
+#app .fleetCard>.fleetBonuses>div:last-child:nth-child(3n+1) { grid-column:1/-1; }
+#app .fleetCard>.fleetBonuses:has(>div:nth-child(2):last-child) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+@media(max-height:570px) {
+ #app #screen:has(>.fleetCard) { gap:3px; padding:3px 5px; }
+ #app #screen>.fleetCard { gap:2px; padding:4px; }
+ #app .fleetCard>.fleetBonuses>div { padding:2px; }
+ #app .fleetCard>.fleetBonuses small { font-size:9px; }
+ #app .fleetCard>.fleetBonuses b { font-size:11px; }
+ #app .fleetCard>.fleetDesc { font-size:10px; line-height:1.15; }
+ #app #screen:has(>.fleetCard)>.fleetPicker>button { width:min(100%,34px); }
+ #app #screen:has(>.fleetCard)>.fleetButtons>button,
+ #app #screen:has(>.fleetCard)>button { min-height:29px; padding:3px 5px; }
+}
+@media(max-height:470px) and (min-width:480px) {
+ #app #screen>.fleetCard {
+  grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);
+  grid-template-rows:repeat(4,auto); align-content:center;
+ }
+ #app .fleetCard>.fleetArtSpace { grid-column:1; grid-row:1/5; }
+ #app .fleetCard>h3,#app .fleetCard>.fleetDesc,#app .fleetCard>#contractLeft,#app .fleetCard>.fleetBonuses { grid-column:2; }
+}
 #app .fleetPicker>button {
  width:min(100%,clamp(34px,9dvh,64px)); height:auto; min-height:0; aspect-ratio:1 / 1; justify-self:center;
 }
