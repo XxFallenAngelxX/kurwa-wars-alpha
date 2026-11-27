@@ -44,7 +44,7 @@ function kwSimTurn(d,random=Math.random){
  if(a.hp>0&&b.hp>0){
   dodge=random()<(q.dodge||0);
   if(!dodge){crit=random()<p.crit;const rage=1+Math.min(4,Math.floor((d.turn-1)/2)*.045);
-   damage=Math.min(b.hp,Math.max(1,Math.round(p.atk*(a.fury?1.12:1)*(a.weaken?.85:1)*(1-reduction(q.def,b.level))*(.85+random()*.3)*(crit?1.75:1)*rage)));
+   damage=Math.min(b.hp,kwCombatDamage(p.atk*(a.fury?1.12:1)*(a.weaken?.85:1),q.def,b.level,.85+random()*.3,crit,rage));
    b.hp-=damage;kwSimHeal(a,damage*(p.pctLeech||0));
    if(b.hp>0){kwSimHeal(b,damage*(q.pctRecoup||0));if(random()<(p.pctBleed||0)){b.bleed=2;b.bleedDamage=Math.max(1,Math.floor(damage*.15))}if(random()<(p.pctWeaken||0))b.weaken=2;
     if(random()<(q.pctCounter||0)){const counter=Math.min(a.hp,Math.max(1,Math.round(q.atk*.5*(1-reduction(p.def,a.level)))));a.hp-=counter;kwSimHeal(b,counter*(q.pctLeech||0))}
@@ -58,15 +58,15 @@ function kwSimTurn(d,random=Math.random){
  else if(d.turn>=400)d.winner=a.hp/p.hp>=b.hp/q.hp?i:1-i;
  return {i,damage,crit,dodge};
 }
-function kwSimResolve(a,al,b,bl,random=Math.random){let d=kwSimDuel(a,al,b,bl,random()<.5?0:1);while(d.winner===null)kwSimTurn(d,random);return d.winner===0;}
+function kwSimResolve(a,al,b,bl,random=Math.random,first=null){let d=kwSimDuel(a,al,b,bl,first??(random()<.5?0:1));while(d.winner===null)kwSimTurn(d,random);return d.winner===0;}
 function kwSimArenaTerms(level){return {g:Math.round((26+level*13)*.45),x:Math.round((18+level*10)*.35)}}
 function kwSimArenaResult(p,won,now){
  const a=p.state.arena;
  if(won){a.wins++;a.rating++;a.streak++;let r=kwSimArenaTerms(p.state.level);kwSimAward(p,r.g,r.x)}
  else{a.losses++;a.rating=Math.max(0,a.rating-1);a.streak=0;a.until=now+ARENA_COOLDOWN;}
 }
-function kwSimOpponent(w,p,stats,level,rating){
- const pool=w.players.filter(q=>q.id!==p?.id&&q.state.arena.until<=w.clock);
+function kwSimOpponent(w,p,stats,level,rating,used=new Set()){
+ const pool=w.players.filter(q=>q.id!==p?.id&&!used.has(q.id)&&q.state.arena.until<=w.clock);
  if(!pool.length)return null;
  // Sample a bounded set; favor similar level, combat power and rating.
  const cp=combatPower(stats,level);let best=null,score=Infinity;
@@ -83,27 +83,27 @@ function kwSimMission(p){
  const q=p.state,i=p.style===4?0:rand(3),o=kwMissionTerms(q.level,i,q.rooms);
  if(q.energy<o.cost)return false;
  o.type=rand(foeTypes.length);q.energy-=o.cost;p.missions++;
- const stats=kwSimStats(p),won=kwSimResolve(stats,q.level,enemyStats(o),o.l);
+ const stats=kwSimStats(p),won=kwSimResolve(stats,q.level,enemyStats(o),o.l,Math.random,0);
  if(won){q.wins++;kwSimAward(p,o.g,o.x);q.codex.foes[foeKey(o)]=true;
   if(Math.random()<battleDropChance(gearDropBaseChance(o),{p:stats,playerLevel:q.level}))kwSimGear(p,kwGenerateGear(o.l,q.level,o,0,1));
  }else p.failed++;
  return true;
 }
 function kwSimStep(w){
- w.clock+=KW_SIM_STEP;w.steps++;
+ w.clock+=KW_SIM_STEP;w.steps++;const used=new Set();
  for(const p of w.players){
   const q=p.state,style=KW_SIM_TYPES[p.style]||KW_SIM_TYPES[0];
   q.energy=Math.min(100,q.energy+Math.floor(KW_SIM_STEP/60000));
-  if(Math.random()>=style[2])continue;
+  if(used.has(p.id)||Math.random()>=style[2])continue;
   p.actions++;
   // Invest earned cash; never use real player's cash or GM multipliers.
   const attr=pick(style[4]),cost=trainCost(attr,q);
   if(q.gold>=cost){q.gold-=cost;q.stats[attr]++;q.training[attr]++;}
   if(q.arena.until<=w.clock&&Math.random()<style[3]){
-   const a=kwSimStats(p),r=kwSimOpponent(w,p,a,q.level,q.arena.rating);
-   if(r){const won=kwSimResolve(a,q.level,kwSimStats(r),r.state.level);kwSimArenaResult(p,won,w.clock);kwSimArenaResult(r,!won,w.clock);continue;}
+   const a=kwSimStats(p),r=kwSimOpponent(w,p,a,q.level,q.arena.rating,used);
+   if(r){used.add(p.id);used.add(r.id);const won=kwSimResolve(a,q.level,kwSimStats(r),r.state.level);kwSimArenaResult(p,won,w.clock);kwSimArenaResult(r,!won,w.clock);continue;}
   }
-  kwSimMission(p);
+  used.add(p.id);kwSimMission(p);
  }
 }
 function kwSimAdvance(w,now=Date.now(),limit=4){
@@ -167,5 +167,5 @@ function kwSimRun(days){
 }
 // Cheap, bounded catch-up; never advance a pool while its real arena duel is open.
 setInterval(()=>{if(serverBoot||onboard52||kwSimBusy||battle?.running)return;
- const w=profileRead(kwSimKey());if(w&&Date.now()-w.wall>=KW_SIM_STEP&&kwSimAdvance(w)&&page==='Rangliste')render();
+ const w=kwSimRead();if(w&&Date.now()-w.wall>=KW_SIM_STEP&&kwSimAdvance(w)&&page==='Rangliste')render();
 },15000);

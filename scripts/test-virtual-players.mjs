@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const core=read('src/engine/core/04-progression.js'), sim=read('src/engine/core/13-virtual-players.js');
 assert.match(core,/Arena:1/);
+assert.match(read('src/engine/features/03-special-loot.js'),/totals=function\(eq=s\.eq,state=s\)\{let p=old47Totals\(eq,state\)/);
 assert.match(read('src/engine/core/06-combat-world-ui.js'),/if\(b\.o\.rival\)\{kwSimArenaTick\(b\);return;\}/);
 assert.match(read('src/engine/core/12-milestones-profiles.js'),/concat\(kwSimRank\(\)\)/);
 const setup=`
@@ -23,7 +24,8 @@ function foeKey(){return 'mob:f'}function battleDropChance(){return 0}function g
 function kwGenerateGear(){throw Error('unexpected drop')}function profileEscape(s){return s}
 `;
 const apply=core.split('\n').find(x=>x.startsWith('function kwApplyProgress('));
-const out=runInNewContext(setup+apply+'\n'+sim+`
+const damage=read('src/engine/core/06-combat-world-ui.js').split('\n').find(x=>x.startsWith('function kwCombatDamage('));
+const out=runInNewContext(setup+apply+'\n'+damage+'\n'+sim+`
 const results=[];
 function test(n,f){if(!f())throw Error(n);results.push(n)}
 const original=JSON.stringify(s),w=kwSimCreate(100,0);
@@ -36,6 +38,8 @@ test('arena defeat has cooldown',()=>{let p=w.players[1];kwSimArenaResult(p,fals
 test('stronger fighter wins bounded duel',()=>kwSimResolve({hp:1000,atk:1000,def:0,crit:0},1,{hp:100,atk:1,def:0,crit:0},1,()=>.5));
 test('stalemate capped',()=>{let d=kwSimDuel({hp:100000,atk:1,def:0,crit:0},1,{hp:100000,atk:1,def:0,crit:0},1);while(d.winner===null)kwSimTurn(d,()=>.5);return d.turn===400});
 test('catch-up bounded and respects energy',()=>kwSimAdvance(w,KW_SIM_DAY*10,4)&&w.steps===4&&w.players.every(p=>p.state.energy>=0&&p.state.energy<=100));
+test('matchmaking excludes engaged opponents',()=>{const w2=kwSimCreate(2,0),p=w2.players[0];return kwSimOpponent(w2,p,kwSimStats(p),1,0,new Set([w2.players[1].id]))===null});
+test('shared damage formula',()=>kwCombatDamage(100,0,1,1,true,1)===175);
 test('GM factors and active save unchanged',()=>JSON.stringify(s)===original);
 results;`);
 console.log('OK virtual players:',out.join('; '));
