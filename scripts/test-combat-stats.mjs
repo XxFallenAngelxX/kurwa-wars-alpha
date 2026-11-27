@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const source=readFileSync(new URL('../src/engine/core/04-progression.js',import.meta.url),'utf8');
 const code=source.slice(source.indexOf('const WEAPON_CLASSES='),source.indexOf('function reward('))+'\nthis.weaponClasses=WEAPON_CLASSES;';
 const state={stats:[20,10,10,10,10],level:1,eq:[],rooms:Array(13).fill(0)};
-const context={s:state,catalog:[['Klobürste',0]],Math,Number,roomBonus:()=>0,gearLevel:()=>0,combatValues:()=>({}),gmRoll:p=>p};
+const context={s:state,catalog:[['Klobürste',0]],Math,Number,roomBonus:()=>0,gearLevel:()=>0,combatValues:()=>({}),gmRoll:p=>p,hubLabel:(...labels)=>labels[0]};
 runInNewContext(code,context);
 const gear=(a,def=0)=>({a,slot:0,v:[0,0,0,0,0],atk:10,def,hp:0});
 state.eq=[gear(0,7)];const melee=context.totals();
@@ -17,6 +17,17 @@ assert.equal(context.luckDropMultiplier([0,0,0,0,1e9],1),1.5);
 assert(context.luckDropMultiplier([0,0,0,0,100],100)<context.luckDropMultiplier([0,0,0,0,100],1));
 state.stats[4]=1e9;assert.equal(context.totals().crit,.50);
 assert.equal(context.weaponClass(null),'melee');
+assert.equal(context.weaponItemMarkup(null),'');assert.equal(context.weaponItemMarkup({slot:1,a:7}),'');
+assert.match(context.weaponItemMarkup(gear(0)),/Nahkampf · Stärke/);
+assert.match(context.weaponItemMarkup(gear(7)),/Fernkampf · Intelligenz/);
+for(const [index,meleeLabel,rangedLabel] of [[1,'Melee · Strength','Ranged · Intelligence'],[2,'Ближний бой · Сила','Дальний бой · Интеллект']]){
+ context.hubLabel=(...labels)=>labels[index];
+ assert(context.weaponItemMarkup(gear(0)).includes(meleeLabel));
+ assert(context.weaponItemMarkup(gear(7)).includes(rangedLabel));
+}
+context.hubLabel=(...labels)=>labels[0];
+state.stats=[20,10,10,10,10];state.eq=[gear(0)];const baseMelee=context.totals().atk;state.stats[2]+=10;assert.equal(context.totals().atk,baseMelee);state.stats[0]+=10;assert(context.totals().atk>baseMelee);
+state.eq=[gear(7)];const baseRanged=context.totals().atk;state.stats[0]+=10;assert.equal(context.totals().atk,baseRanged);state.stats[2]+=10;assert(context.totals().atk>baseRanged);
 const content=readFileSync(new URL('../src/engine/core/02-content-items.js',import.meta.url),'utf8');
 const data={};const section=(start,end)=>{const a=content.indexOf(start),b=content.indexOf(end,a);assert(a>=0&&b>a,'Missing catalog section '+start);return content.slice(a,b)};
 runInNewContext(section('const portrait=','function itemArt')+section('const UNIQUE_BASE=','const REGULAR_POOL=')+'\nthis.weapons=catalog.map((item,id)=>({item,id})).filter(x=>x.item[1]===0)',data);

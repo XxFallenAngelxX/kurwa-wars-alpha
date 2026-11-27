@@ -20,6 +20,9 @@ function save(){if(serverBoot)return serverSave();try{localStorage.setItem(key,J
 // Append-only catalog IDs: no saved item data is rewritten. New bases need an explicit assignment.
 const WEAPON_CLASSES={melee:[0,9,18,19,20,29,30,32,45,48,54,55,58,59,60,69,70,72,85,93,99,100,101,102,103,104,105,106,107,110,111,154,155,156,157,158,171,173,174,178,186,198,217,222,226,229,238,243,247,249,252,260,263,267],ranged:[7,87,170,184,192,212,227,255,273]};
 function weaponClass(i){if(!i||i.slot!==0)return 'melee';return WEAPON_CLASSES.ranged.includes(i.a)?'ranged':'melee'}
+function weaponClassLabel(kind){return kind==='ranged'?hubLabel('Fernkampf · Intelligenz','Ranged · Intelligence','Дальний бой · Интеллект'):hubLabel('Nahkampf · Stärke','Melee · Strength','Ближний бой · Сила')}
+function weaponItemMarkup(i){return i?.slot===0?'<small class="weaponScaling">'+weaponClassLabel(weaponClass(i))+'</small>':''}
+function damageAttributeHint(i){if(i===0)return hubLabel('Erhöht den Schaden mit Nahkampfwaffen.','Increases damage with melee weapons.','Повышает урон с оружием ближнего боя.');if(i===2)return hubLabel('Erhöht den Schaden mit Fernkampfwaffen.','Increases damage with ranged weapons.','Повышает урон с оружием дальнего боя.');if(i===1)return hubLabel('Erhöht die Ausweichchance im Nah- und Fernkampf.','Increases dodge chance in melee and ranged combat.','Повышает шанс уклонения в ближнем и дальнем бою.');return ''}
 function luckRatingCap(level){const l=Math.max(1,Number(level)||1);return Math.ceil(60+8*l+.08*l*l)}
 function luckEffect(rating,level){const x=Math.min(1,Math.max(0,Number(rating)||0)/luckRatingCap(level));return x/(1+x)}
 function luckDropMultiplier(stats,level){return 1+luckEffect(stats?.[4],level??s.level)}

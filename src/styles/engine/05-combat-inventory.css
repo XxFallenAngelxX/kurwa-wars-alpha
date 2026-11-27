@@ -92,3 +92,7 @@ main.gmScreen>*{flex:0 0 auto;min-height:auto}
 #app .bagCompareSheet .quickDelta { gap:6px; }
 #app .bagCompareSheet .quickDelta>span { min-width:0; overflow-wrap:anywhere; }
 #app .bagCompareSheet .quickDelta>b { flex:none; }
+
+/* Existing item and stat panels: wrap translated weapon scaling without a new panel. */
+.weaponScaling{display:block;min-width:0;max-width:100%;color:#e9c889;font-size:11px;line-height:1.25;font-weight:600;white-space:normal;overflow-wrap:anywhere}
+.cmpHeads .weaponScaling{font-size:10px;text-align:center}
