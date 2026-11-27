@@ -34,6 +34,11 @@ test("pending prevents new rolls",()=>!kwScrapSearch(0));capacity=true;
 test("pending claim once",()=>kwActivityClaim()&&!kwActivityState().pending&&inventory.scrap===2&&!kwActivityClaim());
 page='SchwarzesBrett';kwActivityTick();test("incomplete task cannot claim",()=>!kwBoardClaim('wins'));s.wins+=5;
 test("daily reward once",()=>kwBoardClaim('wins')&&!kwBoardClaim('wins'));
+test('ten unique daily tasks at each unlock level',()=>{let b=kwActivityState().board,level=b.level;let ok=[5,7,10,15,30,40,50].every(l=>{b.level=l;let tasks=kwBoardTasks();return tasks.length===10&&new Set(tasks.map(t=>t.id)).size===10&&tasks.every(t=>Object.hasOwn(kwActivityCounters(),t.counter||t.id))&&(l>=7||!tasks.some(t=>t.id==='searches'))&&(l>=10||!tasks.some(t=>t.id==='sacrifices'))&&(l>=30||!tasks.some(t=>t.id==='excavations'))});b.level=level;return ok});
+test('new counters do not credit old progress on migration',()=>{let a=kwActivityState(),b=a.board;delete b.base.purchases;a.purchases=12;kwActivityTick();return b.claimed.wins&&kwBoardProgress(kwBoardTasks().find(t=>t.id==='purchases'))===0});
+test('new purchase counter and independent claim',()=>{kwBoardRecord('purchases');return kwBoardClaim('purchases')&&!kwBoardClaim('purchases')});
+test('board contains ten nonshrinking scrollable rows',()=>{let html=kwActivityView('SchwarzesBrett');return html.includes('overflow-y:auto')&&(html.match(/flex-shrink:0/g)||[]).length===10});
+
 s.level=29;page='Kristallmine';test("mine below gate",()=>!kwMineDig());s.level=30;
 test("mine spends energy and grants crystals",()=>{let p=s.premium,e=s.energy;return kwMineDig()&&s.premium===p+2&&s.energy===e-10});
 s.level=40;page='Schwarzmarkt';kwActivityTick();let offer=kwMarketOffers(kwActivityState().market.day)[0];inventory[offer.source]=100;
