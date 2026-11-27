@@ -108,36 +108,45 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 @keyframes kwVictoryBackdrop { 0% { background-color:transparent; opacity:0; } 7%,93% { opacity:1; } 100% { opacity:0; } }
 @media(prefers-reduced-motion:reduce) { .kwVictoryOverlay.hasDiscovery { animation:none; } }
 
-/* Pages pivot from the spine in perspective, then the soul bursts into the book. */
-.kwVictoryScene.hasDiscovery .kwCodexVisual { perspective:550px; transform-style:preserve-3d; }
+/* Codex reveal: hinged 3D leaves, chromatic soul magic and a radial impact. */
+.kwVictoryScene.hasDiscovery .kwCodexVisual { perspective:650px; transform-style:preserve-3d; }
+.kwCodexVisual .kwCodexOpen { z-index:2; filter:saturate(1.35) drop-shadow(0 0 8px #ffb94b); }
+.kwCodexVisual .kwCodexClosed { z-index:2; filter:saturate(1.25) drop-shadow(0 0 10px #e695ff); }
 .kwCodexVisual .kwCodexPage {
- position:absolute; z-index:3; left:140px; top:38px; width:81px; height:123px;
+ position:absolute; z-index:3; left:50%; top:27px; width:105px; height:135px;
  opacity:0; transform-origin:0% 50%; border-radius:2px 12px 9px 1px;
  border:1px solid #a76d36; border-left:0;
  background:linear-gradient(90deg,#bc824a 0%,#ffe6a8 15%,#fff0bf 55%,#edc17b 100%);
  box-shadow:inset 3px 0 5px #80451f70,2px 2px 4px #3a1b2090;
- animation:kwCodexRealPage 7.6s ease-in-out forwards;
+ animation:kwCodexLeafTurn .62s cubic-bezier(.35,.1,.55,1) both;
+ animation-delay:calc(2.04s + var(--leaf,0)*.33s); filter:saturate(1.3) drop-shadow(2px 1px 4px #53298a);
 }
 .kwCodexPage::before { content:''; position:absolute; inset:17px 10px 22px 12px; opacity:.45; background:repeating-linear-gradient(to bottom,#995b36 0 1px,transparent 1px 8px); border-top:3px double #9b5d32; }
 .kwCodexPage::after { content:'✦'; position:absolute; bottom:8px; right:12px; color:#c17936; text-shadow:0 0 6px #ffd979; font-size:18px; }
-@keyframes kwCodexRealPage {
- 0%,26% { opacity:0; transform:rotateY(0deg); }
- 28% { opacity:1; transform:rotateY(0deg); } 33% { opacity:1; transform:rotateY(-176deg); }
- 33.1% { opacity:0; transform:rotateY(-176deg); } 34% { opacity:0; transform:rotateY(0deg); }
- 35% { opacity:1; transform:rotateY(0deg); } 40% { opacity:1; transform:rotateY(-176deg); }
- 40.1% { opacity:0; transform:rotateY(-176deg); } 41% { opacity:0; transform:rotateY(0deg); }
- 42% { opacity:1; transform:rotateY(0deg); } 47% { opacity:1; transform:rotateY(-176deg); }
- 48%,100% { opacity:0; transform:rotateY(-176deg); }
+@keyframes kwCodexLeafTurn {
+ 0% { opacity:0; transform:rotateY(0deg) rotateZ(-2deg); }
+ 12% { opacity:1; transform:rotateY(-12deg) rotateZ(-2deg); }
+ 48% { opacity:1; transform:rotateY(-86deg) rotateZ(-3deg); }
+ 85% { opacity:1; transform:rotateY(-172deg) rotateZ(0deg); }
+ 100% { opacity:0; transform:rotateY(-180deg); }
 }
 .kwCodexRays { position:absolute; z-index:0; left:50%; top:48%; width:390px; height:390px; border-radius:50%; pointer-events:none; background:repeating-conic-gradient(from 0deg,#ffb43488 0deg 4deg,transparent 6deg 19deg,#f454cc66 21deg 24deg,transparent 26deg 40deg,#45eaff88 42deg 46deg,transparent 48deg 60deg); mask-image:radial-gradient(circle,transparent 13%,#000 30%,transparent 70%); opacity:0; animation:kwCodexRaysShow 7.6s ease-out forwards; }
-.kwCodexRing { position:absolute; z-index:6; left:50%; top:48%; width:180px; height:180px; margin:-90px; border:4px solid #fff3ae; border-radius:50%; opacity:0; box-shadow:0 0 15px #fff69c,0 0 38px #ff8b25,inset 0 0 16px #fc6dcc; animation:kwCodexRingShow 7.6s ease-out forwards; }
-.kwCodexFlash { position:absolute; z-index:7; left:50%; top:48%; width:290px; height:290px; margin:-145px; border-radius:50%; opacity:0; background:radial-gradient(circle,#fff 0%,#fff8bb 9%,#ffbe50 19%,#f25ec4a8 36%,#21dfff77 50%,transparent 70%); mix-blend-mode:screen; animation:kwCodexFlashShow 7.6s ease-out forwards; }
-.kwCodexVisual .kwCodexHalo { background:radial-gradient(ellipse,#e5ffffdd 0%,#51dcff99 24%,#ae59ff77 43%,transparent 70%); }
-.kwCodexVisual .kwCodexSoul { filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px #4efaff) drop-shadow(0 0 38px #bd49ff); }
-.kwCodexVisual .kwCodexSpark { width:7px; height:7px; background:#fff2a9; box-shadow:0 0 8px #fff,0 0 14px 4px #ff6bd5; animation:kwCodexBurst 7.6s ease-out forwards; }
-.kwCodexVisual .kwCodexSpark:nth-of-type(3n) { background:#83faff; box-shadow:0 0 8px #fff,0 0 14px 4px #38dcff; }
+.kwCodexHalo { inset:0 8px; background:radial-gradient(ellipse,#fff4b9cc 0%,#ffa82d88 22%,#e82cf777 42%,#16cfff66 59%,transparent 75%); filter:blur(10px); }
+.kwCodexVisual .kwCodexSoul { filter:drop-shadow(0 0 9px #fff8b1) drop-shadow(0 0 20px #19e8ff) drop-shadow(0 0 32px #c82cff); }
+.kwCodexSpark { width:6px; height:6px; margin:-3px; background:hsl(var(--hue) 100% 77%); box-shadow:0 0 10px 2px hsl(var(--hue) 100% 55%); animation:kwCodexBurst 7.6s ease-out forwards; }
+@keyframes kwCodexBurst {
+ 0%,60% { opacity:0; transform:rotate(var(--angle)) translateX(4px) scale(.2); }
+ 63% { opacity:1; transform:rotate(var(--angle)) translateX(15px) scale(1.35); }
+ 70% { opacity:.9; transform:rotate(var(--angle)) translateX(var(--reach)) scale(.85); }
+ 77%,100% { opacity:0; transform:rotate(var(--angle)) translateX(calc(var(--reach) + 25px)) scale(.1); }
+}
+.kwCodexImpact { position:absolute; left:50%; top:48%; width:96px; height:96px; margin:-48px; z-index:6; border-radius:50%; border:3px solid #ffe5a1; box-shadow:0 0 18px #f745ff,inset 0 0 14px #4eeaff; pointer-events:none; opacity:0; animation:kwCodexImpactRing 7.6s ease-out forwards; }
+@keyframes kwCodexImpactRing {
+ 0%,60% { opacity:0; transform:scale(.2); }
+ 64% { opacity:1; transform:scale(.65); }
+ 73%,100% { opacity:0; transform:scale(2.6); }
+}
 @keyframes kwCodexRaysShow { 0%,53% { opacity:0; transform:translate(-50%,-50%) rotate(0deg) scale(.4); } 63% { opacity:.9; transform:translate(-50%,-50%) rotate(18deg) scale(1); } 77%,100% { opacity:0; transform:translate(-50%,-50%) rotate(45deg) scale(1.2); } }
-@keyframes kwCodexRingShow { 0%,59% { opacity:0; transform:scale(.15); } 63% { opacity:1; } 74%,100% { opacity:0; transform:scale(2.1); } }
-@keyframes kwCodexFlashShow { 0%,59% { opacity:0; transform:scale(.15); } 63% { opacity:1; transform:scale(.65); } 71%,100% { opacity:0; transform:scale(1.25); } }
-@keyframes kwCodexBurst { 0%,59% { opacity:0; transform:rotate(calc(var(--spark)*22.5deg)) translateX(0) scale(.3); } 63% { opacity:1; } 74%,100% { opacity:0; transform:rotate(calc(var(--spark)*22.5deg)) translateX(155px) scale(1.25); } }
-@media(prefers-reduced-motion:reduce) { .kwCodexVisual .kwCodexPage,.kwCodexRays,.kwCodexRing,.kwCodexFlash { animation:none!important; display:none; } }
+.kwCodexVisual .kwCodexPageSticker { box-shadow:0 0 12px #ffe5a1,0 0 22px #d62dff,0 0 32px #39dfff; }
+.kwVictoryScene.hasDiscovery .kwCodexDiscovery { border-color:#ffc76b; background:linear-gradient(130deg,#4b2150ee,#201b3aee); box-shadow:0 0 14px #aa4bd866; }
+@media(prefers-reduced-motion:reduce) { .kwCodexVisual .kwCodexPage,.kwCodexRays,.kwCodexImpact { animation:none!important; display:none; } }

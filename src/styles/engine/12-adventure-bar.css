@@ -221,3 +221,19 @@
 .kwGuideEffect summary>span:last-child { color:#f4c983; } .kwGuideEffect p { padding:0 9px 8px; font-size:12px; }
 .kwGuideEffect .kwBattleEffectIcon { width:32px; height:32px; } .kwGuideGlyph { display:grid; place-items:center; width:32px; height:32px; flex:none; border-radius:7px; color:#ffe59b; background:#604071; font-size:21px; }
 .kwGuidePreview { width:100%; margin:14px 0 4px; }
+
+/* Character portrait and compact defeat summary. */
+#app .hero .heroXp { left:0; right:0; bottom:0; width:100%; padding:0; z-index:2; background:none; }
+#app .hero .heroXp>.bar { width:100%; height:16px; margin:0; border-radius:0; border-width:1px 0 0; }
+#app .hero .gearpair .slot { flex:1 1 auto; width:100%; height:100%; max-width:100%; aspect-ratio:auto; padding:0; }
+#app .hero .gearpair .slot.empty { display:grid; place-items:center; font-size:0; }
+#app .hero .gearpair .slot.empty::after { content:attr(aria-label); display:block; max-width:100%; padding:2px; color:#c8b2a6; font-size:clamp(9px,2.5vw,11px); line-height:1.1; font-weight:700; text-align:center; overflow-wrap:anywhere; }
+#app .hero .gearpair .slot.filled>img { object-fit:contain; }
+#app #screen:has(>.arena)>.raidLogDefeat { grid-template-rows:auto minmax(0,1fr) auto; align-content:stretch; overflow:hidden; gap:3px; min-height:100px; }
+#app .raidLogDefeat>.raidRecent { overflow-y:auto; overscroll-behavior:contain; min-height:0; height:auto; }
+#app .raidLogDefeat>.raidRecent>.raidLine { flex-shrink:0; }
+#app .raidLogDefeat>.combatRewards { display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:2px 6px; padding-top:3px; }
+#app .raidLogDefeat .combatRewards>.row { flex:1 1 auto; gap:4px; flex-wrap:wrap; }
+#app .raidLogDefeat .combatRewards>.row>b { font-size:12px; line-height:1.1; }
+#app .raidLogDefeat .combatRewards small { font-size:10px; line-height:1.15; }
+#app .raidLogDefeat .defeatHint { flex:0 1 auto; color:var(--mut); }

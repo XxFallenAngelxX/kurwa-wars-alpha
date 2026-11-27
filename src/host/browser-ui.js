@@ -69,10 +69,15 @@ function kwShowVictory(discovery){
    const closed=document.createElement('img'),open=document.createElement('img'),page=document.createElement('div'),soul=document.createElement('div'),ghost=document.createElement('img');
    closed.className='kwCodexClosed';closed.src=kwVictoryArt.closed;closed.alt='';
    open.className='kwCodexOpen';open.src=kwVictoryArt.open;open.alt='';
-   page.className='kwCodexPage';page.setAttribute('aria-hidden','true');
+   page.className='kwCodexPage';page.setAttribute('aria-hidden','true');page.style.setProperty('--leaf',0);
    soul.className='kwCodexSoul';ghost.src=kwVictoryArt.soul;ghost.alt='';soul.append(ghost);
    const portrait=typeof item.portrait==='string'&&!item.portrait.includes('#kwasset-')?item.portrait:mount.querySelector('.fighter.foe .fightart img')?.src;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
-   const rays=document.createElement('div'),ring=document.createElement('div'),flash=document.createElement('div');rays.className='kwCodexRays';ring.className='kwCodexRing';flash.className='kwCodexFlash';visual.prepend(rays);visual.append(closed,open,page,soul,ring,flash);for(let n=0;n<16;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--spark',n);visual.append(spark)}scene.append(visual);
+   visual.append(closed,open,page,soul);
+   for(let n=1;n<4;n++){const leaf=page.cloneNode(false);leaf.style.setProperty('--leaf',n);visual.append(leaf)}
+   const rays=document.createElement('div');rays.className='kwCodexRays';visual.prepend(rays);
+   for(let n=0;n<24;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--angle',(n*15)+'deg');spark.style.setProperty('--reach',(66+(n%5)*15)+'px');spark.style.setProperty('--hue',[42,184,286,325,15,215][n%6]);visual.append(spark)}
+   const ring=document.createElement('i');ring.className='kwCodexImpact';visual.append(ring);
+   scene.append(visual);
    const info=document.createElement('div');info.className='kwCodexDiscovery';
    const title=document.createElement('b'),name=document.createElement('span'),progress=document.createElement('small');
    title.textContent=item.preview?(lang==='en'?'CODEX PREVIEW':lang==='ru'?'ПРОСМОТР КОДЕКСА':'KODEX-VORSCHAU'):(lang==='en'?'CODEX UPDATED':lang==='ru'?'КОДЕКС ПОПОЛНЕН':'KODEX ERWEITERT');
@@ -81,6 +86,12 @@ function kwShowVictory(discovery){
    info.append(title,name,progress);scene.append(info);
   }
   layer.append(scene);document.body.append(layer);
+  if(item){const visual=scene.querySelector('.kwCodexVisual'),r=visual.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+   scene.style.setProperty('--kw-book-x',((hero?hero.left+hero.width/2:x)-cx)+'px');
+   scene.style.setProperty('--kw-book-y',((hero?hero.top+hero.height/2:innerHeight-30)-cy)+'px');
+   scene.style.setProperty('--kw-soul-x',((foe?foe.left+foe.width/2:x+80)-cx)+'px');
+   scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+110)-cy)+'px');
+  }
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   setTimeout(()=>{layer.remove();play()},reduced?3500:item?7600:2600);
  }
