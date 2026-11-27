@@ -3922,5 +3922,191 @@
     "pack": "assets/packs/assets-5.js",
     "mime": "image/webp",
     "path": "assets/raw/images/kw_action26_item_20.webp"
+  },
+  {
+    "key": "kw_foil_remote.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_foil_remote.webp"
+  },
+  {
+    "key": "kw_poland_bg_00.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_00.webp"
+  },
+  {
+    "key": "kw_poland_bg_01.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_01.webp"
+  },
+  {
+    "key": "kw_poland_bg_02.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_02.webp"
+  },
+  {
+    "key": "kw_poland_bg_03.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_03.webp"
+  },
+  {
+    "key": "kw_poland_bg_04.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_04.webp"
+  },
+  {
+    "key": "kw_poland_bg_05.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_05.webp"
+  },
+  {
+    "key": "kw_poland_bg_06.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_06.webp"
+  },
+  {
+    "key": "kw_poland_bg_07.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_07.webp"
+  },
+  {
+    "key": "kw_poland_bg_08.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_08.webp"
+  },
+  {
+    "key": "kw_poland_bg_09.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_bg_09.webp"
+  },
+  {
+    "key": "kw_poland_foe_00.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_00.webp"
+  },
+  {
+    "key": "kw_poland_foe_01.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_01.webp"
+  },
+  {
+    "key": "kw_poland_foe_02.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_02.webp"
+  },
+  {
+    "key": "kw_poland_foe_03.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_03.webp"
+  },
+  {
+    "key": "kw_poland_foe_04.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_04.webp"
+  },
+  {
+    "key": "kw_poland_foe_05.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_05.webp"
+  },
+  {
+    "key": "kw_poland_foe_06.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_06.webp"
+  },
+  {
+    "key": "kw_poland_foe_07.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_07.webp"
+  },
+  {
+    "key": "kw_poland_foe_08.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_08.webp"
+  },
+  {
+    "key": "kw_poland_foe_09.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_foe_09.webp"
+  },
+  {
+    "key": "kw_poland_item_00.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_00.webp"
+  },
+  {
+    "key": "kw_poland_item_01.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_01.webp"
+  },
+  {
+    "key": "kw_poland_item_02.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_02.webp"
+  },
+  {
+    "key": "kw_poland_item_03.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_03.webp"
+  },
+  {
+    "key": "kw_poland_item_04.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_04.webp"
+  },
+  {
+    "key": "kw_poland_item_05.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_05.webp"
+  },
+  {
+    "key": "kw_poland_item_06.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_06.webp"
+  },
+  {
+    "key": "kw_poland_item_07.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_07.webp"
+  },
+  {
+    "key": "kw_poland_item_08.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_08.webp"
+  },
+  {
+    "key": "kw_poland_item_09.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_poland_item_09.webp"
   }
 ]

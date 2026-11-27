@@ -137,3 +137,18 @@ main.gmScreen>*{flex:0 0 auto;min-height:auto}
 /* Keep weapon aura visible independently from the temporary status border. */
 .fighter[class*="kwAura-"]{background:radial-gradient(ellipse at 50% 24%,color-mix(in srgb,var(--kwAura) 26%,transparent),transparent 68%);border-radius:8px}
 .fighter[class*="kwAura-"][class*="kwStatus-"] .fightart{box-shadow:0 0 10px var(--kwStatus),0 0 19px color-mix(in srgb,var(--kwAura) 58%,transparent),inset 0 0 10px var(--kwStatus)}
+.kwEnchantSheet .kwEnchantOption { display:grid; gap:3px; flex:none; text-align:left; min-height:50px; }
+.kwEnchantSheet .kwEnchantSignature { border-color:#b485e8; background:linear-gradient(125deg,#472747,#261b32); }
+.kwEnchantOption small { line-height:1.25; }
+.expRouteList { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-content:start; gap:8px; overflow:auto; min-height:0; }
+.expRouteCard { display:flex; flex-direction:column; min-width:0; overflow:hidden; gap:0; padding:0; }
+.expRouteCard img { display:block; width:100%; aspect-ratio:2.15; object-fit:cover; }
+.expRouteDetails { display:flex; flex:1; flex-direction:column; gap:5px; padding:9px; }
+.expRouteDetails h3 { margin:0; overflow-wrap:anywhere; }
+.expRouteDetails button { width:100%; min-height:38px; margin-top:auto; white-space:normal; }
+.expSummary { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; }
+@media(max-width:640px) {
+ .expRouteList { grid-template-columns:minmax(0,1fr); }
+ .expRouteCard { display:grid; grid-template-columns:minmax(84px,31%) minmax(0,1fr); }
+ .expRouteCard img { aspect-ratio:auto; height:100%; min-height:106px; }
+}

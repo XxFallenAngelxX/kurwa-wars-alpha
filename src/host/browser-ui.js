@@ -39,6 +39,19 @@ async function api(path,data){return localApi(path,data)}
 function apply(x){if(x.styles)document.getElementById('gameStyles').textContent=x.styles;if(x.lang)document.documentElement.lang=x.lang;
  if(x.markup!==undefined){let oldScreen=mount.querySelector('main'),oldHeading=oldScreen?.querySelector('h2')?.textContent;let scrolls=[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].map(e=>e.scrollTop);let details=[...mount.querySelectorAll('details')].map(e=>e.open);let worldOld=mount.querySelector('.worldViewport');if(worldOld)kwWorldScroll=worldOld.scrollLeft;if(!mount.firstElementChild||mount.firstElementChild.id!=='app'){mount.innerHTML=x.markup}else{let tmp=document.createElement('template');tmp.innerHTML=x.markup;let next=tmp.content.firstElementChild,cur=mount.firstElementChild;if(!next||next.id!=='app'){mount.innerHTML=x.markup}else{let parts=[...next.children],old=[...cur.children];if(parts.length!==old.length||parts.some((el,i)=>el.tagName!==old[i].tagName||el.id!==old[i].id)){mount.innerHTML=x.markup}else{for(let i=0;i<parts.length;i++){if(kwComparableMarkup(old[i],parts[i])!==parts[i].outerHTML&&!kwPatchWorldScreen(old[i],parts[i]))old[i].replaceWith(parts[i])}}}}let worldNew=mount.querySelector('.worldViewport');if(worldNew)worldNew.scrollLeft=kwWorldScroll;[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].forEach((e,i)=>e.scrollTop=e.matches('main,.kwAchievementList,.kwRankList')&&e.closest('main')?.querySelector('h2')?.textContent!==oldHeading?0:scrolls[i]||0);[...mount.querySelectorAll('details')].forEach((e,i)=>e.open=!!details[i]);}etag=x.etag||etag;
  try{AudioGame.scene(x.scene);for(let [k,v] of x.events||[])if(k==='fx'||k==='voice')AudioGame[k](v);}catch{}if(x.result?.portal){location.href='/';return}err(!kwStorageOK?'Browser blockiert lokale Speicherung. Spielstand bleibt nur bis zum Schließen erhalten.':x.result?.ok===false?x.result.reason:'');}
+window.kwPlayCombatAttack=hit=>AudioGame.combatAttack(hit);
+window.kwCombatFx=(sound,delay)=>setTimeout(()=>AudioGame.fx(sound),delay*1000);
+let kwCombatViewPending=false;
+window.kwRequestCombatView=function(){
+ if(kwCombatViewPending||document.hidden)return;
+ kwCombatViewPending=true;
+ const refresh=()=>{
+  if(busy){requestAnimationFrame(refresh);return;}
+  kwCombatViewPending=false;
+  send('/api/game/view');
+ };
+ requestAnimationFrame(refresh);
+};
 function kwTextEditing(){return !!document.activeElement?.matches('input:not([type=range]):not([type=checkbox]):not([type=radio]),textarea,select,[contenteditable="true"]')}
 async function send(path,data){if(busy){if(path==='/api/game/action')queued=[path,data];return}busy=true;try{let x=await api(path,data);apply(x);if(mount.querySelector('#app'))window.kwBoot?.ready()}catch(e){kwTrace('ui.request.failed',{path});err(e.message+' – Verbindung wird erneut versucht.')}finally{busy=false;if(queued){let q=queued;queued=null;send(...q)}}}
 function action(e,value,token=e.dataset.control){if(!token)return;let name=mount.querySelector('#profileInput');if(name&&e!==name)kwFrame.contentWindow.__profileDraft=name.value;let confirmed=!e.dataset.confirm||confirm('Diese Aktion wirklich ausführen?');if(!confirmed)return;send('/api/game/action',{token,...(value===undefined?{}:{value:String(value)}),confirmed,etag})}

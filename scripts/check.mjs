@@ -8,7 +8,7 @@ assert.equal(read('generated/sw-version.js'),releaseVersion(),'Generated release
 const version=JSON.parse(read('package.json')).version;
 assert(read('src/engine/frame.html').includes('<span class="gameVersion">v'+version+'</span>'),'Header version differs from package.json');
 assert.equal(read('generated/engine-template.js'),generated(),'Generated engine is outdated; run npm run build');
-for(const name of ['container','electronics','expedition','mine','pickaxe','scrapyard']){const p='assets/activities/'+name+'.webp';assert(existsSync(resolve(root,p)),'Missing activity artwork: '+p);}
+for(const name of ['container','electronics','expedition','expedition-scrap','expedition-crystal','mine','pickaxe','scrapyard']){const p='assets/activities/'+name+'.webp';assert(existsSync(resolve(root,p)),'Missing activity artwork: '+p);}
 assert(existsSync(resolve(root,'assets/branding/kurvflict-loading.webp')),'Missing KURVFLICT loading artwork');
 assert.match(read('src/engine/frame.html'), /<header><div class="kwHeaderBrand"><img class="kwHeaderLogo"[^>]*><span class="gameVersion">[^<]*<\/span><\/div>/);
 const logoCss=read('src/styles/engine/11-responsive-header.css');

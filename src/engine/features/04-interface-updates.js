@@ -11,7 +11,9 @@ function gmSpecial47(kind,k=0){if(!gmAllowed()||!gmState().enabled||battle?.runn
 const old47GMView=gmView;gmView=function(){return old47GMView().replace('<div class="gmActions">','<div class="gmActions">'+SET47.map((x,k)=>`<button onclick="gmSpecial47('set',${k})" ${gmState().enabled?'':'disabled'}>Set · ${hubLabel(...x.n)}</button>`).join('')+`<button onclick="gmSpecial47('myth')" ${gmState().enabled?'':'disabled'}>${hubLabel('Mythische Testitems','Mythic test gear','Мифические тестовые предметы')}</button>`)};
 
 window.__events=[];
-for(const k of ['scene','fx','voice']){const old=AudioGame[k];AudioGame[k]=function(v){if(k!=='voice'||v==='level')window.__events.push([k,v]);if(window.__events.length>60)window.__events.shift();if(k==='voice'&&v!=='level')old(v);};}
+for(const k of ['scene','fx','voice']){const old=AudioGame[k];AudioGame[k]=function(v,delay){if(k==='fx'&&delay&&parent.kwCombatFx){parent.kwCombatFx(v,delay);return;}if(k!=='voice'||v==='level')window.__events.push([k,v]);if(window.__events.length>60)window.__events.shift();if(k==='voice'&&v!=='level')old(v);};}
+const kwCombatTick=tick;
+tick=function(){kwCombatTick();parent.kwRequestCombatView?.()};
 AudioGame.unlock=()=>{};AudioGame.status=()=>parent.localAudioStatus();
 window.confirm=()=>!!window.__confirmed;
 window.__controls=new Map();window.__tokens=new Map();window.__gmLevelDraft=null;window.__profileDraft='';

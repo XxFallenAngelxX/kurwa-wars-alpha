@@ -44,14 +44,16 @@ function kwSimTurn(d,random=Math.random){
  if(a.hp>0&&b.hp>0){
   dodge=random()<kwWeaponDodge(q.dodge,b.weaponFx);
   if(!dodge){crit=random()<p.crit;const rage=1+Math.min(4,Math.floor((d.turn-1)/2)*.045);
-   damage=Math.min(b.hp,kwWeaponIncoming(kwCombatDamage(kwWeaponAttack(p.atk*(a.fury?1.12:1)*(a.weaken?.85:1),a.weaponFx),q.def,b.level,.85+random()*.3,crit,rage),b.weaponFx));
+   const ward=b.weaponFx.shrineWardUsed;
+   damage=Math.min(b.hp,kwWeaponIncoming(kwCombatDamage(kwWeaponAttack(p.atk*(a.fury?1.12:1)*(a.weaken?.85:1),a.weaponFx),q.def,b.level,.85+random()*.3,crit,rage),b.weaponFx,q));
+   if(!ward&&b.weaponFx.shrineWardUsed)weaponEvents.push(['shrineWard',0]);
    b.hp-=damage;kwSimHeal(a,damage*(p.pctLeech||0));
    if(b.hp>0){kwSimHeal(b,damage*(q.pctRecoup||0));if(random()<(p.pctBleed||0)){b.bleed=2;b.bleedDamage=Math.max(1,Math.floor(damage*.15))}if(random()<(p.pctWeaken||0))b.weaken=2;
     if(random()<(q.pctCounter||0)){const counter=Math.min(a.hp,Math.max(1,Math.round(q.atk*.5*(1-reduction(p.def,a.level)))));a.hp-=counter;kwSimHeal(b,counter*(q.pctLeech||0))}
     // Existing mythic periodic effects, symmetric for either arena fighter.
     if(a.hp>0&&b.hp>0&&a.actions%3===0){const m=p.myth47||[],n=q.myth47||[];if(m[0])b.hp=Math.max(0,b.hp-Math.round(damage*.18*m[0]));if(b.hp>0){if(n[1])kwSimHeal(b,q.hp*.02*n[1]);if(n[2])a.hp=Math.max(0,a.hp-Math.round(q.atk*.25*n[2]*(1-reduction(p.def,a.level))));}}
    }
-   if(a.hp>0&&b.hp>0){const proc=kwWeaponProc(p,damage,a.weaponFx,b.weaponFx,random);const extra=Math.min(b.hp,proc.extra);b.hp-=extra;const before=a.hp;kwSimHeal(a,proc.heal);for(const id of proc.events)weaponEvents.push([id,id==='lightning'?extra:id==='holy'?a.hp-before:0]);}
+   if(a.hp>0&&b.hp>0){const proc=kwWeaponProc(p,damage,a.weaponFx,b.weaponFx,random);const extra=Math.min(b.hp,proc.extra);b.hp-=extra;const shrineExtra=Math.min(b.hp,kwShrineStrike(p,damage,a.weaponFx));b.hp-=shrineExtra;if(shrineExtra)weaponEvents.push(['shrineStrike',shrineExtra]);const before=a.hp;kwSimHeal(a,proc.heal);for(const id of proc.events)weaponEvents.push([id,id==='lightning'?extra:id==='holy'?a.hp-before:0]);}
   }
   a.fury=Math.max(0,a.fury-1);a.weaken=Math.max(0,a.weaken-1);
   if(crit&&random()<(p.pctFury||0))a.fury=2;
@@ -157,7 +159,7 @@ function kwSimArenaTick(b){
  b.effects={fury:a.fury,bleed:r.bleed,weaken:r.weaken,wound:0};
  b.hit=ev?battleAttackFeedback(b,ev.i===0,ev.damage,ev.crit,ev.dodge):null;
  if(ev){const actor=ev.i===0?profileName():b.o.enemy;
- battleLog(b,actor+' · '+(ev.dodge?hubLabel('Ausgewichen','Dodged','Уклонение'):num(ev.damage)+' '+hubLabel('Schaden','damage','урон')+(ev.crit?' · CRIT':'')),ev.i===0?'outgoing':'incoming');for(const [id,n] of ev.weaponEvents||[])battleLog(b,kwWeaponEffectsLabel(id)+' · '+(id==='holy'?'+'+num(n)+' LP':n?num(n)+' '+hubLabel('Schaden','damage','урона'):hubLabel('Effekt aktiv','Effect active','Эффект активен')),id==='holy'?'healing':id==='arcane'?'buff':'debuff');}
+ battleLog(b,actor+' · '+(ev.dodge?hubLabel('Ausgewichen','Dodged','Уклонение'):num(ev.damage)+' '+hubLabel('Schaden','damage','урон')+(ev.crit?' · CRIT':'')),ev.i===0?'outgoing':'incoming');for(const [id,n] of ev.weaponEvents||[])battleLog(b,kwWeaponEffectsLabel(id)+' · '+(id==='holy'?'+'+num(n)+' LP':n?num(n)+' '+hubLabel('Schaden','damage','урона'):hubLabel('Effekt aktiv','Effect active','Эффект активен')),id==='holy'?'healing':id==='arcane'||id==='shrineWard'?'buff':'debuff');}
  if(b.duel.winner!==null){
   clearInterval(timer);timer=null;b.running=false;b.win=b.duel.winner===0;b.warningUntil=0;b.dialogue45={};
   if(b.win)b.e=0;else b.h=0;

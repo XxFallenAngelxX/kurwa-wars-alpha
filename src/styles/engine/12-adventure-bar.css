@@ -67,7 +67,8 @@
 .arena .fightart.fallen { filter:none; }
 .arena .fallen>img { filter:grayscale(1) brightness(.5); }
 .arena .fallen.struck>img { animation-name:combatKnockout; animation-fill-mode:backwards; }
-.arena .hit { z-index:1; animation:combatDamage 430ms ease-out calc(var(--attack-travel) - var(--attack-elapsed)) both; }
+.arena .hit { z-index:1; -webkit-text-stroke:.35px #2e1230; text-shadow:0 2px 3px #100918,0 0 8px #100918; animation:combatDamage 430ms ease-out calc(var(--attack-travel) - var(--attack-elapsed)) both; }
+.arena .hit.crit { color:#ffdc87; text-shadow:0 2px 3px #100918,0 0 10px #ff571d; }
 @keyframes combatProjectile { 0% { transform:rotate(-35deg) scale(.7); opacity:0; } 20%,85% { opacity:1; } 100% { left:calc(75% - clamp(36px,8vw,64px) / 2); transform:rotate(85deg) scale(1.05); opacity:0; } }
 @keyframes rangedProjectile { 0% { opacity:0; transform:scale(.66); } 15%,88% { opacity:1; } 100% { left:calc(75% - clamp(36px,8vw,64px) / 2); opacity:0; transform:scale(.9); } }
 @keyframes combatImpact { 0%,100% { filter:brightness(1); } 15% { filter:brightness(var(--impact-brightness)); } }

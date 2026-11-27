@@ -29,6 +29,47 @@ const AudioGame = (()=>{
  function enabled(k){return ctx&&ctx.state==='running'&&!document.hidden&&!cfg.muted&&cfg[k]>0}
  function tone(f,d,v=.18,type='sine',delay=0,end=f){if(!enabled('sfx'))return;let t=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+d);g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(v,t+.007);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(fxGain);o.start(t);o.stop(t+d+.01)}
  function hiss(d,v,filter=1200,delay=0){if(!enabled('sfx'))return;let t=ctx.currentTime+delay,n=ctx.createBufferSource(),g=ctx.createGain(),f=ctx.createBiquadFilter();n.buffer=noise;f.type='lowpass';f.frequency.value=filter;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);n.connect(f);f.connect(g);g.connect(fxGain);n.start(t);n.stop(t+d)}
+ function combatAttack({sound,travel,crit,dodge}){
+  if(!enabled('sfx'))return;
+  const delay=travel/1000;
+  const wind=ctx.createBufferSource(),band=ctx.createBiquadFilter(),sweep=ctx.createGain();
+  const t=ctx.currentTime,end=t+Math.max(.02,delay);
+  wind.buffer=noise;
+  band.type='bandpass';
+  band.Q.value=sound==='arcane'?2.8:1.2;
+  band.frequency.setValueAtTime(sound==='projectile'?3600:450,t);
+  band.frequency.exponentialRampToValueAtTime(sound==='projectile'?550:2400,end);
+  sweep.gain.setValueAtTime(.001,t);
+  sweep.gain.linearRampToValueAtTime(.28,t+(end-t)*.42);
+  sweep.gain.exponentialRampToValueAtTime(.001,end);
+  wind.connect(band).connect(sweep).connect(fxGain);
+  wind.start(t);
+  wind.stop(end);
+  if(sound==='arcane'){
+   tone(300,Math.max(.04,delay),.105,'sine',0,930);
+   tone(630,Math.max(.03,delay*.8),.045,'triangle',delay*.2,1580);
+  }else if(sound==='energy'){
+   tone(1120,.085,.07,'triangle',0,240);
+   tone(580,.06,.045,'sine',.018,110);
+  }else if(sound==='projectile')tone(460,.055,.065,'triangle',0,125);
+  else if(sound==='rubber')tone(330,.052,.055,'sine',0,520);
+  if(dodge)return;
+
+  // A short transient and a lower thump make the impact audible over the music.
+  hiss(crit ? .11 : .065,crit ? .32 : .22,sound==='metal'?4500:2200,delay);
+  tone(crit?155:185,crit ? .19 : .12,crit ? .38 : .26,'triangle',delay,crit?41:65);
+  if(sound==='metal'){
+   tone(980,.16,.15,'triangle',delay,730);
+   tone(1720,.095,.065,'sine',delay+.004,1110);
+  }
+  else if(sound==='rubber'){
+   tone(520,.10,.14,'sine',delay,155);
+   tone(190,.05,.08,'sine',delay+.052,390);
+  }else if(sound==='arcane')tone(960,.15,.095,'sine',delay,410);
+  else if(sound==='energy')tone(760,.10,.09,'triangle',delay,195);
+  else if(sound==='projectile')tone(270,.064,.10,'triangle',delay,95);
+  if(crit)tone(830,.09,.095,'triangle',delay,275);
+ }
  function melody(notes,step=.10,vol=.14,type='triangle'){notes.forEach((n,i)=>tone(440*2**((n-69)/12),step*1.6,vol,type,i*step));}
  const samplePools={"click":["click1.ogg","click2.ogg","mouseclick1.ogg"],"nav":["switch1.ogg","switch2.ogg","switch3.ogg"],"toggle":["switch_001.ogg","switch_002.ogg","switch_003.ogg"],"confirm":["switch4.ogg","switch5.ogg"],"cancel":["back_001.ogg","back_002.ogg"],"open":["open_001.ogg","open_002.ogg"],"close":["close_001.ogg","close_002.ogg"],"drop":["drop_001.ogg","drop_002.ogg"],"hit":["impactPunch_medium_001.ogg","impactPunch_medium_003.ogg"],"enemyHit":["impactSoft_heavy_001.ogg","impactSoft_heavy_003.ogg"],"crit":["impactPunch_heavy_001.ogg","impactPunch_heavy_003.ogg"],"equip":["impactMetal_light_001.ogg","impactMetal_light_003.ogg"],"build":["impactWood_heavy_001.ogg","impactWood_heavy_003.ogg"],"key":["switch6.ogg","switch7.ogg"],"counter":["impactGeneric_light_001.ogg","impactGeneric_light_003.ogg"]};
  const sampleCache=new Map(),lastSample=new Map(),lastFx=new Map();let activeSamples=0;
@@ -62,5 +103,5 @@ const AudioGame = (()=>{
  function toggle(){cfg.muted=!cfg.muted;persist();apply();if(cfg.muted){stopMusic();pending=null;stopVoice()}else unlock();statusUI()}
  document.addEventListener('click',e=>{let b=e.target.closest?.('button');if(!b||b.disabled)return;unlock();if(!b.closest('.audioPage')&&!b.closest('#nav'))fx(b.matches('[aria-pressed],[role=switch]')?'toggle':b.matches('[type=submit]')?'confirm':'click');},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMusic();pending=null;stopVoice()}else sync()});
- return {cfg,unlock,scene,fx,voice,voiceMode,set,toggle,clearNpc:()=>{if(activeKey==='level')return;clearTimeout(textTimer);const el=document.getElementById("npcSubtitle");if(el)el.hidden=true;},status:()=>status,debug:()=>({state:ctx?.state,track:media?playlist[trackIndex]:null,desired,decoded:cache.size})};
+ return {cfg,unlock,scene,fx,combatAttack,voice,voiceMode,set,toggle,clearNpc:()=>{if(activeKey==='level')return;clearTimeout(textTimer);const el=document.getElementById("npcSubtitle");if(el)el.hidden=true;},status:()=>status,debug:()=>({state:ctx?.state,track:media?playlist[trackIndex]:null,desired,decoded:cache.size})};
 })();

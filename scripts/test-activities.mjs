@@ -47,7 +47,7 @@ test('deep chamber charges 18 energy',()=>kwMineDig(2)&&s.energy===68);
 test('mine artwork is wired',()=>kwActivityView('Kristallmine').includes('assets/activities/mine.webp')&&kwActivityView('Kristallmine').includes('assets/activities/pickaxe.webp'));
 page='Expedition';s.level=14;s.energy=100;test('expedition gated below 15',()=>!expeditionStart(0)&&s.energy===100);
 s.level=21;test('scrap route gated below 22',()=>!expeditionStart(1)&&s.energy===100);
-s.level=30;test('route menu links original art',()=>expeditionView().includes('assets/activities/expedition.webp')&&expeditionView().includes('assets/activities/scrapyard.webp'));
+s.level=30;test('route menu uses three dedicated covers',()=>['expedition','expedition-scrap','expedition-crystal'].every(key=>expeditionView().includes('assets/activities/'+key+'.webp')));
 test('scrap expedition creates seven unique stages',()=>expeditionStart(1)&&s.energy===75&&expeditionState().run.ids.length===7&&new Set(expeditionState().run.ids).size===7);
 let run=expeditionState().run;test('cannot retreat before stage two',()=>!expeditionWithdraw());run.step=2;run.cash=100;run.status='choice';
 test('retreat keeps loot without granting completion',()=>expeditionWithdraw()&&run.status==='finished'&&run.cash===100&&expeditionState().completed===0);
