@@ -87,3 +87,36 @@ for(const [name,enemy,l] of [
 }
 if(!missionUI.includes('${kwMissionIdentityMarkup(t.o)}')||!missionUI.includes('${kwMissionIdentityMarkup(o)}'))throw Error('Mission identity not used in both views');
 console.log('OK: single opponent heading for every mission type, before departure and on arrival');
+
+
+// Quest dialogue changes only when a player actually selects another offer.
+const pagerCode=missionUI.split('\n').find(l=>l.startsWith('function kwMissionPage('));
+if(!pagerCode)throw Error('Missing mission pager');
+const pagerResult=runInNewContext(`
+let page='Missionen',s={},battle=null,offers=[{}, {}, {}],mp=0,voices=[],renders=0;
+const AudioGame={voice:k=>voices.push(k)};function render(){renders++}
+`+pagerCode+`
+kwMissionPage(1);if(mp!==1||voices.length!==1||voices[0]!=='quest')throw Error('Next must refresh dialogue');
+kwMissionPage(1);if(mp!==2||voices.length!==2)throw Error('Third offer must refresh dialogue');
+kwMissionPage(1);if(mp!==0||voices.length!==3)throw Error('Forward wrap');
+kwMissionPage(-1);if(mp!==2||voices.length!==4)throw Error('Back wrap');
+s.travel={};kwMissionPage(1);if(mp!==2||voices.length!==4)throw Error('Travel dialogue must be preserved');
+s.travel=null;page='Garage';kwMissionPage(-1);if(mp!==2||voices.length!==4)throw Error('Wrong page');
+page='Missionen';battle={running:true};kwMissionPage(1);if(mp!==2||voices.length!==4)throw Error('Active combat');
+battle=null;kwMissionPage(0);if(mp!==2||voices.length!==4||renders!==4)throw Error('Invalid step');
+true;
+`);
+if(!pagerResult||!missionUI.includes('onclick="kwMissionPage(-1)"')||!missionUI.includes('onclick="kwMissionPage(1)"'))throw Error('Quest dialogue pager not wired');
+const audio=read('src/engine/core/01-audio.js');
+const npcCode=audio.split('\n').find(l=>l.trimStart().startsWith('function npcText('));
+const noRepeat=runInNewContext(`
+const NPC_GROUPS={quest:3},NPC_LINES={quest0:{text:'a'},quest1:{text:'b'},quest2:{text:'c'}},lastLine={};
+const document={hidden:false};let page='Missionen',npcTextPersistent=false,textTimer=null,shown=[];
+function clearTimeout(){}function setTimeout(){throw Error('Quest line must persist')}
+function subtitle(line){shown.push(line.text)}Math.random=()=>0;
+`+npcCode+`
+npcText('quest');npcText('quest');npcText('quest');
+shown.join(',')==='a,b,a';
+`);
+if(!noRepeat)throw Error('Consecutive quest dialogue repeated');
+console.log('OK: quest dialogue on both arrows, no immediate repeat, travel dialogue preserved');
