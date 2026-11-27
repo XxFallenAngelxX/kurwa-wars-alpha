@@ -66,13 +66,13 @@ function kwShowVictory(discovery){
   scene.append(headline,quote);
   if(item){
    const visual=document.createElement('div');visual.className='kwCodexVisual';const halo=document.createElement('div');halo.className='kwCodexHalo';visual.append(halo);
-   const closed=document.createElement('img'),open=document.createElement('img'),page=document.createElement('img'),soul=document.createElement('div'),ghost=document.createElement('img');
+   const closed=document.createElement('img'),open=document.createElement('img'),page=document.createElement('div'),soul=document.createElement('div'),ghost=document.createElement('img');
    closed.className='kwCodexClosed';closed.src=kwVictoryArt.closed;closed.alt='';
    open.className='kwCodexOpen';open.src=kwVictoryArt.open;open.alt='';
-   page.className='kwCodexPage';page.src=kwVictoryArt.page;page.alt='';
+   page.className='kwCodexPage';page.setAttribute('aria-hidden','true');
    soul.className='kwCodexSoul';ghost.src=kwVictoryArt.soul;ghost.alt='';soul.append(ghost);
    const portrait=typeof item.portrait==='string'&&!item.portrait.includes('#kwasset-')?item.portrait:mount.querySelector('.fighter.foe .fightart img')?.src;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
-   visual.append(closed,open,page,soul);for(let n=0;n<9;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--spark',n);visual.append(spark)}scene.append(visual);
+   const rays=document.createElement('div'),ring=document.createElement('div'),flash=document.createElement('div');rays.className='kwCodexRays';ring.className='kwCodexRing';flash.className='kwCodexFlash';visual.prepend(rays);visual.append(closed,open,page,soul,ring,flash);for(let n=0;n<16;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--spark',n);visual.append(spark)}scene.append(visual);
    const info=document.createElement('div');info.className='kwCodexDiscovery';
    const title=document.createElement('b'),name=document.createElement('span'),progress=document.createElement('small');
    title.textContent=item.preview?(lang==='en'?'CODEX PREVIEW':lang==='ru'?'ПРОСМОТР КОДЕКСА':'KODEX-VORSCHAU'):(lang==='en'?'CODEX UPDATED':lang==='ru'?'КОДЕКС ПОПОЛНЕН':'KODEX ERWEITERT');
