@@ -42,7 +42,9 @@ const kwVictoryArt={closed:'./assets/codex/book-closed.webp',open:'./assets/code
 for(const src of Object.values(kwVictoryArt)){const img=new Image();img.src=src}
 function kwShowVictory(discovery){
  if(kwVictoryActive&&!discovery)return;
- kwVictoryQueue.push(discovery||null);
+ const foeImg=mount.querySelector('.fighter.foe .fightart img');
+ const portrait=discovery&&typeof discovery.portrait==='string'&&!discovery.portrait.includes('#kwasset-')?discovery.portrait:foeImg?.src;
+ kwVictoryQueue.push(discovery?{...discovery,portrait}:null);
  if(kwVictoryActive)return;
  function play(){
   if(!kwVictoryQueue.length){kwVictoryActive=false;return}
@@ -53,10 +55,16 @@ function kwShowVictory(discovery){
   if(next===kwVictoryLastLine)next=(next+1)%phrases.length;
   kwVictoryLastLine=next;
   const arena=mount.querySelector('.arena')?.getBoundingClientRect(),hero=mount.querySelector('#nav button:first-child')?.getBoundingClientRect(),foe=mount.querySelector('.fighter.foe .fightart')?.getBoundingClientRect();
-  const x=arena?arena.left+arena.width/2:innerWidth/2,y=arena?arena.top+Math.min(32,arena.height*.1):innerHeight*.22;
+  const player=mount.querySelector('.fighter:not(.foe) .fightart')?.getBoundingClientRect(),vs=mount.querySelector('.arena .vs')?.getBoundingClientRect();
+  const gap=player&&foe?Math.max(0,foe.left-player.right):0;
+  const scale=item?Math.min(.55,Math.max(.28,(gap||140)/280),Math.max(.28,(innerHeight-80)/320)):1;
+  const x=item&&player&&foe?(player.right+foe.left)/2:arena?arena.left+arena.width/2:innerWidth/2;
+  const y=item&&arena?Math.max(arena.top+4,Math.min(player?.top??arena.top+30,foe?.top??arena.top+30)-210*scale*.72):arena?arena.top+Math.min(32,arena.height*.1):Math.max(12,innerHeight*.14);
   const layer=document.createElement('div'),scene=document.createElement('div');
   layer.className='kwVictoryOverlay'+(item?' hasDiscovery':'');layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
-  scene.className='kwVictoryScene'+(item?' hasDiscovery':'');scene.style.left=x+'px';scene.style.top=y+'px';
+  scene.className='kwVictoryScene'+(item?' hasDiscovery':'');
+  if(item){layer.style.left=x+'px';layer.style.top=y+'px';scene.style.setProperty('--kw-local-scale',scale);scene.style.left='0';scene.style.top='0';}
+  else {scene.style.left=x+'px';scene.style.top=y+'px';}
   scene.style.setProperty('--kw-book-x',((hero?hero.left+hero.width/2:x)-x)+'px');
   scene.style.setProperty('--kw-book-y',((hero?hero.top+hero.height/2:innerHeight-30)-(y+160))+'px');
   scene.style.setProperty('--kw-soul-x',((foe?foe.left+foe.width/2:x+80)-x)+'px');
@@ -71,7 +79,7 @@ function kwShowVictory(discovery){
    open.className='kwCodexOpen';open.src=kwVictoryArt.open;open.alt='';
    page.className='kwCodexPage';page.setAttribute('aria-hidden','true');page.style.setProperty('--leaf',0);
    soul.className='kwCodexSoul';ghost.src=kwVictoryArt.soul;ghost.alt='';soul.append(ghost);
-   const portrait=typeof item.portrait==='string'&&!item.portrait.includes('#kwasset-')?item.portrait:mount.querySelector('.fighter.foe .fightart img')?.src;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
+   const portrait=item.portrait;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
    visual.append(closed,open,page,soul);
    for(let n=1;n<4;n++){const leaf=page.cloneNode(false);leaf.style.setProperty('--leaf',n);visual.append(leaf)}
    const rays=document.createElement('div');rays.className='kwCodexRays';visual.prepend(rays);
@@ -86,14 +94,16 @@ function kwShowVictory(discovery){
    info.append(title,name,progress);scene.append(info);
   }
   layer.append(scene);document.body.append(layer);
-  if(item){const visual=scene.querySelector('.kwCodexVisual'),r=visual.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
-   scene.style.setProperty('--kw-book-x',((hero?hero.left+hero.width/2:x)-cx)+'px');
-   scene.style.setProperty('--kw-book-y',((hero?hero.top+hero.height/2:innerHeight-30)-cy)+'px');
-   scene.style.setProperty('--kw-soul-x',((foe?foe.left+foe.width/2:x+80)-cx)+'px');
-   scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+110)-cy)+'px');
+  if(item){const visual=scene.querySelector('.kwCodexVisual'),r=visual.getBoundingClientRect(),cx=r.left+140*scale,cy=r.top+96*scale;
+   scene.style.setProperty('--kw-soul-x',((foe?foe.left+foe.width/2:x+70)-cx)/scale+'px');
+   scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+60)-cy)/scale+'px');
   }
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  setTimeout(()=>{layer.remove();play()},reduced?3500:item?7600:2600);
+  let timer,finished=false;
+  function finish(){if(finished)return;finished=true;clearTimeout(timer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);layer.remove();play()}
+  function dismiss(e){if(e.type==='click'&&!e.target.closest?.('button,[role="button"]'))return;kwVictoryQueue.length=0;finish()}
+  if(item){mount.addEventListener('click',dismiss,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true)}
+  timer=setTimeout(finish,reduced?2000:item?4400:2600);
  }
  play();
 }

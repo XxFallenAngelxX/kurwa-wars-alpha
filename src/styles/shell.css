@@ -150,3 +150,48 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 .kwCodexVisual .kwCodexPageSticker { box-shadow:0 0 12px #ffe5a1,0 0 22px #d62dff,0 0 32px #39dfff; }
 .kwVictoryScene.hasDiscovery .kwCodexDiscovery { border-color:#ffc76b; background:linear-gradient(130deg,#4b2150ee,#201b3aee); box-shadow:0 0 14px #aa4bd866; }
 @media(prefers-reduced-motion:reduce) { .kwCodexVisual .kwCodexPage,.kwCodexRays,.kwCodexImpact { animation:none!important; display:none; } }
+
+/* In-combat codex: local, nonmodal VFX above the two portraits. */
+.kwVictoryOverlay.hasDiscovery { inset:auto; width:0; height:0; overflow:visible; background:none; animation:none; pointer-events:none; }
+.kwVictoryScene.hasDiscovery { width:280px; transform:translateX(-50%) scale(var(--kw-local-scale,.5)); transform-origin:top center; }
+.kwVictoryScene.hasDiscovery .kwVictoryTitle { font-size:28px; line-height:1; }
+.kwVictoryScene.hasDiscovery .kwVictoryQuote { display:none; }
+.kwVictoryScene.hasDiscovery .kwCodexVisual { animation-name:kwLocalBookExit; animation-duration:4.4s; }
+.kwVictoryScene.hasDiscovery .kwCodexClosed,.kwVictoryScene.hasDiscovery .kwCodexOpen,.kwVictoryScene.hasDiscovery .kwCodexSoul,.kwVictoryScene.hasDiscovery .kwCodexPageSticker,.kwVictoryScene.hasDiscovery .kwCodexHalo,.kwVictoryScene.hasDiscovery .kwCodexSpark,.kwVictoryScene.hasDiscovery .kwCodexImpact,.kwVictoryScene.hasDiscovery .kwCodexRays,.kwVictoryScene.hasDiscovery .kwCodexDiscovery { animation-duration:4.4s; }
+.kwVictoryScene.hasDiscovery .kwCodexPage { animation-duration:.46s; animation-delay:calc(1.18s + var(--leaf,0)*.19s); }
+.kwVictoryScene.hasDiscovery .kwCodexVisual { --kw-imprint-x:187px; --kw-imprint-y:94px; }
+.kwCodexVisual .kwCodexPageSticker { width:48px; height:58px; left:calc(var(--kw-imprint-x) - 24px); top:calc(var(--kw-imprint-y) - 29px); border:2px solid #be8b4a; border-radius:3px; object-fit:cover; box-shadow:0 0 10px #ffcf7e; animation-name:kwLocalImprint; }
+.kwCodexVisual .kwCodexSoul { animation-name:kwLocalSoul; }
+.kwCodexVisual .kwCodexImpact { left:var(--kw-imprint-x); top:var(--kw-imprint-y); width:54px; height:54px; margin:-27px; border-width:2px; box-shadow:0 0 10px #f745ff,inset 0 0 8px #4eeaff; animation-name:kwLocalRing; }
+.kwCodexVisual .kwCodexSpark { left:var(--kw-imprint-x); top:var(--kw-imprint-y); }
+.kwCodexVisual .kwCodexRays { left:var(--kw-imprint-x); top:var(--kw-imprint-y); width:220px; height:220px; }
+.kwVictoryScene.hasDiscovery .kwCodexDiscovery { font-size:18px; padding:3px 7px; max-width:95%; }
+.kwVictoryScene.hasDiscovery .kwCodexDiscovery b { font-size:17px; }
+@keyframes kwLocalSoul {
+ 0%,32% { opacity:0; transform:translate(var(--kw-soul-x),var(--kw-soul-y)) scale(.3); }
+ 39% { opacity:1; transform:translate(var(--kw-soul-x),var(--kw-soul-y)) scale(.85); }
+ 50% { opacity:1; transform:translate(calc(var(--kw-soul-x)*.6 + 18px),calc(var(--kw-soul-y)*.6 - 20px)) scale(.8); }
+ 61% { opacity:1; transform:translate(47px,-2px) scale(.38); }
+ 66%,100% { opacity:0; transform:translate(47px,-2px) scale(.12); }
+}
+@keyframes kwLocalImprint {
+ 0%,60% { opacity:0; transform:scale(.4); }
+ 65% { opacity:1; transform:scale(1.04); }
+ 69%,73% { opacity:1; transform:scale(1); }
+ 77%,100% { opacity:0; transform:scale(.96); }
+}
+@keyframes kwLocalRing {
+ 0%,60% { opacity:0; transform:scale(.3); }
+ 64% { opacity:1; transform:scale(.9); }
+ 72%,100% { opacity:0; transform:scale(1.9); }
+}
+@keyframes kwLocalBookExit {
+ 0%,83% { opacity:1; transform:scale(1); }
+ 100% { opacity:0; transform:translateY(-10px) scale(.28); }
+}
+@media(prefers-reduced-motion:reduce) {
+ .kwVictoryScene.hasDiscovery .kwCodexVisual { animation:none!important; }
+ .kwVictoryScene.hasDiscovery .kwCodexClosed { display:none; }
+ .kwVictoryScene.hasDiscovery .kwCodexOpen { display:block; opacity:1; transform:none; }
+ .kwVictoryScene.hasDiscovery .kwCodexPageSticker { display:block; opacity:1; transform:none; }
+}
