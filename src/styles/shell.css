@@ -240,3 +240,8 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
  .kwVictoryScene.hasDiscovery .kwCodexClosed { display:none; }
  .kwVictoryScene.hasDiscovery .kwCodexOpen,.kwVictoryScene.hasDiscovery .kwCodexPageSticker { display:block; opacity:1; transform:none; }
 }
+
+/* Regular victory is a short local VS celebration, not a persistent result label. */
+.kwVictoryScene:not(.hasDiscovery) { width:max-content; max-width:min(220px,80vw); pointer-events:none; }
+.kwVictoryScene:not(.hasDiscovery) .kwVictoryTitle { font-size:clamp(20px,5vw,30px); }
+.kwVictoryScene:not(.hasDiscovery) .kwVictoryQuote { display:none; }

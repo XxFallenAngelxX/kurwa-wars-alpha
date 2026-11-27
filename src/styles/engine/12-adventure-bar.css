@@ -273,3 +273,15 @@
  }
  #app .arena .fightart.criticalStrike.struck:not(.fallen)>img,#app .arena .foe .fightart.criticalStrike.struck:not(.fallen)>img { animation-duration:220ms; }
 }
+
+/* Keep final log entries and actual loot in separate, non-overlapping rows. */
+#app #screen:has(>.arena)>.raidLogFinished:not(.raidLogDefeat) {
+ display:flex; flex-direction:column; flex:0 0 auto; min-height:min-content; gap:5px; overflow:visible;
+}
+#app .raidLogFinished:not(.raidLogDefeat)>.raidLogHead,
+#app .raidLogFinished:not(.raidLogDefeat)>.raidRecent,
+#app .raidLogFinished:not(.raidLogDefeat)>.combatRewards { flex:0 0 auto; min-height:auto; }
+#app .raidLogFinished:not(.raidLogDefeat)>.raidRecent { height:auto; overflow:visible; }
+#app .raidLogFinished:not(.raidLogDefeat)>.raidRecent>.raidLine { flex:0 0 auto; }
+#app .raidLogFinished:not(.raidLogDefeat)>.combatRewards { padding-top:4px; }
+#app .raidLogFinished:not(.raidLogDefeat)>.combatRewards>.row { justify-content:flex-end; }

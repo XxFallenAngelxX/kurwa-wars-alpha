@@ -58,9 +58,9 @@ function kwShowVictory(discovery){
   const player=mount.querySelector('.fighter:not(.foe) .fightart')?.getBoundingClientRect(),vs=mount.querySelector('.arena .vs')?.getBoundingClientRect();
   const gap=player&&foe?Math.max(0,foe.left-player.right):0;
   const scale=item?Math.min(.67,Math.max(.43,(gap+28||140)/280),Math.max(.35,(innerHeight-60)/300)):1;
-  const x=item&&vs?vs.left+vs.width/2:arena?arena.left+arena.width/2:innerWidth/2;
+  const x=vs?vs.left+vs.width/2:arena?arena.left+arena.width/2:innerWidth/2;
   const portraitTop=Math.min(player?.top??arena?.top??0,foe?.top??arena?.top??0);
-  const y=item&&arena?Math.max(8,arena.top+3,portraitTop-136*scale):arena?arena.top+Math.min(32,arena.height*.1):Math.max(12,innerHeight*.14);
+  const y=item&&arena?Math.max(8,arena.top+3,portraitTop-136*scale):vs?Math.max(arena?.top??8,vs.top-24):arena?arena.top+Math.min(32,arena.height*.1):Math.max(12,innerHeight*.14);
   const layer=document.createElement('div'),scene=document.createElement('div');
   layer.className='kwVictoryOverlay'+(item?' hasDiscovery':'');layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
   scene.className='kwVictoryScene'+(item?' hasDiscovery':'');
@@ -106,7 +106,7 @@ function kwShowVictory(discovery){
   let timer,finished=false;
   function finish(){if(finished)return;finished=true;clearTimeout(timer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);layer.remove();play()}
   function dismiss(e){if(e.type==='click'&&!e.target.closest?.('button,[role="button"]'))return;kwVictoryQueue.length=0;finish()}
-  if(item){mount.addEventListener('click',dismiss,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true)}
+  mount.addEventListener('click',dismiss,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true);
   timer=setTimeout(finish,reduced?2000:item?4400:2600);
  }
  play();
