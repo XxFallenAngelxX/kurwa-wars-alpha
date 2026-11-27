@@ -15,7 +15,7 @@ const kwMap55=[
 ['arena',55,70,null,'',['Arena','Arena','Арена'],"go('Arena')",kwFeatureLevel('Arena'),1],
 ['tower',85,80,null,'',['Ewige Spalte des Abgrunds','Eternal Abyssal Rift','Вечный разлом бездны'],"worldDungeon('tower')",kwFeatureLevel('tower'),1],
 ['event',63.5,86,null,'',['Abwasser-Marathon','Sewer marathon','Канализационный марафон'],"worldDungeon('event')",kwFeatureLevel('event'),1],
-['shift',70,67,null,'',['Nachtdienst','Night shift','Ночная смена'],"go('Nachtdienst')",0,1],
+['shift',70,67,null,'',['Nacht Schicht','Night shift','Ночная смена'],"go('Nachtdienst')",0,1],
 ['fairy',75,41,null,'',['Diskothek','Disco','Дискотека'],"worldDungeon('fairy')",kwFeatureLevel('fairy'),1],
 ['gang',85,44,null,'',['Gildenhalle','Gang hall','Зал банды'],"worldFuture('gang')",Infinity,1],
 ['gems',37,38,null,'',['Edelsteinwerkbank','Gem workbench','Верстак самоцветов'],"go('Edelsteinwerkbank')",kwFeatureLevel('Edelsteinwerkbank'),1],

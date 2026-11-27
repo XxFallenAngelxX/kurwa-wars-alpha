@@ -30,7 +30,7 @@ p(59,49,L('Story-Verliese','Story dungeons','Подземелья'),"worldDungeo
 p(55,70,L('Arena','Arena','Арена'),"go('Arena')"),
 p(85,80,L('Ewige Spalte des Abgrunds','Eternal Abyssal Rift','Вечный разлом бездны'),"worldDungeon('tower')"),
 p(63.5,86,L('Abwasser-Marathon','Sewer marathon','Канализационный марафон'),"worldDungeon('event')"),
-p(70,67,L('Nachtdienst','Night shift','Ночная смена'),"go('Nachtdienst')"),
+p(70,67,L('Nacht Schicht','Night shift','Ночная смена'),"go('Nachtdienst')"),
 p(75,41,L('Diskothek','Disco','Дискотека'),"worldDungeon('fairy')"),
 p(85,44,L('Gildenhalle','Gang hall','Зал банды'),"worldFuture('gang')",true),
 p(37,38,L('Edelsteinwerkbank','Gem workbench','Верстак самоцветов')+(s.level<20?' · '+kwLock54(20):''),"go('Edelsteinwerkbank')",s.level<20),
