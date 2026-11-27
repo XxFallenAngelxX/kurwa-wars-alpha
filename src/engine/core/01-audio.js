@@ -24,8 +24,46 @@ const AudioGame = (()=>{
  function enabled(k){return ctx&&ctx.state==='running'&&!document.hidden&&!cfg.muted&&cfg[k]>0}
  function tone(f,d,v=.18,type='sine',delay=0,end=f){if(!enabled('sfx'))return;let t=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+d);g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(v,t+.007);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(fxGain);o.start(t);o.stop(t+d+.01)}
  function hiss(d,v,filter=1200,delay=0){if(!enabled('sfx'))return;let t=ctx.currentTime+delay,n=ctx.createBufferSource(),g=ctx.createGain(),f=ctx.createBiquadFilter();n.buffer=noise;f.type='lowpass';f.frequency.value=filter;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);n.connect(f);f.connect(g);g.connect(fxGain);n.start(t);n.stop(t+d)}
- function melody(notes,step=.10,vol=.14,type='triangle'){notes.forEach((n,i)=>tone(440*2**((n-69)/12),step*1.6,vol,type,i*step));}
- function fx(k){if(!enabled('sfx'))return;switch(k){case'click':tone(420,.055,.065,'triangle',0,260);break;case'nav':tone(340,.09,.09,'triangle',0,520);break;case'hit':hiss(.075,.12,1700);tone(175,.11,.15,'triangle',0,65);tone(510,.045,.04,'sine',.015,200);break;case'enemyHit':hiss(.13,.14,650);tone(95,.12,.18,'sine',0,42);break;case'crit':hiss(.15,.17,4200);tone(65,.23,.13,'sine',0,34);tone(230,.20,.18,'sawtooth',0,75);tone(800,.12,.09,'triangle',.02,460);break;case'heal':melody([72,76,79],.045,.045,'sine');break;case'counter':tone(390,.075,.09,'triangle',0,160);break;case'fight':melody([45,45,52,57],.12,.16,'triangle');break;case'win':melody([60,64,67,72],.105,.15);break;case'lose':melody([57,53,48,43],.16,.15);break;case'cash':hiss(.045,.045,4800);melody([72,76,83,88],.055,.085,'sine');break;case'equip':tone(270,.12,.14,'triangle',0,420);tone(640,.12,.08,'sine',.05);break;case'upgrade':melody([60,67,72],.085);break;case'build':hiss(.1,.13,900);tone(105,.12,.13,'triangle');tone(150,.12,.1,'triangle',.14);break;case'key':melody([72,76,79,84],.075,.13);break;case'gem':melody([81,85,88],.08,.10,'sine');break;case'loot0':case'loot1':melody([69,74],.075,.10);break;case'loot2':melody([67,71,74],.09,.12);break;case'loot3':melody([65,69,72,77],.12,.14);break;case'loot5':melody([48,55,60,64,67,72,79],.105,.13,'triangle');melody([60,64,67,72,76,84],.13,.08,'sine');break;case'loot4':for(let i=0;i<3;i++)melody([[60,64,67,72,76],[67,71,74,79,84],[72,76,79,84,88]][i],.12,.08,'sine');break;case'level':melody([60,64,67,72,76,84],.12,.14);break;case'badge':melody([72,76,79,83],.11,.10);break;case'travel':tone(170,.25,.13,'triangle',0,250);hiss(.15,.08,1800,.12);break;case'refill':tone(300,.2,.12,'sine',0,680);break;case'shrine':tone(180,.4,.12,'sine',0,45);hiss(.38,.10,600);melody([48,55,60,67],.12,.07);break;case'reroll':hiss(.2,.11,3600);melody([60,65,71],.07,.12);break;}}
+ function melody(notes,step=.10,vol=.14,type='triangle',delay=0){notes.forEach((n,i)=>tone(440*2**((n-69)/12),step*1.6,vol,type,delay+i*step));}
+ function combatAttack({sound,travel,crit,dodge}){
+  if(!enabled('sfx'))return;
+  const delay=travel/1000;
+  const wind=ctx.createBufferSource(),band=ctx.createBiquadFilter(),sweep=ctx.createGain();
+  const t=ctx.currentTime,end=t+Math.max(.02,delay);
+  wind.buffer=noise;
+  band.type='bandpass';
+  band.Q.value=sound==='arcane'?2.8:1.2;
+  band.frequency.setValueAtTime(sound==='projectile'?3600:450,t);
+  band.frequency.exponentialRampToValueAtTime(sound==='projectile'?550:2400,end);
+  sweep.gain.setValueAtTime(.001,t);
+  sweep.gain.linearRampToValueAtTime(.28,t+(end-t)*.42);
+  sweep.gain.exponentialRampToValueAtTime(.001,end);
+  wind.connect(band).connect(sweep).connect(fxGain);
+  wind.start(t);
+  wind.stop(end);
+  if(sound==='arcane'){
+   tone(300,Math.max(.04,delay),.105,'sine',0,930);
+   tone(630,Math.max(.03,delay*.8),.045,'triangle',delay*.2,1580);
+  }else if(sound==='energy'){
+   tone(1120,.085,.07,'triangle',0,240);
+   tone(580,.06,.045,'sine',.018,110);
+  }else if(sound==='projectile')tone(460,.055,.065,'triangle',0,125);
+  else if(sound==='rubber')tone(330,.052,.055,'sine',0,520);
+  if(dodge)return;
+
+  // A short transient and a lower thump make the impact audible over the music.
+  hiss(crit ? .11 : .065,crit ? .32 : .22,sound==='metal'?4500:2200,delay);
+  tone(crit?155:185,crit ? .19 : .12,crit ? .38 : .26,'triangle',delay,crit?41:65);
+  if(sound==='metal')tone(980,.12,.09,'triangle',delay,730);
+  else if(sound==='rubber'){
+   tone(520,.10,.14,'sine',delay,155);
+   tone(190,.05,.08,'sine',delay+.052,390);
+  }else if(sound==='arcane')tone(960,.15,.095,'sine',delay,410);
+  else if(sound==='energy')tone(760,.10,.09,'triangle',delay,195);
+  else if(sound==='projectile')tone(270,.064,.10,'triangle',delay,95);
+  if(crit)tone(830,.09,.095,'triangle',delay,275);
+ }
+ function fx(k,delay=0){if(!enabled('sfx'))return;switch(k){case'click':tone(420,.055,.065,'triangle',0,260);break;case'nav':tone(340,.09,.09,'triangle',0,520);break;case'hit':hiss(.075,.12,1700);tone(175,.11,.15,'triangle',0,65);tone(510,.045,.04,'sine',.015,200);break;case'enemyHit':hiss(.13,.14,650);tone(95,.12,.18,'sine',0,42);break;case'crit':hiss(.15,.17,4200);tone(65,.23,.13,'sine',0,34);tone(230,.20,.18,'sawtooth',0,75);tone(800,.12,.09,'triangle',.02,460);break;case'heal':melody([72,76,79],.045,.045,'sine');break;case'counter':tone(390,.075,.09,'triangle',delay,160);break;case'fight':melody([45,45,52,57],.12,.16,'triangle');break;case'win':melody([60,64,67,72],.105,.15,'triangle',delay);break;case'lose':melody([57,53,48,43],.16,.15,'triangle',delay);break;case'cash':hiss(.045,.045,4800);melody([72,76,83,88],.055,.085,'sine');break;case'equip':tone(270,.12,.14,'triangle',0,420);tone(640,.12,.08,'sine',.05);break;case'upgrade':melody([60,67,72],.085);break;case'build':hiss(.1,.13,900);tone(105,.12,.13,'triangle');tone(150,.12,.1,'triangle',.14);break;case'key':melody([72,76,79,84],.075,.13);break;case'gem':melody([81,85,88],.08,.10,'sine');break;case'loot0':case'loot1':melody([69,74],.075,.10);break;case'loot2':melody([67,71,74],.09,.12);break;case'loot3':melody([65,69,72,77],.12,.14);break;case'loot5':melody([48,55,60,64,67,72,79],.105,.13,'triangle');melody([60,64,67,72,76,84],.13,.08,'sine');break;case'loot4':for(let i=0;i<3;i++)melody([[60,64,67,72,76],[67,71,74,79,84],[72,76,79,84,88]][i],.12,.08,'sine');break;case'level':melody([60,64,67,72,76,84],.12,.14);break;case'badge':melody([72,76,79,83],.11,.10);break;case'travel':tone(170,.25,.13,'triangle',0,250);hiss(.15,.08,1800,.12);break;case'refill':tone(300,.2,.12,'sine',0,680);break;case'shrine':tone(180,.4,.12,'sine',0,45);hiss(.38,.10,600);melody([48,55,60,67],.12,.07);break;case'reroll':hiss(.2,.11,3600);melody([60,65,71],.07,.12);break;}}
  function subtitle(line){let el=document.getElementById('npcSubtitle');if(!el){el=document.createElement('div');el.id='npcSubtitle';el.setAttribute('role','status');document.body.appendChild(el)}el.hidden=!line;if(line){el.textContent=line.speaker+' · '+line.text;if(typeof chat46Npc==='function')chat46Npc(line);}}
  function stopVoice(){voiceSerial++;clearTimeout(voiceTimer);clearTimeout(subtitleTimer);if(voiceSource){let old=voiceSource;voiceSource=null;try{old.onended=null;old.stop()}catch(e){}}activeKey=null;talking=false;if(!npcTextPersistent||!['Missionen','Händler','Kiosk'].includes(page))subtitle(null);apply()}
  function voiceMode(mode){cfg.voiceMode=mode==='text'?'text':'cartoon';persist();stopVoice();}
@@ -37,7 +75,7 @@ const AudioGame = (()=>{
  function toggle(){cfg.muted=!cfg.muted;persist();apply();if(cfg.muted){stopMusic();pending=null;stopVoice()}else unlock();statusUI()}
  document.addEventListener('click',e=>{let b=e.target.closest?.('button');if(!b||b.disabled)return;unlock();if(!b.closest('.audioPage')&&!b.closest('#nav'))fx('click');},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMusic();pending=null;stopVoice()}else sync()});
- return {cfg,unlock,scene,fx,voice,voiceMode,set,toggle,clearNpc:()=>{npcTextPersistent=false;clearTimeout(textTimer);const el=document.getElementById("npcSubtitle");if(el)el.hidden=true;},status:()=>status,debug:()=>({state:ctx?.state,track:current?.id,desired,decoded:cache.size})};
+ return {cfg,unlock,scene,fx,combatAttack,voice,voiceMode,set,toggle,clearNpc:()=>{npcTextPersistent=false;clearTimeout(textTimer);const el=document.getElementById("npcSubtitle");if(el)el.hidden=true;},status:()=>status,debug:()=>({state:ctx?.state,track:current?.id,desired,decoded:cache.size})};
 })();
 function audioScene(){if(page==='Kampf')return battle?.running?'fight':battle?.o?.d!==undefined||battle?.o?.tower?'garage':'travel';if(page==='Dungeons'||page==='Arena')return 'fight';if(page==='Missionen')return 'travel';if(page==='Nachtdienst')return 'night';return 'garage'}
 function audioView(){let c=AudioGame.cfg;return `<button onclick="go('Mehr')">‹ ${hubLabel('Einstellungen','Settings','Настройки')}</button><div class="panel audioPage grow"><div class="audioTitle"><span>♫</span><div><h3>Radio Garagenfunk</h3><small>Originalsoundtrack · Offline</small></div></div><p id="audioStatus">${AudioGame.status()}</p><button class="primary" onclick="AudioGame.unlock()">Audio aktivieren</button>${[['music','Musik'],['sfx','Effekte'],['voice','Levelaufstieg']].map(([k,n])=>`<label class="audioControl"><span>${n}</span><b id="audioVal_${k}">${c[k]} %</b><input type="range" aria-label="${n}" min="0" max="100" step="5" value="${c[k]}" oninput="AudioGame.set('${k}',this.value)"></label>`).join('')}<div class="row audioTests"><button onclick="AudioGame.fx('loot4')">Loot testen</button><button onclick="AudioGame.voice('level')">OPA! testen</button></div><button id="audioMute" onclick="AudioGame.toggle()">${c.muted?'Ton einschalten':'Alles stumm'}</button><small>NPC-Dialoge erscheinen nur als Text. Musik, Effekte und der originale Levelaufstieg bleiben erhalten.</small></div>`}

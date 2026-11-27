@@ -155,15 +155,16 @@ function kwSimArenaTick(b){
  const ev=kwSimTurn(b.duel),[a,r]=b.duel.fighters;
  b.turn=b.duel.turn;b.h=a.hp;b.e=r.hp;b.healPop=0;
  b.effects={fury:a.fury,bleed:r.bleed,weaken:r.weaken,wound:0};
- if(ev){b.hit={player:ev.i===0,damage:ev.damage,crit:ev.crit,dodge:ev.dodge};const actor=ev.i===0?profileName():b.o.enemy;
- battleLog(b,actor+' · '+(ev.dodge?hubLabel('Ausgewichen','Dodged','Уклонение'):num(ev.damage)+' '+hubLabel('Schaden','damage','урон')+(ev.crit?' · CRIT':'')),ev.i===0?'outgoing':'incoming');AudioGame.fx(ev.dodge?'nav':ev.crit?'crit':ev.i===0?'hit':'enemyHit');for(const [id,n] of ev.weaponEvents||[])battleLog(b,kwWeaponEffectsLabel(id)+' · '+(id==='holy'?'+'+num(n)+' LP':n?num(n)+' '+hubLabel('Schaden','damage','урона'):hubLabel('Effekt aktiv','Effect active','Эффект активен')),id==='holy'?'healing':id==='arcane'?'buff':'debuff');}
+ b.hit=ev?battleAttackFeedback(b,ev.i===0,ev.damage,ev.crit,ev.dodge):null;
+ if(ev){const actor=ev.i===0?profileName():b.o.enemy;
+ battleLog(b,actor+' · '+(ev.dodge?hubLabel('Ausgewichen','Dodged','Уклонение'):num(ev.damage)+' '+hubLabel('Schaden','damage','урон')+(ev.crit?' · CRIT':'')),ev.i===0?'outgoing':'incoming');for(const [id,n] of ev.weaponEvents||[])battleLog(b,kwWeaponEffectsLabel(id)+' · '+(id==='holy'?'+'+num(n)+' LP':n?num(n)+' '+hubLabel('Schaden','damage','урона'):hubLabel('Effekt aktiv','Effect active','Эффект активен')),id==='holy'?'healing':id==='arcane'?'buff':'debuff');}
  if(b.duel.winner!==null){
-  clearInterval(timer);timer=null;b.running=false;b.hit=null;b.win=b.duel.winner===0;b.warningUntil=0;b.dialogue45={};
+  clearInterval(timer);timer=null;b.running=false;b.win=b.duel.winner===0;b.warningUntil=0;b.dialogue45={};
   if(b.win)b.e=0;else b.h=0;
   // Record rival result once, against its saved identity, only in this pool.
   let w=kwSimRead(),p=w?.players.find(p=>p.id===b.o.rival.id);if(p){kwSimArenaResult(p,!b.win,w.clock);kwSimWrite(w);}
   battleLog(b,b.win?hubLabel('Gegner besiegt!','Enemy defeated!','Противник побеждён!'):hubLabel('Du wurdest besiegt.','You were defeated.','Ты проиграл.'),b.win?'outgoing':'incoming');
-  AudioGame.fx(b.win?'win':'lose');finishArena(b);chat46Finish(b);save();
+  battleOutcomeSound(b);finishArena(b);chat46Finish(b);save();
  }
  render();
 }

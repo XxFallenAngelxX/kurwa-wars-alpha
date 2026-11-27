@@ -57,10 +57,28 @@
 #app .arena .fighter>.bar { width:100%; height:10px; flex:none; }
 #app .arena .fightart { width:min(100%, 18dvh, 130px); height:auto; max-height:none; aspect-ratio:1; flex:none; align-self:center; }
 #app .arena .fightart img { width:100%; height:100%; object-fit:contain; }
-#app .arena img.combatProjectile { position:absolute; z-index:3; width:clamp(36px,8vw,64px); height:clamp(36px,8vw,64px); object-fit:contain; pointer-events:none; top:calc(53px + min(18dvh, 130px) / 2 - clamp(36px,8vw,64px) / 2); left:calc(25% - clamp(36px,8vw,64px) / 2); filter:drop-shadow(0 0 6px #ffda8a); animation:combatProjectile .42s ease-in both; }
+#app .arena img.combatProjectile { position:absolute; z-index:3; width:clamp(36px,8vw,64px); height:clamp(36px,8vw,64px); object-fit:contain; pointer-events:none; top:calc(53px + min(18dvh, 130px) / 2 - clamp(36px,8vw,64px) / 2); left:calc(25% - clamp(36px,8vw,64px) / 2); filter:drop-shadow(0 0 6px #ffda8a); animation:combatProjectile var(--attack-travel) ease-in calc(-1 * var(--attack-elapsed)) both; }
+#app .arena img.rangedProjectile { animation-name:rangedProjectile; animation-timing-function:linear; }
+#app .arena img.arcaneProjectile { filter:drop-shadow(0 0 9px #c689ff); }
 #app .arena img.enemyProjectile { animation-direction:reverse; }
-@keyframes combatProjectile { 0% { transform:translateX(0) rotate(-35deg) scale(.7); opacity:0; } 20% { opacity:1; } 85% { opacity:1; } 100% { left:calc(75% - clamp(36px,8vw,64px) / 2); transform:rotate(260deg) scale(1.05); opacity:0; } }
-@media(prefers-reduced-motion:reduce){ .combatProjectile { animation:none; display:none; } .fightart.struck,.hit { animation:none; } }
+.arena .fightart.struck { animation:shake 155ms ease-out calc(var(--attack-travel) - var(--attack-elapsed)); }
+.arena .struck>img { --impact-brightness:1.65; animation:combatImpact 150ms ease-out calc(var(--attack-travel) - var(--attack-elapsed)); }
+.arena .criticalStrike>img { --impact-brightness:2.25; animation-duration:220ms; }
+.arena .fightart.fallen { filter:none; }
+.arena .fallen>img { filter:grayscale(1) brightness(.5); }
+.arena .fallen.struck>img { animation-name:combatKnockout; animation-fill-mode:backwards; }
+.arena .hit { z-index:1; animation:combatDamage 430ms ease-out calc(var(--attack-travel) - var(--attack-elapsed)) both; }
+@keyframes combatProjectile { 0% { transform:rotate(-35deg) scale(.7); opacity:0; } 20%,85% { opacity:1; } 100% { left:calc(75% - clamp(36px,8vw,64px) / 2); transform:rotate(85deg) scale(1.05); opacity:0; } }
+@keyframes rangedProjectile { 0% { opacity:0; transform:scale(.66); } 15%,88% { opacity:1; } 100% { left:calc(75% - clamp(36px,8vw,64px) / 2); opacity:0; transform:scale(.9); } }
+@keyframes combatImpact { 0%,100% { filter:brightness(1); } 15% { filter:brightness(var(--impact-brightness)); } }
+@keyframes combatKnockout { 0% { filter:brightness(1); } 15% { filter:brightness(var(--impact-brightness)); } 100% { filter:grayscale(1) brightness(.5); } }
+@keyframes combatDamage { 0% { opacity:0; transform:translateY(5px) scale(.9); } 14%,64% { opacity:1; } 100% { opacity:0; transform:translateY(-12px); } }
+@keyframes combatDamageStill { 0% { opacity:0; } 14%,75% { opacity:1; } 100% { opacity:0; } }
+@media(prefers-reduced-motion:reduce){
+ #app .arena img.combatProjectile { display:none; }
+ .arena .fightart.struck { animation:none; }
+ .arena .hit { animation-name:combatDamageStill; }
+}
 
 @media(max-width:799px){
  #app { grid-template-rows:58px minmax(0,1fr) 0 61px; }
