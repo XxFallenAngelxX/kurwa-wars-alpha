@@ -8,6 +8,14 @@ assert.match(core,/Arena:1/);
 assert.match(read('src/engine/features/03-special-loot.js'),/totals=function\(eq=s\.eq,state=s\)\{let p=old47Totals\(eq,state\)/);
 assert.match(read('src/engine/core/06-combat-world-ui.js'),/if\(b\.o\.rival\)\{kwSimArenaTick\(b\);return;\}/);
 assert.match(read('src/engine/core/12-milestones-profiles.js'),/concat\(kwSimRank\(\)\)/);
+const layout=read('src/styles/engine/13-rank-simulation.css');
+assert.match(layout,/\.kwRankEntry\s*\{[^}]*flex:0 0 auto;[^}]*min-height:56px/);
+assert.match(layout,/\.kwRankList\s*\{[^}]*overflow-y:auto/);
+assert.match(layout,/\.kwSimResetGrid\s*\{[^}]*repeat\(2,minmax\(0,1fr\)\)/);
+assert.match(layout,/\.kwSimTimeGrid\s*\{[^}]*repeat\(3,minmax\(0,1fr\)\)/);
+assert.match(read('src/host/browser-ui.js'),/\.kwAchievementList,\.kwRankList,\.baggrid/);
+assert.match(sim,/kwSimMetrics/);assert.match(sim,/kwSimStyleTable/);
+assert.match(read('src/engine/core/12-milestones-profiles.js'),/kwRankEntry/);
 const setup=`
 let s={level:77,gold:4321,energy:44},serverBoot=null,gm=false,battle=null,onboard52=false,page='Held';
 const PROFILE_AVATARS=['a','b'],ARENA_COOLDOWN=600000,catalog=[['a'],['b']],foeTypes=[['f']];

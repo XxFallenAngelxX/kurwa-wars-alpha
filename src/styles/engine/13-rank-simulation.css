@@ -1,0 +1,61 @@
+
+/* Dedicated leaderboard layout: entries must never flex-shrink with population size. */
+#app #screen.kwRankScreen { overflow:hidden; }
+#app #screen.kwRankScreen > :not(.kwRankList) { flex-shrink:0; }
+#app .kwRankHeader { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+#app .kwRankHeader > div { min-width:0; }
+#app .kwRankHeader small { display:block; line-height:1.3; }
+#app .kwRankCount { flex:none; color:var(--gold); font-variant-numeric:tabular-nums; }
+#app .kwRankList { display:flex; flex:1 1 0; flex-direction:column; gap:5px; min-width:0; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; scrollbar-gutter:stable; padding-right:2px; }
+#app .kwRankEntry,#app .kwRankColumns { display:grid; grid-template-columns:32px 42px minmax(0,1fr) minmax(48px,auto); gap:6px; align-items:center; min-width:0; }
+#app .kwRankColumns { padding:0 8px 0 6px; }
+#app .kwRankColumns > :last-child { text-align:right; }
+#app .kwRankEntry { flex:0 0 auto; min-height:56px; height:auto; padding:6px; text-align:left; }
+#app .kwRankEntry.kwRankSelf { border-color:var(--gold); background:linear-gradient(150deg,#55402b,#2d232d); }
+#app .kwRankPosition { color:var(--gold); font-size:12px; font-variant-numeric:tabular-nums; }
+#app .kwRankAvatar { width:42px; height:42px; object-fit:cover; border:1px solid #b78d54; border-radius:6px; display:block; }
+#app .kwRankIdentity { min-width:0; display:grid; gap:3px; }
+#app .kwRankName { min-width:0; display:flex; flex-wrap:wrap; align-items:center; gap:2px 5px; line-height:1.15; }
+#app .kwRankName > b { min-width:0; overflow-wrap:anywhere; font-size:13px; }
+#app .kwRankNPC { font-size:9px; line-height:1.1; color:var(--mut); border:1px solid #715849; border-radius:3px; padding:1px 3px; flex:none; }
+#app .kwRankIdentity > small { line-height:1.2; font-size:11px; overflow-wrap:anywhere; }
+#app .kwRankRecord { min-width:0; text-align:right; display:grid; gap:2px; font-variant-numeric:tabular-nums; }
+#app .kwRankRecord > b { display:grid; gap:1px; font-size:11px; line-height:1.15; white-space:nowrap; }
+#app .kwRankRecord > small { font-size:9px; line-height:1.1; }
+@media(max-width:350px) {
+ #app .kwRankEntry,#app .kwRankColumns { grid-template-columns:27px 36px minmax(0,1fr) minmax(42px,auto); gap:4px; }
+ #app .kwRankAvatar { width:36px; height:36px; }
+ #app .kwRankName > b { font-size:12px; }
+}
+@media(max-height:420px) {
+ #app #screen.kwRankScreen { overflow-y:auto; overscroll-behavior:contain; }
+ #app .kwRankList { flex:0 0 auto; min-height:130px; max-height:220px; }
+}
+/* GM simulation: responsive metric tiles, aligned comparison table and equal buttons. */
+#app .kwSimPanel { display:grid; gap:10px; min-width:0; padding:9px; }
+#app .kwSimHeader { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+#app .kwSimHeader > div { min-width:0; }
+#app .kwSimHeader small { display:block; line-height:1.25; }
+#app .kwSimDays { text-align:right; flex:none; color:var(--gold); font-variant-numeric:tabular-nums; }
+#app .kwSimDays b { font-size:17px; }
+#app .kwSimDays small { font-size:10px; }
+#app .kwSimMetrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+#app .kwSimMetric { display:flex; flex-direction:column; justify-content:space-between; gap:4px; min-width:0; padding:6px; border:1px solid #604956; border-radius:6px; background:#201a25; }
+#app .kwSimMetric small { font-size:10px; line-height:1.15; overflow-wrap:anywhere; }
+#app .kwSimMetric b { color:var(--gold); font-size:clamp(13px,3.8vw,17px); font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+#app .kwSimDetails { min-width:0; border:1px solid #604956; border-radius:6px; background:#241d29; }
+#app .kwSimDetails summary { cursor:pointer; min-height:34px; padding:8px; font-weight:700; overflow-wrap:anywhere; }
+#app .kwSimStyleTable { display:grid; padding:0 6px 6px; }
+#app .kwSimStyleRow { display:grid; grid-template-columns:minmax(0,1fr) repeat(3,minmax(0,.66fr)); align-items:center; gap:4px; padding:6px 2px; border-top:1px solid #604956; font-size:11px; font-variant-numeric:tabular-nums; }
+#app .kwSimStyleRow > :not(:first-child) { text-align:right; }
+#app .kwSimStyleRow > * { min-width:0; overflow-wrap:anywhere; }
+#app .kwSimStyleHead { font-size:10px; }
+#app .kwSimStatus { padding:6px 8px; border-radius:5px; background:#1b1720; color:var(--mut); font-size:11px; line-height:1.35; overflow-wrap:anywhere; }
+#app .kwSimStatus.kwSimError { color:#ff987e; }
+#app .kwSimControl { display:grid; gap:5px; min-width:0; padding-top:8px; border-top:1px solid #604956; }
+#app .kwSimControl > small { font-size:11px; line-height:1.25; }
+#app .kwSimResetGrid,#app .kwSimTimeGrid { display:grid; gap:5px; }
+#app .kwSimResetGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+#app .kwSimTimeGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+#app .kwSimControl button { min-height:40px; min-width:0; line-height:1.2; font-size:13px; padding:6px 4px; white-space:normal; overflow-wrap:anywhere; }
+@media(max-width:350px) { #app .kwSimMetrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
