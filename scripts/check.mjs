@@ -53,7 +53,7 @@ const data={};runInNewContext(section('const portrait=','function itemArt')+sect
 for(const [i,row] of data.audit.ITEM_TITLE_VARIANTS.entries())assert(row.length===6&&row.every(v=>typeof v==='string'&&v.trim()),'Incomplete item title '+i);
 for(const [i,row] of data.audit.REGULAR_EXTRA.entries())assert(row.slice(1,7).every(v=>typeof v==='string'&&v.trim()),'Incomplete regular item '+i);
 for(const [i,row] of data.audit.UNIQUES.entries())for(const lang of ['de','en','ru']){const text=data.audit.uniqueFlavorText(i,lang);assert(text&&!text.startsWith(row[lang==='en'?6:lang==='ru'?7:0]+' ·'),'Unique description is only a title: '+i+' '+lang);}
-const dialogue=read('src/engine/features/02-chat-dialogue.js'),dialogueContext={};runInNewContext(dialogue.slice(0,dialogue.indexOf('const CHAT46_PM='))+';this.lines=[...CHAT46_LINES,...CHAT47_LINES]',dialogueContext);
+const dialogue=read('src/engine/features/02-chat-dialogue.js'),dialogueContext={};runInNewContext(dialogue.slice(0,dialogue.indexOf('const CHAT46_PM='))+';this.lines=[...CHAT46_LINES,...CHAT47_LINES,...CHAT48_LINES]',dialogueContext);
 for(const [i,row] of dialogueContext.lines.entries())assert(row.length===3&&row.every(v=>typeof v==='string'&&v.trim()),'Incomplete dialogue '+i);
 for(let lang=0;lang<3;lang++)assert.equal(new Set(dialogueContext.lines.map(row=>row[lang])).size,dialogueContext.lines.length,'Duplicate combat dialogue in language '+lang);
 console.log('OK: '+dialogueContext.lines.length+' combat lines, '+data.audit.UNIQUES.length+' unique descriptions, '+data.audit.ITEM_TITLE_VARIANTS.length+' item title variants in DE/EN/RU');
