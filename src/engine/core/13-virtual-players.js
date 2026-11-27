@@ -20,13 +20,70 @@ function kwSimCreate(count=KW_SIM_COUNT,now=Date.now()){
   return {id:'npc_'+i,name:kwSimName(i),avatar:i%PROFILE_AVATARS.length,simulated:true,style:t,state,missions:0,failed:0,actions:0};
  })};
 }
+
+// Pool-local codex dictionaries are independent of catalog ordering and future patches.
+// A six-bit bitset per character replaces hundreds of repeated item/enemy names.
+const KW_SIM_BITS='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+function kwSimPackWorld(w){
+ const dict={items:[],foes:[]},sets={items:new Set(),foes:new Set()};
+ for(const p of w.players)for(const k of ['items','foes'])for(const n of Object.keys(p.state.codex?.[k]||{}))sets[k].add(n);
+ for(const k of ['items','foes'])dict[k]=[...sets[k]];
+ const bits=(map,names)=>{if(!map||Object.values(map).some(v=>v!==true))return map||{};let out='';for(let i=0;i<names.length;i+=6){let n=0;for(let j=0;j<6&&i+j<names.length;j++)if(Object.hasOwn(map,names[i+j]))n|=1<<j;out+=KW_SIM_BITS[n]}return out};
+ const players=w.players.map(p=>({...p,state:{...p.state,codex:{...p.state.codex,items:bits(p.state.codex?.items,dict.items),foes:bits(p.state.codex?.foes,dict.foes)}}}));
+ return {dict,world:{...w,players}};
+}
+function kwSimUnpackWorld(packed){
+ const {dict,world}=packed;if(!dict||!Array.isArray(world?.players)||world.players.length>1000)throw Error('Invalid simulation pool');
+ const decode=(v,names)=>{if(typeof v!=='string')return v||{};if(!Array.isArray(names)||v.length!==Math.ceil(names.length/6))throw Error('Invalid codex bitset');let out=Object.create(null);for(let i=0;i<v.length;i++){let mask=KW_SIM_BITS.indexOf(v[i]);if(mask<0)throw Error('Invalid codex bit');for(let j=0;j<6&&i*6+j<names.length;j++)if(mask&(1<<j))out[names[i*6+j]]=true}return out};
+ for(const p of world.players)if(p.state?.codex){let c=p.state.codex;c.items=decode(c.items,dict.items);c.foes=decode(c.foes,dict.foes)}
+ return world;
+}
+// Reversible, bounded LZW over ASCII JSON. Output code units avoid controls and surrogates.
+// No dependency, network, or asynchronous storage; only the NPC pool uses this codec.
+const KW_SIM_LZ_MAX=32735,KW_SIM_LZ_RESET=128;
+function kwSimCompress(value){
+ const raw=JSON.stringify(value).replace(/[^\x00-\x7f]/g,c=>'\\u'+c.charCodeAt(0).toString(16).padStart(4,'0'));
+ let dict=new Map(),next=129,prev=-1,parts=[],chunk=[];
+ const emit=c=>{chunk.push(c+32);if(chunk.length>=4096){parts.push(String.fromCharCode(...chunk));chunk=[]}};
+ for(let i=0;i<raw.length;i++){
+  let c=raw.charCodeAt(i);if(prev<0){prev=c;continue}
+  let key=prev*128+c,found=dict.get(key);if(found!==undefined){prev=found;continue}
+  emit(prev);if(next<=KW_SIM_LZ_MAX)dict.set(key,next++);else{emit(KW_SIM_LZ_RESET);dict.clear();next=129}prev=c;
+ }
+ if(prev>=0)emit(prev);if(chunk.length)parts.push(String.fromCharCode(...chunk));
+ return {codec:'kw-sim-lzw15-1',length:raw.length,data:parts.join('')};
+}
+function kwSimDecompress(packed){
+ if(packed?.codec!=='kw-sim-lzw15-1'||!Number.isSafeInteger(packed.length)||packed.length<1||packed.length>100000000||typeof packed.data!=='string')throw Error('Invalid simulation codec');
+ const out=new Uint8Array(packed.length),prefix=new Int32Array(KW_SIM_LZ_MAX+1),suffix=new Uint8Array(KW_SIM_LZ_MAX+1),stack=new Uint8Array(KW_SIM_LZ_MAX+1);
+ let pos=0,next=129,prev=-1;
+ const emit=v=>{if(pos>=out.length)throw Error('Simulation codec overflow');out[pos++]=v};
+ for(let i=0;i<packed.data.length;i++){
+  let c=packed.data.charCodeAt(i)-32;
+  if(c===KW_SIM_LZ_RESET){next=129;prev=-1;continue}
+  if(c<0||c>KW_SIM_LZ_MAX||c>next||(c===next&&prev<0))throw Error('Invalid simulation code');
+  let special=c===next,k=special?prev:c,n=0;
+  while(k>=129){if(k>=next||n>=stack.length)throw Error('Invalid simulation dictionary');stack[n++]=suffix[k];k=prefix[k]}
+  if(k<0||k>=128)throw Error('Invalid simulation literal');let first=k;emit(first);while(n)emit(stack[--n]);if(special)emit(first);
+  if(prev>=0&&next<=KW_SIM_LZ_MAX){prefix[next]=prev;suffix[next]=first;next++}prev=c;
+ }
+ if(pos!==out.length)throw Error('Truncated simulation pool');let chunks=[];for(let i=0;i<out.length;i+=8192)chunks.push(String.fromCharCode(...out.subarray(i,i+8192)));
+ return JSON.parse(chunks.join(''));
+}
+const kwSimSaveCache=new Map();
+function kwSimLoadPool(key){
+ let stored=profileRead(key);if(stored?.codec!=='kw-sim-lzw15-1')return stored;
+ let cache=kwSimSaveCache.get(key);if(cache?.data===stored.data&&cache.length===stored.length)return cache.world;
+ let world=kwSimUnpackWorld(kwSimDecompress(stored));kwSimSaveCache.set(key,{data:stored.data,length:stored.length,world});return world;
+}
+
 function kwSimRead(){
  if(serverBoot)return null;
- let w=profileRead(kwSimKey());
+ let w;try{w=kwSimLoadPool(kwSimKey())}catch(e){kwSimLastError='Simulation storage unreadable: '+String(e.message||e);return null}
  if(w?.version===1&&Array.isArray(w.players)&&w.players.length>0&&w.players.length<=1000&&Number.isFinite(w.wall)&&Number.isFinite(w.clock)&&w.players.every(p=>p.simulated===true&&Array.isArray(p.state?.stats)&&Array.isArray(p.state?.eq)&&p.state?.arena)){if(w.paceRevision!==3){w.paceRevision=3;w.modelStartStep=w.steps||0;w.recoverySteps=0;for(const p of w.players){p.state.last=w.clock;delete p.sim;}kwSimWrite(w);}return w;}
  w=kwSimCreate();return kwSimWrite(w)?w:null;
 }
-function kwSimWrite(w){const ok=profileWrite(kwSimKey(),w);kwSimLastError=ok?'':'Simulation storage full/unavailable';return ok;}
+function kwSimWrite(w){let key=kwSimKey();try{let packed=kwSimCompress(kwSimPackWorld(w)),ok=profileWrite(key,packed);if(ok)kwSimSaveCache.set(key,{data:packed.data,length:packed.length,world:w});else kwSimSaveCache.delete(key);kwSimLastError=ok?'':'Simulation storage full/unavailable';return ok}catch(e){kwSimSaveCache.delete(key);kwSimLastError='Simulation storage failed: '+String(e.message||e);return false}}
 function kwSimStats(p){return totals(p.state.eq,p.state)}
 function kwSimCP(p){return combatPower(kwSimStats(p),p.state.level)}
 function kwSimAward(p,g,x){let q=p.state;return kwApplyProgress(q,Math.floor(g),Math.floor(x*(1+codexCount(q).ratio)))}
