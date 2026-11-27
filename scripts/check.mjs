@@ -51,6 +51,16 @@ const content=read('src/engine/core/02-content-items.js');
 const section=(a,b)=>{const start=content.indexOf(a),end=content.indexOf(b,start);assert(start>=0&&end>start,'Missing source section '+a);return content.slice(start,end)};
 const data={};runInNewContext(section('const portrait=','function itemArt')+section('const ITEM_TITLE_VARIANTS=','function make(')+section('const UNIQUE_BASE=','const REGULAR_POOL=')+section('function uniqueMeta(','function makeUnique(')+';this.audit={catalog,UNIQUES,ITEM_TITLE_VARIANTS,REGULAR_EXTRA,uniqueFlavorText}',data);
 for(const [i,row] of data.audit.ITEM_TITLE_VARIANTS.entries())assert(row.length===6&&row.every(v=>typeof v==='string'&&v.trim()),'Incomplete item title '+i);
+const expansionRows=data.audit.REGULAR_EXTRA.filter(row=>/^@@LOCAL:kw_(?:meme|action)26_item_/.test(row[7]));
+assert.equal(expansionRows.length,41,'Expected 41 new meme/action collectibles');
+assert.equal(new Set(expansionRows.map(row=>row[7])).size,41,'Duplicate expansion item asset');
+for(const lang of [1,2,3])assert.equal(new Set(expansionRows.map(row=>row[lang])).size,41,'Duplicate expansion item translation');
+const expansionFoeSource=read('src/engine/core/05-materials-enemies.js');
+const expansionFoes=['KW_MEME26_FOES','KW_ACTION26_FOES'].flatMap(label=>JSON.parse(expansionFoeSource.match(new RegExp('const '+label+'=(\\[[^\\n]+\\]);'))[1]));
+assert.equal(expansionFoes.length,41,'Expected 41 new meme/action enemies');
+assert.equal(new Set(expansionFoes.map(row=>row[6])).size,41,'Duplicate expansion enemy asset');
+for(const row of expansionFoes)assert(row.length===7&&row.every(v=>typeof v==='string'&&v.trim()),'Incomplete expansion enemy localization');
+assert(expansionFoes.some(row=>row[0]==='Clanhäuptling YANNCHIK'),'Missing corrected clan chief');
 for(const [i,row] of data.audit.REGULAR_EXTRA.entries())assert(row.slice(1,7).every(v=>typeof v==='string'&&v.trim()),'Incomplete regular item '+i);
 for(const [i,row] of data.audit.UNIQUES.entries())for(const lang of ['de','en','ru']){const text=data.audit.uniqueFlavorText(i,lang);assert(text&&!text.startsWith(row[lang==='en'?6:lang==='ru'?7:0]+' ·'),'Unique description is only a title: '+i+' '+lang);}
 const dialogue=read('src/engine/features/02-chat-dialogue.js'),dialogueContext={};runInNewContext(dialogue.slice(0,dialogue.indexOf('const CHAT46_PM='))+';this.lines=[...CHAT46_LINES,...CHAT47_LINES,...CHAT48_LINES]',dialogueContext);

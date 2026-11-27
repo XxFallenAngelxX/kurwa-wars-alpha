@@ -3430,5 +3430,497 @@
     "pack": "assets/audio/host-audio.js",
     "mime": "audio/mpeg",
     "path": "assets/raw/audio/host-voices-level.mp3"
+  },
+  {
+    "key": "kw_meme26_enemy_00.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_00.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_01.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_01.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_02.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_02.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_03.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_03.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_04.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_04.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_05.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_05.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_06.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_06.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_07.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_07.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_08.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_08.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_09.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_09.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_10.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_10.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_11.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_11.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_12.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_12.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_13.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_13.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_14.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_14.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_15.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_15.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_16.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_16.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_17.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_17.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_18.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_18.webp"
+  },
+  {
+    "key": "kw_meme26_enemy_19.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_enemy_19.webp"
+  },
+  {
+    "key": "kw_action26_enemy_00.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_00.webp"
+  },
+  {
+    "key": "kw_action26_enemy_01.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_01.webp"
+  },
+  {
+    "key": "kw_action26_enemy_02.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_02.webp"
+  },
+  {
+    "key": "kw_action26_enemy_03.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_03.webp"
+  },
+  {
+    "key": "kw_action26_enemy_04.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_04.webp"
+  },
+  {
+    "key": "kw_action26_enemy_05.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_05.webp"
+  },
+  {
+    "key": "kw_action26_enemy_06.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_06.webp"
+  },
+  {
+    "key": "kw_action26_enemy_07.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_07.webp"
+  },
+  {
+    "key": "kw_action26_enemy_08.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_08.webp"
+  },
+  {
+    "key": "kw_action26_enemy_09.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_09.webp"
+  },
+  {
+    "key": "kw_action26_enemy_10.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_10.webp"
+  },
+  {
+    "key": "kw_action26_enemy_11.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_11.webp"
+  },
+  {
+    "key": "kw_action26_enemy_12.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_12.webp"
+  },
+  {
+    "key": "kw_action26_enemy_13.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_13.webp"
+  },
+  {
+    "key": "kw_action26_enemy_14.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_14.webp"
+  },
+  {
+    "key": "kw_action26_enemy_15.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_15.webp"
+  },
+  {
+    "key": "kw_action26_enemy_16.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_16.webp"
+  },
+  {
+    "key": "kw_action26_enemy_17.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_17.webp"
+  },
+  {
+    "key": "kw_action26_enemy_18.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_18.webp"
+  },
+  {
+    "key": "kw_action26_enemy_19.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_19.webp"
+  },
+  {
+    "key": "kw_action26_enemy_20.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_enemy_20.webp"
+  },
+  {
+    "key": "kw_meme26_item_00.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_00.webp"
+  },
+  {
+    "key": "kw_meme26_item_01.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_01.webp"
+  },
+  {
+    "key": "kw_meme26_item_02.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_02.webp"
+  },
+  {
+    "key": "kw_meme26_item_03.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_03.webp"
+  },
+  {
+    "key": "kw_meme26_item_04.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_04.webp"
+  },
+  {
+    "key": "kw_meme26_item_05.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_05.webp"
+  },
+  {
+    "key": "kw_meme26_item_06.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_06.webp"
+  },
+  {
+    "key": "kw_meme26_item_07.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_07.webp"
+  },
+  {
+    "key": "kw_meme26_item_08.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_08.webp"
+  },
+  {
+    "key": "kw_meme26_item_09.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_09.webp"
+  },
+  {
+    "key": "kw_meme26_item_10.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_10.webp"
+  },
+  {
+    "key": "kw_meme26_item_11.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_11.webp"
+  },
+  {
+    "key": "kw_meme26_item_12.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_12.webp"
+  },
+  {
+    "key": "kw_meme26_item_13.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_13.webp"
+  },
+  {
+    "key": "kw_meme26_item_14.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_14.webp"
+  },
+  {
+    "key": "kw_meme26_item_15.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_15.webp"
+  },
+  {
+    "key": "kw_meme26_item_16.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_16.webp"
+  },
+  {
+    "key": "kw_meme26_item_17.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_17.webp"
+  },
+  {
+    "key": "kw_meme26_item_18.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_18.webp"
+  },
+  {
+    "key": "kw_meme26_item_19.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_meme26_item_19.webp"
+  },
+  {
+    "key": "kw_action26_item_00.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_00.webp"
+  },
+  {
+    "key": "kw_action26_item_01.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_01.webp"
+  },
+  {
+    "key": "kw_action26_item_02.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_02.webp"
+  },
+  {
+    "key": "kw_action26_item_03.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_03.webp"
+  },
+  {
+    "key": "kw_action26_item_04.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_04.webp"
+  },
+  {
+    "key": "kw_action26_item_05.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_05.webp"
+  },
+  {
+    "key": "kw_action26_item_06.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_06.webp"
+  },
+  {
+    "key": "kw_action26_item_07.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_07.webp"
+  },
+  {
+    "key": "kw_action26_item_08.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_08.webp"
+  },
+  {
+    "key": "kw_action26_item_09.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_09.webp"
+  },
+  {
+    "key": "kw_action26_item_10.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_10.webp"
+  },
+  {
+    "key": "kw_action26_item_11.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_11.webp"
+  },
+  {
+    "key": "kw_action26_item_12.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_12.webp"
+  },
+  {
+    "key": "kw_action26_item_13.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_13.webp"
+  },
+  {
+    "key": "kw_action26_item_14.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_14.webp"
+  },
+  {
+    "key": "kw_action26_item_15.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_15.webp"
+  },
+  {
+    "key": "kw_action26_item_16.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_16.webp"
+  },
+  {
+    "key": "kw_action26_item_17.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_17.webp"
+  },
+  {
+    "key": "kw_action26_item_18.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_18.webp"
+  },
+  {
+    "key": "kw_action26_item_19.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_19.webp"
+  },
+  {
+    "key": "kw_action26_item_20.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_action26_item_20.webp"
   }
 ]
