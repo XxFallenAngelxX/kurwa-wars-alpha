@@ -19,10 +19,10 @@ assert.match(read('src/engine/core/12-milestones-profiles.js'),/kwRankEntry/);
 const setup=`
 let s={level:77,gold:4321,energy:44},serverBoot=null,gm=false,battle=null,onboard52=false,page='Held';
 let activeProfile={id:'real',role:'player',name:'Real',avatar:0},profiles=[activeProfile,{id:'other',role:'player',name:'Other',avatar:1},{id:'gm_dev',role:'gm'}];function profileKey(p){return 'save:'+p.id}
-const PROFILE_AVATARS=['a','b'],ARENA_COOLDOWN=600000,catalog=[['a'],['b']],foeTypes=[['f']];
+const PROFILE_AVATARS=['a','b'],ARENA_COOLDOWN=600000,catalog=[['a',0],['b',1]],foeTypes=[['f']],REGULAR_POOL=[0,1];
 const rand=n=>Math.floor(Math.random()*n),pick=a=>a[rand(a.length)];
 const memory=new Map();function profileRead(k){return JSON.parse(memory.get(k)||'null')}function profileWrite(k,v){memory.set(k,JSON.stringify(v));return true}
-function gmAllowed(){return gm}function setInterval(){}function xpNeed(){return 100}
+function weaponClass(){return 'melee'}function itemReq(){return 1}function price(){return 50}function roomBonus(){return 0}function make(a,l,r){return {a,l,r,slot:catalog[a][1],v:[0,0,0,0,0]}}function gmAllowed(){return gm}function setInterval(){}function xpNeed(){return 100}
 function fresh(){return {level:1,gold:500,xp:0,energy:100,stats:[10,10,10,10,10],rooms:Array(13).fill(0),eq:[{a:0,slot:0,v:[0,0,0,0,0]},null,null,null,null,null],wins:0}}
 function totals(eq,state){return {hp:100+state.level*10,atk:20+state.stats[0],def:10,crit:.1,dodge:.05,a:state.stats}}
 function combatPower(p,l){return p.hp+p.atk+l}function reduction(a,l){return a/(a+45+11*l)}
@@ -49,6 +49,7 @@ test('arena defeat has cooldown',()=>{let p=w.players[1];kwSimArenaResult(p,fals
 test('stronger fighter wins bounded duel',()=>kwSimResolve({hp:1000,atk:1000,def:0,crit:0},1,{hp:100,atk:1,def:0,crit:0},1,()=>.5));
 test('stalemate capped',()=>{let d=kwSimDuel({hp:100000,atk:1,def:0,crit:0},1,{hp:100000,atk:1,def:0,crit:0},1);while(d.winner===null)kwSimTurn(d,()=>.5);return d.turn===400});
 test('catch-up bounded and respects energy',()=>kwSimAdvance(w,KW_SIM_DAY*10,4)&&w.steps===4&&w.players.every(p=>p.state.energy>=0&&p.state.energy<=100));
+test('legacy pool migration retains progress',()=>{let old=kwSimCreate(2,0);delete old.paceRevision;old.steps=64;old.players[0].state.level=7;old.players[0].state.arena.wins=4;kwSimWrite(old);let migrated=kwSimRead();const ok=migrated.recoverySteps===32&&migrated.players[0].state.level===7&&migrated.players[0].state.arena.wins===4;kwSimWrite(w);return ok});
 test('matchmaking excludes engaged opponents',()=>{const w2=kwSimCreate(2,0),p=w2.players[0];return kwSimOpponent(w2,p,kwSimStats(p),1,0,new Set([w2.players[1].id]))===null});
 test('shared damage formula',()=>kwCombatDamage(100,0,1,1,true,1)===175);
 test('mythic third attack damage applies',()=>{let p={hp:1000,atk:100,def:0,crit:0,myth47:[1,0,0]},q={hp:1000,atk:1,def:0,crit:0};let d=kwSimDuel(p,1,q,1);for(let i=0;i<5;i++)kwSimTurn(d,()=>.5);return d.fighters[1].hp<680});
@@ -57,6 +58,7 @@ test('fire two ticks',()=>{const a={},b={};kwWeaponProc({pctFire:1},100,a,b,()=>
 test('frost and shadow expire',()=>{const a={},b={};kwWeaponProc({pctFrost:1,pctShadow:1},100,a,b,()=>0);const first=kwWeaponDodge(.2,b)===.1&&kwWeaponAttack(100,b)===90&&kwWeaponIncoming(100,b)===110;kwWeaponDecay(b);kwWeaponDecay(b);return first&&kwWeaponDodge(.2,b)===.2&&kwWeaponAttack(100,b)===100&&kwWeaponIncoming(100,b)===100});
 test('holy lightning and arcane',()=>{const a={},b={};const p=kwWeaponProc({pctHoly:1,pctLightning:1,pctArcane:1},100,a,b,()=>0);return p.extra===20&&p.heal===15&&kwWeaponIncoming(100,a)===85&&kwWeaponIncoming(100,a)===100});
 test('arena applies same poison to both fighters',()=>{const p={hp:1000,atk:100,def:0,crit:0,pctPoison:1},d=kwSimDuel(p,1,p,1);kwSimTurn(d,()=>.1);kwSimTurn(d,()=>.1);return d.fighters.every(f=>f.weaponFx.poison?.turns>0)});
+test('two-day progression diversifies levels',()=>{const q=kwSimCreate(100,0);for(let i=0;i<192;i++)kwSimStep(q);const lv=q.players.map(p=>p.state.level),casual=q.players.filter(p=>p.style===0),hard=q.players.filter(p=>p.style===2);const mean=a=>a.reduce((n,p)=>n+p.state.level,0)/a.length;return Math.max(...lv)>3&&new Set(lv).size>3&&mean(hard)>mean(casual)&&q.players.every(p=>p.state.energy>=0&&p.state.energy<=100&&p.state.gold>=0)});
 test('GM factors and active save unchanged',()=>JSON.stringify(s)===original);
 const beforeRank=s;s=fresh();profileWrite('kwars_rank:real',{cp:1,level:1});
 test('active rank ignores stale snapshot and updates instantly',()=>{const a=kwRankLocalRecord(activeProfile).cp;s.stats[0]+=400000;return kwRankLocalRecord(activeProfile).cp-a===400000});
