@@ -55,40 +55,40 @@ function kwShowVictory(discovery){
   const arena=mount.querySelector('.arena')?.getBoundingClientRect(),hero=mount.querySelector('#nav button:first-child')?.getBoundingClientRect(),foe=mount.querySelector('.fighter.foe .fightart')?.getBoundingClientRect();
   const x=arena?arena.left+arena.width/2:innerWidth/2,y=arena?arena.top+Math.min(32,arena.height*.1):innerHeight*.22;
   const layer=document.createElement('div'),scene=document.createElement('div');
-  layer.className='kwVictoryOverlay';layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
+  layer.className='kwVictoryOverlay'+(item?' hasDiscovery':'');layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
   scene.className='kwVictoryScene'+(item?' hasDiscovery':'');scene.style.left=x+'px';scene.style.top=y+'px';
   scene.style.setProperty('--kw-book-x',((hero?hero.left+hero.width/2:x)-x)+'px');
-  scene.style.setProperty('--kw-book-y',((hero?hero.top+hero.height/2:innerHeight-30)-(y+125))+'px');
+  scene.style.setProperty('--kw-book-y',((hero?hero.top+hero.height/2:innerHeight-30)-(y+160))+'px');
   scene.style.setProperty('--kw-soul-x',((foe?foe.left+foe.width/2:x+80)-x)+'px');
-  scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+110)-(y+125))+'px');
+  scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+110)-(y+160))+'px');
   const headline=document.createElement('strong');headline.className='kwVictoryTitle';headline.textContent=lang==='en'?'VICTORY!':lang==='ru'?'ПОБЕДА!':'GEWONNEN!';
   const quote=document.createElement('span');quote.className='kwVictoryQuote';quote.textContent=phrases[next];
   scene.append(headline,quote);
   if(item){
-   const visual=document.createElement('div');visual.className='kwCodexVisual';
+   const visual=document.createElement('div');visual.className='kwCodexVisual';const halo=document.createElement('div');halo.className='kwCodexHalo';visual.append(halo);
    const closed=document.createElement('img'),open=document.createElement('img'),page=document.createElement('img'),soul=document.createElement('div'),ghost=document.createElement('img');
    closed.className='kwCodexClosed';closed.src=kwVictoryArt.closed;closed.alt='';
    open.className='kwCodexOpen';open.src=kwVictoryArt.open;open.alt='';
    page.className='kwCodexPage';page.src=kwVictoryArt.page;page.alt='';
    soul.className='kwCodexSoul';ghost.src=kwVictoryArt.soul;ghost.alt='';soul.append(ghost);
-   if(typeof item.portrait==='string'&&!item.portrait.includes('#kwasset-')){const sticker=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=item.portrait;sticker.alt='';soul.append(sticker)}
-   visual.append(closed,open,page,soul);scene.append(visual);
+   const portrait=typeof item.portrait==='string'&&!item.portrait.includes('#kwasset-')?item.portrait:mount.querySelector('.fighter.foe .fightart img')?.src;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
+   visual.append(closed,open,page,soul);for(let n=0;n<9;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--spark',n);visual.append(spark)}scene.append(visual);
    const info=document.createElement('div');info.className='kwCodexDiscovery';
    const title=document.createElement('b'),name=document.createElement('span'),progress=document.createElement('small');
-   title.textContent=lang==='en'?'CODEX UPDATED':lang==='ru'?'КОДЕКС ПОПОЛНЕН':'KODEX ERWEITERT';
+   title.textContent=item.preview?(lang==='en'?'CODEX PREVIEW':lang==='ru'?'ПРОСМОТР КОДЕКСА':'KODEX-VORSCHAU'):(lang==='en'?'CODEX UPDATED':lang==='ru'?'КОДЕКС ПОПОЛНЕН':'KODEX ERWEITERT');
    name.textContent=item.name;
-   progress.textContent=(lang==='en'?'Enemies ':lang==='ru'?'Противники ':'Gegner ')+item.foes+'/'+item.total+' · '+(lang==='ru'?'Кодекс':'Kodex')+' '+item.percent+' %';
+   progress.textContent=item.preview?(lang==='en'?'Example · no new entry':lang==='ru'?'Пример · без новой записи':'Beispiel · kein neuer Eintrag'):(lang==='en'?'Enemies ':lang==='ru'?'Противники ':'Gegner ')+item.foes+'/'+item.total+' · '+(lang==='ru'?'Кодекс':'Kodex')+' '+item.percent+' %';
    info.append(title,name,progress);scene.append(info);
   }
   layer.append(scene);document.body.append(layer);
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  setTimeout(()=>{layer.remove();play()},reduced?2800:item?5600:2200);
+  setTimeout(()=>{layer.remove();play()},reduced?3500:item?7600:2600);
  }
  play();
 }
 function apply(x){if(x.styles)document.getElementById('gameStyles').textContent=x.styles;if(x.lang)document.documentElement.lang=x.lang;
  if(x.markup!==undefined){let oldScreen=mount.querySelector('main'),oldHeading=oldScreen?.querySelector('h2')?.textContent;let scrolls=[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].map(e=>e.scrollTop);let details=[...mount.querySelectorAll('details')].map(e=>e.open);let worldOld=mount.querySelector('.worldViewport');if(worldOld)kwWorldScroll=worldOld.scrollLeft;if(!mount.firstElementChild||mount.firstElementChild.id!=='app'){mount.innerHTML=x.markup}else{let tmp=document.createElement('template');tmp.innerHTML=x.markup;let next=tmp.content.firstElementChild,cur=mount.firstElementChild;if(!next||next.id!=='app'){mount.innerHTML=x.markup}else{let parts=[...next.children],old=[...cur.children];if(parts.length!==old.length||parts.some((el,i)=>el.tagName!==old[i].tagName||el.id!==old[i].id)){mount.innerHTML=x.markup}else{for(let i=0;i<parts.length;i++){if(kwComparableMarkup(old[i],parts[i])!==parts[i].outerHTML&&!kwPatchWorldScreen(old[i],parts[i]))old[i].replaceWith(parts[i])}}}}let worldNew=mount.querySelector('.worldViewport');if(worldNew)worldNew.scrollLeft=kwWorldScroll;[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].forEach((e,i)=>e.scrollTop=e.matches('main,.kwAchievementList,.kwRankList')&&e.closest('main')?.querySelector('h2')?.textContent!==oldHeading?0:scrolls[i]||0);[...mount.querySelectorAll('details')].forEach((e,i)=>e.open=!!details[i]);}etag=x.etag||etag;
- try{AudioGame.scene(x.scene);const celebrations=[];for(let [k,v] of x.events||[]){if(k==='fx'||k==='voice')AudioGame[k](v);else if(k==='victory')celebrations.push({});else if(k==='codexDiscovery'&&celebrations.length)celebrations[celebrations.length-1].discovery=v;}for(const celebration of celebrations)kwShowVictory(celebration.discovery);}catch(e){console.error('Game event error',e)}if(x.result?.portal){location.href='/';return}err(!kwStorageOK?'Browser blockiert lokale Speicherung. Spielstand bleibt nur bis zum Schließen erhalten.':x.result?.ok===false?x.result.reason:'');}
+ try{AudioGame.scene(x.scene);const celebrations=[];for(let [k,v] of x.events||[]){if(k==='fx'||k==='voice')AudioGame[k](v);else if(k==='victory')celebrations.push({});else if(k==='codexPreview')celebrations.push({discovery:v});else if(k==='codexDiscovery'){if(celebrations.length&&!celebrations[celebrations.length-1].discovery)celebrations[celebrations.length-1].discovery=v;else celebrations.push({discovery:v});}}for(const celebration of celebrations)kwShowVictory(celebration.discovery);}catch(e){console.error('Game event error',e)}if(x.result?.portal){location.href='/';return}err(!kwStorageOK?'Browser blockiert lokale Speicherung. Spielstand bleibt nur bis zum Schließen erhalten.':x.result?.ok===false?x.result.reason:'');}
 window.kwPlayCombatAttack=hit=>AudioGame.combatAttack(hit);
 window.kwCombatFx=(sound,delay)=>setTimeout(()=>AudioGame.fx(sound),delay*1000);
 let kwCombatViewPending=false;

@@ -82,3 +82,15 @@ for(const d of aff.affixDefs){const gate=aff.kwAffixEffectGate(d);assert(!aff.kw
 assert.equal(req({l:60,mods:[{tier:10,tierScale:2,effectGate:60}]}),60);
 assert.equal(req({l:60,mods:[{tier:10,tierScale:2}]}),51);
 console.log('OK: ten effect level gates, hybrid gates and legacy compatibility');
+
+// Reopening the post-battle history must not replay the final hit animation.
+const fightSource=readFileSync(new URL('../src/engine/core/06-combat-world-ui.js',import.meta.url),'utf8');
+const fightStart=fightSource.indexOf('const elapsed=performance.now()',fightSource.indexOf('function fightView()'));
+const fightEnd=fightSource.indexOf('const f=(player)',fightStart);
+assert(fightStart>0&&fightEnd>fightStart);
+const displayedAttack=(b,now)=>runInNewContext('(function(){'+fightSource.slice(fightStart,fightEnd)+'return attack})()',{b,performance:{now:()=>now}});
+const lastHit={started:1000,travel:500,player:true,damage:50};
+assert.equal(displayedAttack({running:true,hit:lastHit},1100).damage,50);
+assert.equal(displayedAttack({running:false,hit:lastHit},1100),null);
+assert.equal(displayedAttack({running:true,hit:lastHit},2000),null);
+console.log('OK: finished and expired hits are not animated again');

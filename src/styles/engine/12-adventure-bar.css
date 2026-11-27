@@ -195,3 +195,29 @@
  50% { background-color:#d99b36; }
 }
 #app #screen>h2.navSectionHeading { display:none!important; }
+
+/* Illustrated, touch-friendly game guide */
+#app .kw55Guide { background:linear-gradient(155deg,#3d2c38,#1e1926 70%); border:1px solid #b28350; }
+#app .kw55GuideHead h3 { color:#ffe0a1; }
+#app .kw55GuideIntro { padding:15px; gap:12px; background:linear-gradient(115deg,#785027,#3f263f); border:1px solid #c99958; }
+.kw55GuideIntro div { display:grid; gap:4px; }
+.kw55GuideIntro small { color:#f5dab2; line-height:1.35; }
+#app .kw55GuideTile { border:1px solid #695266; border-radius:11px; background:linear-gradient(110deg,#463449,#2d2837); min-height:66px; padding:6px 12px 6px 6px; }
+#app .kw55GuideTile img,.kwGuideHero img { width:56px; height:56px; flex:none; object-fit:cover; border-radius:8px; background:#251d2c; border:1px solid #b08358; }
+#app .kw55GuideTile span { flex:1; font-weight:800; }
+#app .kw55GuideTile small { display:block; margin-top:3px; font-weight:400; color:#d6c0ae; }
+#app .kwGuideColor0 { border-left:4px solid #edba55; } #app .kwGuideColor1 { border-left:4px solid #e58d57; }
+#app .kwGuideColor2 { border-left:4px solid #8ebf72; } #app .kwGuideColor3 { border-left:4px solid #ef7470; } #app .kwGuideColor4 { border-left:4px solid #aa8ce2; }
+.kwGuideHero { display:flex; align-items:center; gap:12px; padding:10px; border-radius:10px; background:linear-gradient(100deg,#76502d,#36263b); border:1px solid #ae8050; }
+.kwGuideHero img { width:72px; height:72px; } .kwGuideHero div { display:grid; gap:5px; } .kwGuideHero small { color:#efcfaa; }
+#app .kw55GuideArticle { padding:4px 3px 10px; } .kw55GuideArticle p { margin:8px 0; }
+.kwGuideSectionTitle { color:#ffda87; font-weight:900; margin:18px 0 6px; }
+.kwGuideHint { color:#d8c8bf; font-size:12px; line-height:1.4; }
+.kwGuideEffects { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+.kwGuideEffect { min-width:0; background:#282334; border:1px solid #6c5268; border-radius:8px; }
+.kwGuideEffect[open] { grid-column:1/-1; border-color:#e8af63; background:#3b2b3c; }
+.kwGuideEffect summary { display:flex; align-items:center; gap:7px; padding:7px; min-height:38px; cursor:pointer; list-style:none; }
+.kwGuideEffect summary::-webkit-details-marker { display:none; } .kwGuideEffect summary b { flex:1; font-size:12px; overflow-wrap:anywhere; }
+.kwGuideEffect summary>span:last-child { color:#f4c983; } .kwGuideEffect p { padding:0 9px 8px; font-size:12px; }
+.kwGuideEffect .kwBattleEffectIcon { width:32px; height:32px; } .kwGuideGlyph { display:grid; place-items:center; width:32px; height:32px; flex:none; border-radius:7px; color:#ffe59b; background:#604071; font-size:21px; }
+.kwGuidePreview { width:100%; margin:14px 0 4px; }
