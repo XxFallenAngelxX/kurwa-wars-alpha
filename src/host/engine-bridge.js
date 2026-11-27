@@ -9,7 +9,7 @@ function kwAssets(t){
  return t.replace(/@@LOCAL:([^@]+)@@/g,(_,key)=>kwAssetPlaceholder(key));
 }
 async function kwStartEngine(){
- const generation=++kwBootGeneration;
+ const generation=++kwBootGeneration;const started=performance.now();kwTrace('engine.start',{generation});
  window.kwBoot?.stage('Spielkern vorbereiten …',75);await kwYield();
  const html=kwAssets(KW_TEMPLATE);
  if(generation!==kwBootGeneration)throw Error('Start durch Profilwechsel ersetzt.');
@@ -24,7 +24,7 @@ async function kwStartEngine(){
   kwFrame.onload=()=>{if(done||generation!==kwBootGeneration)return;try{const w=kwFrame.contentWindow;if(typeof w.__snapshot==='function'&&typeof w.__checkpoint==='function'&&w.document.querySelector('#screen')?.children.length)finish()}catch(e){finish(e.message)}};
   try{kwFrame.srcdoc=html.replace('<head>','<head>'+pre).replace('</body>',()=>post+'</body>');if(!kwFrame.isConnected)document.body.appendChild(kwFrame)}catch(e){finish(e.message)}
  });
- await engine;
+ try{await engine;kwTrace('engine.ready',{generation,durationMs:Math.round(performance.now()-started)});}catch(e){kwTrace('engine.failed',{generation,durationMs:Math.round(performance.now()-started)});throw e;}
 }
 let kwReady=kwStartEngine();kwReady.catch(()=>{});
 window.localAudioStatus=()=>AudioGame.status();

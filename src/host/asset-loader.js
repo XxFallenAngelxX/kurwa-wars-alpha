@@ -5,6 +5,10 @@ const kwPackVersions=["3add310b584d","f7894577e1ba","103391934459","46fb394a9984
 const kwAssetPrefix='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7#kwasset-';
 const kwAssetMarker=/data:image\/gif;base64,R0lGODlhAQABAIAAAAAAAP\/\/\/yH5BAEAAAAALAAAAAABAAEAAAIBRAA7#kwasset-([A-Za-z0-9_.-]+?\.(?:webp|png|jpe?g|gif|svg))/gi;
 const kwKeysByPack=kwPackVersions.map((_,i)=>Object.keys(kwAssetPackIndex).filter(k=>kwAssetPackIndex[k]===i));
+// Bounded, local-only diagnostic trace. No save data, profile names or action tokens.
+const kwTraceEntries=[];
+function kwTrace(event,details={}){kwTraceEntries.push({event,ms:Math.round(performance.now()),...details});if(kwTraceEntries.length>100)kwTraceEntries.shift();}
+window.kwDiagnostics=()=>kwTraceEntries.map(entry=>({...entry}));
 const kwVisibleUrls=new Map(),kwAssetRequests=new Map(),kwPackRequests=new Map();
 function kwLoadScript(path){
  if(kwAssetRequests.has(path))return kwAssetRequests.get(path);
@@ -40,15 +44,16 @@ function kwLoadPack(i){
  if(kwPackReady(i))return Promise.resolve();
  if(kwPackRequests.has(i))return kwPackRequests.get(i);
  const path='./assets/packs/assets-'+(i+1)+'.js?v='+kwPackVersions[i]+'-r4';
+ const started=performance.now();kwTrace('asset.start',{pack:i+1});
  const promise=(async()=>{
   try{await kwFetchPack(path,i)}catch(first){
-   console.warn('Grafikpaket '+(i+1)+':',first.message);
+   kwTrace('asset.retry',{pack:i+1});console.warn('Grafikpaket '+(i+1)+':',first.message);
    try{await kwFetchPack(path,i,true)}catch(last){throw Error('Grafikpaket '+(i+1)+': '+last.message)}
   }
   if(!kwPackReady(i))throw Error('Grafikpaket '+(i+1)+' unvollständig');
  })();
  kwPackRequests.set(i,promise);
- promise.then(()=>kwPackRequests.delete(i),()=>kwPackRequests.delete(i));
+ promise.then(()=>{kwPackRequests.delete(i);kwTrace('asset.ready',{pack:i+1,durationMs:Math.round(performance.now()-started)});},()=>{kwPackRequests.delete(i);kwTrace('asset.failed',{pack:i+1,durationMs:Math.round(performance.now()-started)});});
  return promise;
 }
 async function kwPreloadAssets(){

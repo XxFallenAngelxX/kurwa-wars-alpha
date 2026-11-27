@@ -1,6 +1,6 @@
 import {existsSync} from 'node:fs';
 import {resolve} from 'node:path';
-import {Script} from 'node:vm';
+import {Script,runInNewContext} from 'node:vm';
 import {root,read,template,generated} from './engine-build.mjs';
 import assert from 'node:assert/strict';
 import {releaseVersion} from './release-version.mjs';
@@ -45,3 +45,15 @@ assert.equal(Object.keys(layout).length,21);
 for(const [id,v] of Object.entries(layout)){assert(v.x>=1&&v.x<=99&&v.y>=1&&v.y<=99&&v.scale>=.4&&v.scale<=2.5&&Number.isInteger(v.z)&&v.z>=1&&v.z<=20,id)}
 new Script(read('sw.js'),{filename:'sw.js'});
 console.log('OK: engine assembly, JS syntax, entry points, '+assetKeys.size+' asset keys, 21 world positions');
+
+// Content regressions: stable catalog identities, distinct translated dialogue and actual unique descriptions.
+const content=read('src/engine/core/02-content-items.js');
+const section=(a,b)=>{const start=content.indexOf(a),end=content.indexOf(b,start);assert(start>=0&&end>start,'Missing source section '+a);return content.slice(start,end)};
+const data={};runInNewContext(section('const portrait=','function itemArt')+section('const ITEM_TITLE_VARIANTS=','function make(')+section('const UNIQUE_BASE=','const REGULAR_POOL=')+section('function uniqueMeta(','function makeUnique(')+';this.audit={catalog,UNIQUES,ITEM_TITLE_VARIANTS,REGULAR_EXTRA,uniqueFlavorText}',data);
+for(const [i,row] of data.audit.ITEM_TITLE_VARIANTS.entries())assert(row.length===6&&row.every(v=>typeof v==='string'&&v.trim()),'Incomplete item title '+i);
+for(const [i,row] of data.audit.REGULAR_EXTRA.entries())assert(row.slice(1,7).every(v=>typeof v==='string'&&v.trim()),'Incomplete regular item '+i);
+for(const [i,row] of data.audit.UNIQUES.entries())for(const lang of ['de','en','ru']){const text=data.audit.uniqueFlavorText(i,lang);assert(text&&!text.startsWith(row[lang==='en'?6:lang==='ru'?7:0]+' ·'),'Unique description is only a title: '+i+' '+lang);}
+const dialogue=read('src/engine/features/02-chat-dialogue.js'),dialogueContext={};runInNewContext(dialogue.slice(0,dialogue.indexOf('const CHAT46_PM='))+';this.lines=[...CHAT46_LINES,...CHAT47_LINES]',dialogueContext);
+for(const [i,row] of dialogueContext.lines.entries())assert(row.length===3&&row.every(v=>typeof v==='string'&&v.trim()),'Incomplete dialogue '+i);
+for(let lang=0;lang<3;lang++)assert.equal(new Set(dialogueContext.lines.map(row=>row[lang])).size,dialogueContext.lines.length,'Duplicate combat dialogue in language '+lang);
+console.log('OK: '+dialogueContext.lines.length+' combat lines, '+data.audit.UNIQUES.length+' unique descriptions, '+data.audit.ITEM_TITLE_VARIANTS.length+' item title variants in DE/EN/RU');

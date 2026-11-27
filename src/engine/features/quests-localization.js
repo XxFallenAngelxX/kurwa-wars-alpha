@@ -320,7 +320,7 @@ const SPECIAL_LORE={
     const an=pick==='en'?KW_AFFIX_NAME_EN:pick==='ru'?KW_AFFIX_NAME_RU:KW_AFFIX_NAME_DE; const av=pick==='en'?KW_AFFIX_STAT_EN:pick==='ru'?KW_AFFIX_STAT_RU:KW_AFFIX_STAT_DE; affixDefs.forEach((a,i)=>{a[0]=an[i]; a[3]=av[i];});
   }
   const _name=name; name=function(i){let out=_name(i); if(s.lang==='de'||!i?.epithet)return out; for(const [de,[en,ru]] of Object.entries(KW_EPITHET_MAP)){out=out.split(de).join(s.lang==='en'?en:ru);} return out;};
-  const _setLang=window.setLang; window.setLang=function(lang){applyLocaleTables(lang); _setLang(lang)}; applyLocaleTables(s.lang);
+  const _setLang=window.setLang; window.setLang=function(lang){if(!['de','en','ru'].includes(lang)||s.lang===lang||battle?.running)return;applyLocaleTables(lang);_setLang(lang)}; applyLocaleTables(s.lang);
 
   // Contracts and upgrades are independent. Active journeys snapshot their perks.
   const CONTRACT_MS=3*86400000, WALK={speed:0,gold:0,xp:0,drop:0,gems:0,de:{name:'Zu Fuß'},en:{name:'On foot'},ru:{name:'Пешком'}};
