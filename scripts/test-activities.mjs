@@ -149,3 +149,26 @@ if(!hostUI.includes('token===started')||!hostUI.includes('action(ev.target,undef
 const snapshotUI=read('src/engine/features/04-interface-updates.js');
 if(!snapshotUI.includes('clone.querySelector(\'#modal\').dataset.backdropControl=token')||!snapshotUI.includes("action:'kwDismissBackdrop()'")||!snapshotUI.includes('!kwModalCanDismiss(e)'))throw Error('Backdrop capability missing');
 console.log('OK: universal dismissible modal backdrop and protected required dialogs');
+
+
+const attributeCore=read('src/engine/core/04-progression.js');
+const tooltipCore=read('src/engine/core/06-combat-world-ui.js');
+const attrHint=attributeCore.slice(attributeCore.indexOf('function damageAttributeHint('),attributeCore.indexOf('function luckRatingCap('));
+const statTooltip=tooltipCore.slice(tooltipCore.indexOf('function showStatBasis('),tooltipCore.indexOf('function luckFateMarkup('));
+const tooltip=runInNewContext(`
+let lang=0;
+const attrs=['Stärke','Geschick','Intelligenz','Ausdauer','Glück'],s={stats:[20,20,20,20,20],training:[5,5,5,5,5],level:6};
+const modal={hidden:true,innerHTML:''};
+function $(id){return modal}
+function num(v){return String(v)}
+function hubLabel(...labels){return labels[lang]}
+function totals(){return {a:[42,42,42,42,42]}}
+function luckFateMarkup(){return '<div data-fate="1">Fate</div>'}
+`+attrHint+statTooltip+`
+({render(i,l){lang=l;showStatBasis(i);return modal.innerHTML}})
+`);
+for(let lang=0;lang<3;lang++)for(let i=0;i<5;i++){
+ const html=tooltip.render(i,lang);
+ if(!html.includes('statBasisSheet')||!html.includes('<strong>42</strong>')||!html.includes('<b>10</b>')||!html.includes('<b>+22</b>')||(html.match(/class="statBasisRow"/g)||[]).length!==4||!html.includes('statBasisEffect')||!html.includes('onclick="closeItem()"')||html.includes('Alle Attribute')||(html.includes('data-fate="1"')!==(i===4)))throw Error('Attribute tooltip '+i+' locale '+lang);
+}
+console.log('OK: five separate attribute tooltips in DE/EN/RU, correct breakdown and luck panel');

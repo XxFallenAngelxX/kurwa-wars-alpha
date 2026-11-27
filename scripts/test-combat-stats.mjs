@@ -18,13 +18,14 @@ assert(context.luckDropMultiplier([0,0,0,0,100],100)<context.luckDropMultiplier(
 state.stats[4]=1e9;assert.equal(context.totals().crit,.50);
 assert.equal(context.weaponClass(null),'melee');
 assert.equal(context.weaponItemMarkup(null),'');assert.equal(context.weaponItemMarkup({slot:1,a:7}),'');
-assert.match(context.weaponItemMarkup(gear(0)),/Nahkampf · Stärke/);
-assert.match(context.weaponItemMarkup(gear(7)),/Fernkampf · Intelligenz/);
-for(const [index,meleeLabel,rangedLabel] of [[1,'Melee · Strength','Ranged · Intelligence'],[2,'Ближний бой · Сила','Дальний бой · Интеллект']]){
+assert.match(context.weaponItemMarkup(gear(0)),/Nahkampf/);
+assert.match(context.weaponItemMarkup(gear(7)),/Fernkampf/);
+for(const [index,meleeLabel,rangedLabel] of [[1,'Melee','Ranged'],[2,'Ближний бой','Дальний бой']]){
  context.hubLabel=(...labels)=>labels[index];
  assert(context.weaponItemMarkup(gear(0)).includes(meleeLabel));
  assert(context.weaponItemMarkup(gear(7)).includes(rangedLabel));
 }
+for(let lang=0;lang<3;lang++){context.hubLabel=(...labels)=>labels[lang];for(let i=0;i<5;i++)assert(context.damageAttributeHint(i).length>20);for(const a of [0,7])assert(!context.weaponItemMarkup(gear(a)).includes(' · '));}
 context.hubLabel=(...labels)=>labels[0];
 state.stats=[20,10,10,10,10];state.eq=[gear(0)];const baseMelee=context.totals().atk;state.stats[2]+=10;assert.equal(context.totals().atk,baseMelee);state.stats[0]+=10;assert(context.totals().atk>baseMelee);
 state.eq=[gear(7)];const baseRanged=context.totals().atk;state.stats[0]+=10;assert.equal(context.totals().atk,baseRanged);state.stats[2]+=10;assert(context.totals().atk>baseRanged);
