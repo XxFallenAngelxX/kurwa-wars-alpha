@@ -1,2 +1,131 @@
-
-.kw47ChamberViewport{container-type:size;display:grid;place-items:center;min-height:0;overflow:hidden;background:#17121b}.kw47ChamberArt{width:min(100%,83.98cqh);height:auto;max-height:100%;max-width:100%;aspect-ratio:760/905;background-size:100% 100%;position:relative}.kw48Hot{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;min-height:32px;min-width:36px;max-width:45%;padding:3px 5px;border:1px solid #d9ad6b;background:#211923e8;color:#ffe6b0;text-shadow:0 1px 2px #000;font-size:12px;line-height:1.15;box-shadow:0 2px 5px #0009}.kw48Hot small{font-size:10px;color:inherit}.kw48Hot span{font-size:18px;line-height:1}.kw48Lever{left:18%;top:35%}.kw48Toilet{left:56%;top:46%}.kw48Rohrbert{left:27%;top:83%}.kw48Bench{left:78%;top:76%}.kw48Hot.ready{border-color:#9de36c;box-shadow:0 0 12px #8bdc6888}.kw48Actions .row>button{flex:1;min-height:32px}.kw48Actions>button{min-height:30px}.kw48Wc{background:linear-gradient(#493528f2,#201923f5);border-color:#f4c77b;min-height:33px}.kw48Wc span{color:#f4c77b;font-size:14px}.kw47ChamberViewport.grow{flex:1;min-height:100px}@media(max-height:580px){.kw48Actions{gap:3px;padding:4px}.kw48Actions .row>button,.kw48Actions>button{min-height:25px;padding:3px}.kw48Hot{min-height:26px;padding:2px}.kw48Hot small{font-size:9px}}
+.kw47ChamberViewport {
+ container-type:size;
+ display:grid;
+ grid-template: minmax(0,1fr) / minmax(0,1fr);
+ place-items:center;
+ overflow:hidden;
+ background:#17121b;
+ border-radius:8px;
+}
+.kw47ChamberViewport.grow { flex:1; min-height:100px; }
+.kw47ChamberArt {
+ position:relative;
+ isolation:isolate;
+ width:min(100cqw,calc(100cqh * 760 / 905));
+ aspect-ratio:760 / 905;
+ background-position:center;
+ background-repeat:no-repeat;
+ background-size:100% 100%;
+ overflow:hidden;
+ border-radius:8px;
+}
+.kw47ChamberArt::after {
+ content:"";
+ position:absolute;
+ inset:0;
+ z-index:3;
+ border-radius:inherit;
+ box-shadow:inset 0 0 0 1px #987347;
+ pointer-events:none;
+}
+.kwChamberRohrbertIdle {
+ position:absolute;
+ inset:0;
+ background:inherit;
+ pointer-events:none;
+ /* Rohrbert is painted into the scene. Feather the moving part into the illustration. */
+ mask-image:radial-gradient(ellipse 17% 23% at 29% 66%,#000 47%,transparent 100%);
+ transform-origin:29% 82%;
+ animation:kwChamberIdle 4.7s ease-in-out infinite;
+}
+@keyframes kwChamberIdle {
+ 0%,100% { transform:none; }
+ 25% { transform:rotate(-.85deg) scale(1.009,1.014); }
+ 65% { transform:rotate(.8deg) scale(1.01,1.028); }
+}
+.kwChamberAmbient { position:absolute; inset:0; z-index:1; pointer-events:none; }
+.kwChamberAmbient i { position:absolute; left:var(--x); top:var(--y); display:block; }
+.kwChamberLight,.kwChamberGlow {
+ width:var(--w);
+ height:var(--h);
+ transform:translate(-50%,-50%);
+ mix-blend-mode:screen;
+}
+.kwChamberLight {
+ --lamp:#ffbe5299;
+ background:radial-gradient(ellipse,#fff2bcaa 0%,var(--lamp) 14%,transparent 72%);
+ animation:kwChamberFlicker 5.7s var(--delay) linear infinite;
+}
+.kwChamberRed { --lamp:#ff482eaa; }
+.kwChamberGlow {
+ --glow:#ed69ffa1;
+ background:radial-gradient(ellipse,var(--glow),transparent 73%);
+ animation:kwChamberPulse 4.2s var(--delay) ease-in-out infinite;
+}
+.kwChamberGreen { --glow:#b9ff598c; }
+.kwChamberSpark {
+ width:2px;
+ aspect-ratio:1;
+ border-radius:50%;
+ background:#ffe1ff;
+ box-shadow:0 0 5px 1px #ee65ff;
+ animation:kwChamberSpark 3.4s var(--delay) ease-out infinite;
+}
+@keyframes kwChamberFlicker {
+ 0%,100% { opacity:.64; }
+ 16%,44%,76% { opacity:.96; }
+ 20%,48%,79% { opacity:.48; }
+ 25%,54%,84% { opacity:.86; }
+}
+@keyframes kwChamberPulse {
+ 0%,100% { opacity:.4; transform:translate(-50%,-50%) scale(.85); }
+ 50% { opacity:.92; transform:translate(-50%,-50%) scale(1.14); }
+}
+@keyframes kwChamberSpark {
+ 0%,100% { opacity:0; transform:translate(0,2px); }
+ 23% { opacity:.85; }
+ 68% { opacity:.4; transform:translate(6px,-14px); }
+ 85% { opacity:0; transform:translate(9px,-21px); }
+}
+.kw48Hot {
+ position:absolute;
+ z-index:2;
+ transform:translate(-50%,-50%);
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex-direction:column;
+ gap:1px;
+ min-height:32px;
+ min-width:36px;
+ max-width:45%;
+ padding:3px 5px;
+ border:1px solid #d9ad6b;
+ background:#211923e8;
+ color:#ffe6b0;
+ text-shadow:0 1px 2px #000;
+ font-size:12px;
+ line-height:1.15;
+ box-shadow:0 2px 5px #0009;
+}
+.kw48Hot small { font-size:10px; color:inherit; }
+.kw48Hot span { font-size:18px; line-height:1; }
+.kw48Lever { left:18%; top:35%; }
+.kw48Toilet { left:56%; top:46%; }
+.kw48Rohrbert { left:27%; top:83%; }
+.kw48Bench { left:78%; top:76%; }
+.kw48Hot.ready { border-color:#9de36c; box-shadow:0 0 12px #8bdc6888; }
+.kw48Actions .row>button { flex:1; min-height:32px; }
+.kw48Actions>button { min-height:30px; }
+.kw48Wc { background:linear-gradient(#493528f2,#201923f5); border-color:#f4c77b; min-height:33px; }
+.kw48Wc span { color:#f4c77b; font-size:14px; }
+@media(max-height:580px) {
+ .kw48Actions { gap:3px; padding:4px; }
+ .kw48Actions .row>button,.kw48Actions>button { min-height:25px; padding:3px; }
+ .kw48Hot { min-height:26px; padding:2px; }
+ .kw48Hot small { font-size:9px; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .kwChamberRohrbertIdle,.kwChamberSpark { display:none; }
+ .kwChamberLight,.kwChamberGlow { animation:none; opacity:.64; }
+}
