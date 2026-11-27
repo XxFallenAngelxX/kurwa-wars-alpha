@@ -104,7 +104,7 @@ function procBattle(b,player,damage,crit){let p=b.p,e=b.effects;
 }
 function kwBattleWeaponFx(b){return b.weaponFx??=[{},{}]}
 function kwBattleProc(b,player,damage){
- if(b.h<=0||b.e<=0)return;
+ if((player?b.h:b.e)<=0||damage<=0)return;
  const fx=kwBattleWeaponFx(b),idx=player?0:1,proc=kwWeaponProc(player?b.p:b.foe,damage,fx[idx],fx[1-idx]);
  if(proc.extra){const key=player?'e':'h',n=Math.min(b[key],proc.extra);b[key]-=n;battleLog(b,kwWeaponEffectsLabel('lightning')+': '+num(n)+' '+hubLabel('Schaden','damage','урона'),'debuff')}
  if(proc.heal){if(player)healBattle(b,proc.heal,kwWeaponEffectsLabel('holy'));else b.e=Math.min(b.eh,b.e+proc.heal)}

@@ -37,6 +37,17 @@ assert.equal(new Set(assigned).size,assigned.length,'Duplicate weapon class assi
 assert.deepEqual(Array.from(assigned).sort((a,b)=>a-b),Array.from(data.weapons,x=>x.id).sort((a,b)=>a-b),'Every catalog weapon must have an explicit class');
 console.log('OK: weapon classes, damage attributes, item armor, dodge and luck bounds');
 
+const trainSource=source.slice(source.indexOf('function trainCost('),source.indexOf('function upgrade(',source.indexOf('function trainCost(')));
+const price=new Function('roomBonus',trainSource+';return trainCost')(()=>0);
+const low={stats:[15],training:[5],level:1,rooms:Array(13).fill(0)};
+const high={stats:[114],training:[5],level:100,rooms:Array(13).fill(0)};
+assert.equal(price(0,low),price(0,high),'Level gains must not increase training prices');
+high.stats[0]++;high.training[0]++;
+assert(price(0,high)>price(0,low),'Purchased training must increase the price');
+const legacy={stats:[114],level:100,rooms:Array(13).fill(0)};
+assert.equal(price(0,legacy),price(0,low),'Legacy saves infer purchased points');
+console.log('OK: training price grows with purchased points, including legacy saves');
+
 const affixData={};runInNewContext(section('const affixDefs=','const ITEM_TITLE_VARIANTS=')+';this.data={affixDefs,KW_WEAPON_AFFIXES,kwWeaponAffixAllowed,combatValues,affixBestTier,affixTierGate,rollAffixTier,affixValue,applyAffix,affixSecondaryValue,KW_EXTRA_AFFIXES,kwAffixEffectGate,KW_EFFECT_GATES}',affixData);
 const aff=affixData.data;
 assert.equal(aff.affixDefs.length,50);assert.equal(aff.KW_EXTRA_AFFIXES.length,22);assert.equal(aff.KW_WEAPON_AFFIXES.length,7);

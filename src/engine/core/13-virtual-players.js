@@ -54,7 +54,7 @@ function kwSimTurn(d,random=Math.random){
     // Existing mythic periodic effects, symmetric for either arena fighter.
     if(a.hp>0&&b.hp>0&&a.actions%3===0){const m=p.myth47||[],n=q.myth47||[];if(m[0])b.hp=Math.max(0,b.hp-Math.round(damage*.18*m[0]));if(b.hp>0){if(n[1])kwSimHeal(b,q.hp*.02*n[1]);if(n[2])a.hp=Math.max(0,a.hp-Math.round(q.atk*.25*n[2]*(1-reduction(p.def,a.level))));}}
    }
-   if(a.hp>0&&b.hp>0){const proc=kwWeaponProc(p,damage,a.weaponFx,b.weaponFx,random);const extra=Math.min(b.hp,proc.extra);b.hp-=extra;if(p.shrineDouble&&random()<.20){const bonus=Math.min(b.hp,Math.max(1,Math.round(damage*.70)));b.hp-=bonus;weaponEvents.push(['shrineDouble',bonus])}const shrineExtra=Math.min(b.hp,kwShrineStrike(p,damage,a.weaponFx));b.hp-=shrineExtra;if(shrineExtra)weaponEvents.push(['shrineStrike',shrineExtra]);const before=a.hp;kwSimHeal(a,proc.heal);for(const id of proc.events)weaponEvents.push([id,id==='lightning'?extra:id==='holy'?a.hp-before:0]);}
+   if(a.hp>0){const proc=kwWeaponProc(p,damage,a.weaponFx,b.weaponFx,random);const extra=Math.min(b.hp,proc.extra);b.hp-=extra;if(p.shrineDouble&&random()<.20){const bonus=Math.min(b.hp,Math.max(1,Math.round(damage*.70)));b.hp-=bonus;weaponEvents.push(['shrineDouble',bonus])}const shrineExtra=Math.min(b.hp,kwShrineStrike(p,damage,a.weaponFx));b.hp-=shrineExtra;if(shrineExtra)weaponEvents.push(['shrineStrike',shrineExtra]);const before=a.hp;kwSimHeal(a,proc.heal);for(const id of proc.events)weaponEvents.push([id,id==='lightning'?extra:id==='holy'?a.hp-before:0]);}
   }
   a.fury=Math.max(0,a.fury-1);a.weaken=Math.max(0,a.weaken-1);
   if(crit&&random()<(p.pctFury||0))a.fury=2;
