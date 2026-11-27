@@ -1,7 +1,7 @@
 name: Validate progression patch
 on:
   push:
-    branches: ['fix/**']
+    branches: ['main', 'fix/**']
 permissions:
   contents: write
 jobs:
@@ -21,9 +21,12 @@ jobs:
           python scripts/import-branding.py
       - run: node scripts/test-activities.mjs
       - run: node scripts/test-virtual-players.mjs
+      - run: node scripts/test-combat-stats.mjs
+      - run: npm run test:offline-audio
+      - run: npm run test:update
       - run: npm run build
       - run: npm run check
-      - name: Commit generated build on patch branch
+      - name: Commit generated build on current branch
         run: |
           git add generated/engine-template.js generated/sw-version.js
           if [ "$GITHUB_REF_NAME" = 'fix/kurvflict-branding' ]; then

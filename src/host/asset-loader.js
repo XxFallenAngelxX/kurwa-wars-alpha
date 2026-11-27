@@ -4,6 +4,7 @@ const kwPackVersions=["3add310b584d","f7894577e1ba","103391934459","46fb394a9984
 
 const kwAssetPrefix='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7#kwasset-';
 const kwAssetMarker=/data:image\/gif;base64,R0lGODlhAQABAIAAAAAAAP\/\/\/yH5BAEAAAAALAAAAAABAAEAAAIBRAA7#kwasset-([A-Za-z0-9_.-]+?\.(?:webp|png|jpe?g|gif|svg))/gi;
+const kwKeysByPack=kwPackVersions.map((_,i)=>Object.keys(kwAssetPackIndex).filter(k=>kwAssetPackIndex[k]===i));
 const kwVisibleUrls=new Map(),kwAssetRequests=new Map(),kwPackRequests=new Map();
 function kwLoadScript(path){
  if(kwAssetRequests.has(path))return kwAssetRequests.get(path);
@@ -18,11 +19,11 @@ function kwLoadScript(path){
 }
 function kwAssetPlaceholder(key){return key.endsWith('.mp3')?'data:audio/mp3;base64,':kwAssetPrefix+key}
 function kwFindAssetKeys(...texts){return [...new Set(texts.flatMap(t=>typeof t==='string'?Array.from(t.matchAll(kwAssetMarker),m=>m[1]):[]))]}
-function kwPackReady(i){return Object.keys(kwAssetPackIndex).every(k=>kwAssetPackIndex[k]!==i||typeof KW_ASSETS[k]==='string'&&KW_ASSETS[k].startsWith('data:'))}
+function kwPackReady(i){return kwKeysByPack[i].every(k=>typeof KW_ASSETS[k]==='string'&&KW_ASSETS[k].startsWith('data:'))}
 // The packs are immutable, content-addressed and shared between sessions.
 async function kwFetchPack(path,i,retry=false){
  const url=new URL(path,document.baseURI);
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),90000);
  try{
   const response=await fetch(url,{signal:controller.signal,cache:retry?'reload':'default'});
   if(!response.ok)throw Error('HTTP '+response.status+' '+url.pathname);
@@ -30,7 +31,7 @@ async function kwFetchPack(path,i,retry=false){
   const match=source.match(/^Object\.assign\(\s*KW_ASSETS\s*,\s*([\s\S]*?)\s*\)\s*;?$/);
   if(!match)throw Error('Ungültiges Grafikpaket: '+url.pathname);
   const data=JSON.parse(match[1]);
-  const keys=Object.keys(kwAssetPackIndex).filter(k=>kwAssetPackIndex[k]===i);
+  const keys=kwKeysByPack[i];
   if(!keys.every(k=>typeof data[k]==='string'&&data[k].startsWith('data:')))throw Error('Unvollständiges Grafikpaket '+(i+1));
   for(const k of keys)KW_ASSETS[k]=data[k];
  }finally{clearTimeout(timer)}

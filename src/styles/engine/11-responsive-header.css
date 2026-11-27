@@ -37,3 +37,9 @@
  }
  #app>header>.kwHeaderBrand { height:50px; }
 }
+
+/* Keep existing modal layouts within their available width in all three languages. */
+.sheet{box-sizing:border-box;min-width:0;overflow-wrap:anywhere}
+.sheet>*{min-width:0}
+.sheet h3,.sheet .actions button{overflow-wrap:anywhere;white-space:normal}
+.sheet .actions button{min-width:0}
