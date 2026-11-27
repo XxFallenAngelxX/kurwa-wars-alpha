@@ -130,6 +130,8 @@
 #app .combatRewards .drop { min-width:0; overflow-wrap:anywhere; }
 #app .combatRewards .drop img { flex:none; }
 #app #screen:has(>.raidLogFinished)>.primary { flex:none; min-height:42px; }
+#app .fightResultActions { flex:none; gap:6px; }
+#app .fightResultActions button { flex:1; min-width:0; min-height:42px; }
 
 /* Five equal mobile tabs, including Adventure; no absolute overlay. */
 @media(max-width:799px){
