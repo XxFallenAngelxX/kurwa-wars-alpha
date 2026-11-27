@@ -4108,5 +4108,11 @@
     "pack": "assets/packs/assets-5.js",
     "mime": "image/webp",
     "path": "assets/raw/images/kw_poland_item_09.webp"
+  },
+  {
+    "key": "kw_battle_effects.webp",
+    "pack": "assets/packs/assets-5.js",
+    "mime": "image/webp",
+    "path": "assets/raw/images/kw_battle_effects.webp"
   }
 ]
