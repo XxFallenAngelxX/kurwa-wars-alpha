@@ -42,6 +42,22 @@ test('existing day selection survives level changes and reload',()=>{let a=kwAct
 test('new counters do not credit old progress on migration',()=>{let a=kwActivityState(),b=a.board;delete b.base.purchases;a.purchases=12;kwActivityTick();return b.claimed.wins&&kwBoardProgress(kwBoardTasks().find(t=>t.id==='purchases'))===0});
 test('new purchase counter and independent claim',()=>{kwBoardRecord('purchases');return kwBoardClaim('purchases')&&!kwBoardClaim('purchases')});
 test('board contains ten nonshrinking scrollable rows',()=>{let html=kwActivityView('SchwarzesBrett');return html.includes('overflow-y:auto')&&(html.match(/flex-shrink:0/g)||[]).length===10});
+test('ready board tasks appear first and claim reorders without changing the selection',()=>{
+ let a=kwActivityState(),saved=JSON.parse(JSON.stringify(a.board)),b=a.board;
+ b.taskIds=['training','arena','shifts'];b.claimed={};
+ let original=kwBoardTasks();
+ let open=original.filter(t=>!b.claimed[t.id]),ready=open[open.length-1],other=open[open.length-2];
+ if(!ready||!other)return false;
+ for(const task of open){const id=task.counter||task.id;b.base[id]=kwActivityCounters()[id]||0}
+ const counter=ready.counter||ready.id,otherCounter=other.counter||other.id;
+ b.base[counter]=(kwActivityCounters()[counter]||0)-ready.target;
+ b.base[otherCounter]=kwActivityCounters()[otherCounter]||0;
+ const before=kwBoardTasks().map(t=>t.id).join(),view=kwActivityView('SchwarzesBrett');
+ const readyFirst=kwBoardDisplayTasks()[0].id===ready.id&&view.indexOf("kwBoardClaim('"+ready.id+"')")<view.indexOf("kwBoardClaim('"+other.id+"')");
+ const claimed=kwBoardClaim(ready.id),after=kwBoardDisplayTasks();
+ const ok=readyFirst&&claimed&&after[0].id!==ready.id&&kwBoardTasks().map(t=>t.id).join()===before;
+ a.board=saved;return ok;
+});
 
 s.level=29;page='Kristallmine';test("mine below gate",()=>!kwMineDig());s.level=30;
 test("mine spends energy and grants crystals",()=>{let p=s.premium,e=s.energy;return kwMineDig()&&s.premium===p+2&&s.energy===e-10});
