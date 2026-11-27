@@ -1,6 +1,5 @@
 #app { grid-template-rows: 58px minmax(0,1fr) 38px 61px; }
 #app>header { position:relative; }
-.heroName { display:none; }
 .stat .statValue { min-width:0; max-width:none; min-height:24px; padding:1px 4px; border:0; background:transparent; box-shadow:none; color:#fff4d8; text-align:right; font-weight:800; text-decoration:underline dotted #b69a72; text-underline-offset:3px; }
 .worldHint,.sceneHint { display:none!important; }
 .kwChatFilters { grid-template-columns:repeat(3,minmax(0,1fr)); }
@@ -19,7 +18,6 @@
  #app main:has(>.hero)>.baggrid { order:5; flex:1; min-height:0; overflow:hidden; grid-template-columns:repeat(6,minmax(0,min(76px,calc((100dvh - 460px)/3)))); }
  #app .hero .gearpair .slot { width:auto; height:calc(100% - 12px); max-width:100%; }
  #app .hero .gearpair label { font-size:9px; line-height:11px; }
- #app .heroName { display:block; position:absolute; z-index:2; top:3px; left:4px; right:4px; color:#fff3d6; background:#1c1520bb; text-align:center; font-size:11px; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; }
  #app main:has(>.hero) .stats { padding:2px 4px; gap:1px 5px; }
  #app main:has(>.hero) .stat { min-height:22px; }
  #app main:has(>.hero) .stat button { min-height:21px; padding:0 2px; }
@@ -286,24 +284,33 @@
 #app .raidLogFinished:not(.raidLogDefeat)>.combatRewards { padding-top:4px; }
 #app .raidLogFinished:not(.raidLogDefeat)>.combatRewards>.row { justify-content:flex-end; }
 
-/* Name and XP strips cover the portrait edges in both dimensions. */
+/* Portrait is one clipped, three-row component. No absolute name overlay. */
 #app .hero .heroart {
- border:0; border-radius:8px; padding:0; overflow:hidden;
+ --kw-hero-strip:20px;
+ display:grid; grid-template-columns:minmax(0,1fr);
+ grid-template-rows:var(--kw-hero-strip) minmax(0,1fr) var(--kw-hero-strip);
+ gap:0; padding:0; border:0; border-radius:8px; overflow:hidden;
+ background:#17131c;
 }
-#app .hero .heroart>.heroXp {
- inset:auto 0 0; height:20px; padding:0; margin:0;
-}
-#app .hero .heroart>.heroXp>.bar {
- height:100%; border:0; border-radius:0; box-sizing:border-box;
-}
-
 #app .hero .heroart>.heroName {
- display:flex; position:absolute; z-index:3; inset:0 0 auto; width:100%;
- height:20px; box-sizing:border-box; margin:0; padding:0 3px;
- align-items:center; justify-content:center; gap:3px;
- border:0; border-radius:0;
- background:linear-gradient(180deg,#201923f5,#17131ce8);
- color:#fff3d6; font-size:clamp(9px,2.8vw,11px); font-weight:800; line-height:1;
+ grid-area:1/1/2/2; position:relative; inset:auto; z-index:3;
+ display:flex; align-items:center; justify-content:center; gap:3px;
+ width:100%; height:100%; min-width:0; box-sizing:border-box; margin:0; padding:0 3px;
+ border:0; border-radius:0; background:#201923; color:#fff3d6;
+ font-size:clamp(9px,2.8vw,11px); font-weight:800; line-height:1;
  text-align:center; text-shadow:0 1px 2px #000; white-space:nowrap; overflow:hidden;
  pointer-events:none;
+}
+#app .hero .heroart>.portrait51 {
+ grid-area:2/1/3/2; position:relative; inset:auto;
+ display:block; width:100%; height:100%; min-width:0; min-height:0;
+ margin:0; padding:0; border:0; border-radius:0; overflow:hidden;
+}
+#app .hero .heroart>.heroXp {
+ grid-area:3/1/4/2; position:relative; inset:auto; z-index:2;
+ display:block; width:100%; height:100%; min-height:0; padding:0; margin:0;
+ background:#121810;
+}
+#app .hero .heroart>.heroXp>.bar {
+ width:100%; height:100%; margin:0; border:0; border-radius:0; box-sizing:border-box;
 }
