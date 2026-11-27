@@ -34,7 +34,9 @@ function kwGenerateGear(){throw Error('unexpected drop')}function profileEscape(
 `;
 const apply=core.split('\n').find(x=>x.startsWith('function kwApplyProgress('));
 const damage=read('src/engine/core/06-combat-world-ui.js').split('\n').find(x=>x.startsWith('function kwCombatDamage('));
-const out=runInNewContext(setup+apply+'\n'+damage+'\n'+sim+'\n'+inspect+`
+const itemCode=read('src/engine/core/02-content-items.js'),weaponData=itemCode.split('\n').find(x=>x.startsWith('const KW_WEAPON_AFFIXES='));
+const combatCode=read('src/engine/core/06-combat-world-ui.js'),weaponRuntime=combatCode.slice(combatCode.indexOf('function kwWeaponEffectsLabel('),combatCode.indexOf('function fightDecay('));
+const out=runInNewContext(setup+apply+'\n'+damage+'\n'+weaponData+'\n'+weaponRuntime+'\n'+sim+'\n'+inspect+`
 const results=[];
 function test(n,f){if(!f())throw Error(n);results.push(n)}
 const original=JSON.stringify(s),w=kwSimCreate(100,0);
@@ -50,6 +52,11 @@ test('catch-up bounded and respects energy',()=>kwSimAdvance(w,KW_SIM_DAY*10,4)&
 test('matchmaking excludes engaged opponents',()=>{const w2=kwSimCreate(2,0),p=w2.players[0];return kwSimOpponent(w2,p,kwSimStats(p),1,0,new Set([w2.players[1].id]))===null});
 test('shared damage formula',()=>kwCombatDamage(100,0,1,1,true,1)===175);
 test('mythic third attack damage applies',()=>{let p={hp:1000,atk:100,def:0,crit:0,myth47:[1,0,0]},q={hp:1000,atk:1,def:0,crit:0};let d=kwSimDuel(p,1,q,1);for(let i=0;i<5;i++)kwSimTurn(d,()=>.5);return d.fighters[1].hp<680});
+test('poison three nonstacking ticks',()=>{const a={},b={};kwWeaponProc({pctPoison:1},100,a,b,()=>0);kwWeaponProc({pctPoison:1},50,a,b,()=>0);return [kwWeaponDot(b)[0][1],kwWeaponDot(b)[0][1],kwWeaponDot(b)[0][1]].join(',')==='8,8,8'&&kwWeaponDot(b).length===0});
+test('fire two ticks',()=>{const a={},b={};kwWeaponProc({pctFire:1},100,a,b,()=>0);return kwWeaponDot(b)[0][1]===14&&kwWeaponDot(b)[0][1]===14&&!kwWeaponDot(b).length});
+test('frost and shadow expire',()=>{const a={},b={};kwWeaponProc({pctFrost:1,pctShadow:1},100,a,b,()=>0);const first=kwWeaponDodge(.2,b)===.1&&kwWeaponIncoming(100,b)===110;kwWeaponDecay(b);kwWeaponDecay(b);return first&&kwWeaponDodge(.2,b)===.2&&kwWeaponIncoming(100,b)===100});
+test('holy lightning and arcane',()=>{const a={},b={};const p=kwWeaponProc({pctHoly:1,pctLightning:1,pctArcane:1},100,a,b,()=>0);return p.extra===20&&p.heal===15&&kwWeaponIncoming(100,a)===85&&kwWeaponIncoming(100,a)===100});
+test('arena applies same poison to both fighters',()=>{const p={hp:1000,atk:100,def:0,crit:0,pctPoison:1},d=kwSimDuel(p,1,p,1);kwSimTurn(d,()=>.1);kwSimTurn(d,()=>.1);return d.fighters.every(f=>f.weaponFx.poison?.turns>0)});
 test('GM factors and active save unchanged',()=>JSON.stringify(s)===original);
 const beforeRank=s;s=fresh();profileWrite('kwars_rank:real',{cp:1,level:1});
 test('active rank ignores stale snapshot and updates instantly',()=>{const a=kwRankLocalRecord(activeProfile).cp;s.stats[0]+=400000;return kwRankLocalRecord(activeProfile).cp-a===400000});

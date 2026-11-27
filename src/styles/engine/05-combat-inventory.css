@@ -116,3 +116,20 @@ main.gmScreen>*{flex:0 0 auto;min-height:auto}
 .statBasisSection>.panel{padding:5px 7px}
 .statBasisClose{min-height:36px}
 @media(max-height:480px){#app .statBasisSheet{padding:7px;gap:5px}.statBasisSection{gap:3px}.statBasisHead h3{font-size:16px}.statBasisTotal{padding:3px 6px}.statBasisTotal strong{font-size:22px}.statBasisRow{padding:2px 6px;font-size:11px}.statBasisEffect{font-size:11px;padding:4px 6px}.statBasisClose{min-height:30px}}
+
+/* Combat-only aura and active status frame; no new assets, no layout changes. */
+.kwAura-poison{--kwAura:#79e84f}.kwStatus-poison{--kwStatus:#79e84f}.kwEffect-poison{border-color:#79e84f;color:#79e84f}
+.kwAura-fire{--kwAura:#ff8a37}.kwStatus-fire{--kwStatus:#ff8a37}.kwEffect-fire{border-color:#ff8a37;color:#ff8a37}
+.kwAura-frost{--kwAura:#7de5ff}.kwStatus-frost{--kwStatus:#7de5ff}.kwEffect-frost{border-color:#7de5ff;color:#7de5ff}
+.kwAura-lightning{--kwAura:#c3aeff}.kwStatus-lightning{--kwStatus:#c3aeff}.kwEffect-lightning{border-color:#c3aeff;color:#c3aeff}
+.kwAura-holy{--kwAura:#ffdd83}.kwStatus-holy{--kwStatus:#ffdd83}.kwEffect-holy{border-color:#ffdd83;color:#ffdd83}
+.kwAura-shadow{--kwAura:#a87be5}.kwStatus-shadow{--kwStatus:#a87be5}.kwEffect-shadow{border-color:#a87be5;color:#a87be5}
+.kwAura-arcane{--kwAura:#76a4ff}.kwStatus-arcane{--kwStatus:#76a4ff}.kwEffect-arcane{border-color:#76a4ff;color:#76a4ff}
+.kwAura-bleed{--kwAura:#d34c58}.kwStatus-bleed{--kwStatus:#d34c58}.kwEffect-bleed{border-color:#d34c58;color:#d34c58}
+.kwAura-leech{--kwAura:#bf567a}.kwStatus-leech{--kwStatus:#bf567a}.kwEffect-leech{border-color:#bf567a;color:#bf567a}
+.kwAura-weaken{--kwAura:#b8ab76}.kwStatus-weaken{--kwStatus:#b8ab76}.kwEffect-weaken{border-color:#b8ab76;color:#b8ab76}
+.fighter[class*="kwAura-"] .fightart{box-shadow:0 0 12px color-mix(in srgb,var(--kwAura) 48%,transparent);background:radial-gradient(ellipse,color-mix(in srgb,var(--kwAura) 32%,#201621),#201621 75%)}
+.fighter[class*="kwStatus-"] .fightart{border-color:var(--kwStatus);box-shadow:0 0 10px var(--kwStatus),inset 0 0 10px var(--kwStatus)}
+.fighter[class*="kwStatus-"] .fightart:after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 14px var(--kwStatus);opacity:.7;animation:kwStatusPulse 1.5s ease-in-out infinite alternate}
+@keyframes kwStatusPulse{from{opacity:.42}to{opacity:.9}}
+@media(prefers-reduced-motion:reduce){.fighter[class*="kwStatus-"] .fightart:after{animation:none}}

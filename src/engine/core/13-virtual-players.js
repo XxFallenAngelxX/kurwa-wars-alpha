@@ -31,34 +31,36 @@ function kwSimStats(p){return totals(p.state.eq,p.state)}
 function kwSimCP(p){return combatPower(kwSimStats(p),p.state.level)}
 function kwSimAward(p,g,x){let q=p.state;return kwApplyProgress(q,Math.floor(g),Math.floor(x*(1+codexCount(q).ratio)))}
 function kwSimHeal(f,n){if(f.hp>0)f.hp=Math.min(f.stats.hp,f.hp+Math.max(0,Math.floor(n||0)))}
-function kwSimFighter(stats,level){return {stats,level,hp:stats.hp,actions:0,bleed:0,bleedDamage:0,weaken:0,fury:0}}
+function kwSimFighter(stats,level){return {stats,level,hp:stats.hp,actions:0,bleed:0,bleedDamage:0,weaken:0,fury:0,weaponFx:{}}}
 function kwSimDuel(a,al,b,bl,first=0){return {fighters:[kwSimFighter(a,al),kwSimFighter(b,bl)],turn:0,first,winner:null}}
 /* The same symmetric arena turn is used for NPC/NPC and human/NPC.
    Core armor reduction, crit, variance, rage and proc factors match normal combat. */
 function kwSimTurn(d,random=Math.random){
  if(d.winner!==null)return null;
  const i=(d.turn+d.first)%2,a=d.fighters[i],b=d.fighters[1-i],p=a.stats,q=b.stats;
- d.turn++;a.actions=(a.actions||0)+1;let damage=0,crit=false,dodge=false;
+ d.turn++;a.actions=(a.actions||0)+1;let damage=0,crit=false,dodge=false,weaponEvents=[];a.weaponFx??={};b.weaponFx??={};for(const [id,value] of kwWeaponDot(a.weaponFx)){const n=Math.min(a.hp,value);a.hp-=n;if(n)weaponEvents.push([id,n]);}
  if(a.bleed>0){a.hp=Math.max(0,a.hp-a.bleedDamage);a.bleed--;}
  kwSimHeal(a,p.hp*(p.pctRegen||0));
  if(a.hp>0&&b.hp>0){
-  dodge=random()<(q.dodge||0);
+  dodge=random()<kwWeaponDodge(q.dodge,b.weaponFx);
   if(!dodge){crit=random()<p.crit;const rage=1+Math.min(4,Math.floor((d.turn-1)/2)*.045);
-   damage=Math.min(b.hp,kwCombatDamage(p.atk*(a.fury?1.12:1)*(a.weaken?.85:1),q.def,b.level,.85+random()*.3,crit,rage));
+   damage=Math.min(b.hp,kwWeaponIncoming(kwCombatDamage(p.atk*(a.fury?1.12:1)*(a.weaken?.85:1),q.def,b.level,.85+random()*.3,crit,rage),b.weaponFx));
    b.hp-=damage;kwSimHeal(a,damage*(p.pctLeech||0));
    if(b.hp>0){kwSimHeal(b,damage*(q.pctRecoup||0));if(random()<(p.pctBleed||0)){b.bleed=2;b.bleedDamage=Math.max(1,Math.floor(damage*.15))}if(random()<(p.pctWeaken||0))b.weaken=2;
     if(random()<(q.pctCounter||0)){const counter=Math.min(a.hp,Math.max(1,Math.round(q.atk*.5*(1-reduction(p.def,a.level)))));a.hp-=counter;kwSimHeal(b,counter*(q.pctLeech||0))}
     // Existing mythic periodic effects, symmetric for either arena fighter.
     if(a.hp>0&&b.hp>0&&a.actions%3===0){const m=p.myth47||[],n=q.myth47||[];if(m[0])b.hp=Math.max(0,b.hp-Math.round(damage*.18*m[0]));if(b.hp>0){if(n[1])kwSimHeal(b,q.hp*.02*n[1]);if(n[2])a.hp=Math.max(0,a.hp-Math.round(q.atk*.25*n[2]*(1-reduction(p.def,a.level))));}}
    }
+   if(a.hp>0&&b.hp>0){const proc=kwWeaponProc(p,damage,a.weaponFx,b.weaponFx,random);const extra=Math.min(b.hp,proc.extra);b.hp-=extra;kwSimHeal(a,proc.heal);for(const id of proc.events)weaponEvents.push([id,id==='lightning'?extra:0]);}
   }
   a.fury=Math.max(0,a.fury-1);a.weaken=Math.max(0,a.weaken-1);
   if(crit&&random()<(p.pctFury||0))a.fury=2;
  }
+ kwWeaponDecay(a.weaponFx);
  if(!a.hp||!b.hp)d.winner=!b.hp?i:1-i;
  // Deterministic hard ceiling prevents stalemates; resolve by remaining HP fraction.
  else if(d.turn>=400)d.winner=a.hp/p.hp>=b.hp/q.hp?i:1-i;
- return {i,damage,crit,dodge};
+ return {i,damage,crit,dodge,weaponEvents};
 }
 function kwSimResolve(a,al,b,bl,random=Math.random,first=null){let d=kwSimDuel(a,al,b,bl,first??(random()<.5?0:1));while(d.winner===null)kwSimTurn(d,random);return d.winner===0;}
 function kwSimArenaTerms(level){return {g:Math.round((26+level*13)*.45),x:Math.round((18+level*10)*.35)}}
@@ -132,7 +134,7 @@ function kwSimArenaTick(b){
  b.turn=b.duel.turn;b.h=a.hp;b.e=r.hp;b.healPop=0;
  b.effects={fury:a.fury,bleed:r.bleed,weaken:r.weaken,wound:0};
  if(ev){b.hit={player:ev.i===0,damage:ev.damage,crit:ev.crit,dodge:ev.dodge};const actor=ev.i===0?profileName():b.o.enemy;
- battleLog(b,actor+' · '+(ev.dodge?hubLabel('Ausgewichen','Dodged','Уклонение'):num(ev.damage)+' '+hubLabel('Schaden','damage','урон')+(ev.crit?' · CRIT':'')),ev.i===0?'outgoing':'incoming');AudioGame.fx(ev.dodge?'nav':ev.crit?'crit':ev.i===0?'hit':'enemyHit');}
+ battleLog(b,actor+' · '+(ev.dodge?hubLabel('Ausgewichen','Dodged','Уклонение'):num(ev.damage)+' '+hubLabel('Schaden','damage','урон')+(ev.crit?' · CRIT':'')),ev.i===0?'outgoing':'incoming');AudioGame.fx(ev.dodge?'nav':ev.crit?'crit':ev.i===0?'hit':'enemyHit');for(const [id,n] of ev.weaponEvents||[])battleLog(b,kwWeaponEffectsLabel(id)+' · '+(n?num(n)+' '+hubLabel('Schaden','damage','урона'):hubLabel('Effekt aktiv','Effect active','Эффект активен')),'debuff');}
  if(b.duel.winner!==null){
   clearInterval(timer);timer=null;b.running=false;b.hit=null;b.win=b.duel.winner===0;b.warningUntil=0;b.dialogue45={};
   if(b.win)b.e=0;else b.h=0;
