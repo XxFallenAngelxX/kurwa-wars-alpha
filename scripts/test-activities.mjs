@@ -69,13 +69,21 @@ for(const name of result)console.log('PASS '+name);
 console.log(result.length+' activity regression checks passed.');
 
 
-// Mission-card UI: level belongs in the heading; only distinct opponent names survive.
+// All offer types use only the opponent name and level, including location-prefixed and distinct quest titles.
 const missionUI=read('src/engine/core/12-milestones-profiles.js');
 const identityCode=missionUI.split('\n').filter(l=>l.startsWith('function kwMissionIdentity')).join('\n');
 const identity=runInNewContext('function num(n){return String(n)}\n'+identityCode+'\nkwMissionIdentityMarkup');
-const duplicate=identity({name:'Ritter Restmülltonne',enemy:'Ritter Restmülltonne',l:4,desc:'Beschreibung'});
-if(duplicate!=='<h3>Ritter Restmülltonne · Lv 4</h3><small class="missionDesc">Beschreibung</small>')throw Error('Mission name/level duplication: '+duplicate);
-const distinct=identity({name:'Sondereinsatz',enemy:'Ritter Restmülltonne',l:4,desc:'Beschreibung'});
-if(!distinct.includes('<h3>Sondereinsatz · Lv 4</h3>')||!distinct.includes('<p>Ritter Restmülltonne</p>'))throw Error('Distinct opponent name lost');
+for(const [name,enemy,l] of [
+ ['Ritter Restmülltonne','Ritter Restmülltonne',4],
+ ['Kristallkasematte · DJ Knochenbrecher im Tarifvertrag','DJ Knochenbrecher im Tarifvertrag',8],
+ ['Bauabnahme nach dem Ableben','Untoter Bauleiter',6],
+ ['Special dispatch: Enemy','Enemy',10],
+ ['Задание','Противник',12],
+ ['Fallback','',1]
+]){
+ const expected='<h3>'+(enemy||name)+' · Lv '+l+'</h3><small class="missionDesc">Beschreibung</small>';
+ const actual=identity({name,enemy,l,desc:'Beschreibung'});
+ if(actual!==expected)throw Error('Mission identity duplication or wrong title: '+actual);
+}
 if(!missionUI.includes('${kwMissionIdentityMarkup(t.o)}')||!missionUI.includes('${kwMissionIdentityMarkup(o)}'))throw Error('Mission identity not used in both views');
-console.log('OK: mission identity before departure and on arrival');
+console.log('OK: single opponent heading for every mission type, before departure and on arrival');
