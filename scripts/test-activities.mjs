@@ -120,3 +120,6 @@ shown.join(',')==='a,b,a';
 `);
 if(!noRepeat)throw Error('Consecutive quest dialogue repeated');
 console.log('OK: quest dialogue on both arrows, no immediate repeat, travel dialogue preserved');
+
+if(!missionUI.includes('<small class="difficulty">${difficultyLabel(o)}</small>')||missionUI.includes('Beute iLvl ca.'))throw Error('Redundant adventure loot item level');
+console.log('OK: adventure difficulty without duplicate item level');
