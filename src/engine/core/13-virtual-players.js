@@ -119,7 +119,7 @@ function kwSimAdvance(w,now=Date.now(),limit=4){
 function kwSimOffer(state,rating){
  if(kwSimBusy)return null;let w=kwSimRead();if(!w)return null;kwSimAdvance(w);
  const p=kwSimOpponent(w,null,totals(state.eq,state),state.level,rating);if(!p)return null;
- const r=kwSimArenaTerms(state.level),rival={id:p.id,name:p.name,avatar:p.avatar,role:'player',stats:kwSimStats(p),cp:kwSimCP(p)};
+ const r=kwSimArenaTerms(state.level),rival={id:p.id,name:p.name,avatar:p.avatar,role:'player',stats:kwSimStats(p),cp:kwSimCP(p),inspection:kwRankInspectionState(p.state)};
  return {...r,heroLevel:state.level,l:p.state.level,cost:0,type:p.avatar%foeTypes.length,ai:0,arena:true,bg:2,enemy:profileEscape(p.name),rival};
 }
 function kwSimRank(){
