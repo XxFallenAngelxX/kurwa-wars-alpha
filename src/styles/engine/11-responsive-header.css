@@ -5,3 +5,31 @@
 /* Scope to dungeon tabs: four equal columns and equal heights, independent of wrapping. */
 #screen .dungeonModeTabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:5px;flex-shrink:0}
 #screen .dungeonModeTabs>button{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;height:100%;padding:5px 3px;font-size:clamp(10px,2.95vw,13px);line-height:1.12;white-space:normal;overflow-wrap:anywhere;text-align:center}
+
+/* Branding only: use spare space to the left of the unchanged resource controls.
+   Keep the existing header height, button tracks, padding and image aspect ratio.
+   Version text occupies its own small track so it cannot overlap the wider logo. */
+#app>header:has(>.kwHeaderLogo) {
+ grid-template-columns:minmax(0,100px) max-content minmax(max-content,1fr) 40px 40px;
+}
+#app>header>.kwHeaderLogo {
+ display:block; width:100%; min-width:0; height:46px; max-height:100%;
+ object-fit:contain; object-position:left center; justify-self:start;
+}
+#app>header:has(>.kwHeaderLogo)>.gameVersion {
+ position:static; align-self:end; justify-self:start; white-space:nowrap;
+}
+@media(max-width:340px) {
+ #app>header:has(>.kwHeaderLogo) {
+  grid-template-columns:minmax(0,100px) max-content minmax(max-content,1fr) 36px 36px;
+ }
+}
+@media(max-height:570px) {
+ #app>header>.kwHeaderLogo { height:36px; }
+}
+@media(min-width:800px) {
+ #app>header:has(>.kwHeaderLogo) {
+  grid-template-columns:minmax(0,112px) max-content minmax(max-content,1fr) 48px 48px;
+ }
+ #app>header>.kwHeaderLogo { height:50px; }
+}
