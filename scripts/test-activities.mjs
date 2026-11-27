@@ -32,9 +32,13 @@ s.energy=0;test("no energy no action",()=>!kwScrapSearch(0)&&s.energy===0);s.ene
 rng=0;capacity=false;test("full inventory preserves pending loot",()=>kwScrapSearch(0)&&kwActivityState().pending.qty===2);
 test("pending prevents new rolls",()=>!kwScrapSearch(0));capacity=true;
 test("pending claim once",()=>kwActivityClaim()&&!kwActivityState().pending&&inventory.scrap===2&&!kwActivityClaim());
-page='SchwarzesBrett';kwActivityTick();test("incomplete task cannot claim",()=>!kwBoardClaim('wins'));s.wins+=5;
+page='SchwarzesBrett';kwActivityTick();delete kwActivityState().board.taskIds;kwActivityTick();test("incomplete task cannot claim",()=>!kwBoardClaim('wins'));s.wins+=5;
 test("daily reward once",()=>kwBoardClaim('wins')&&!kwBoardClaim('wins'));
-test('ten unique daily tasks at each unlock level',()=>{let b=kwActivityState().board,level=b.level;let ok=[5,7,10,15,30,40,50].every(l=>{b.level=l;let tasks=kwBoardTasks();return tasks.length===10&&new Set(tasks.map(t=>t.id)).size===10&&tasks.every(t=>Object.hasOwn(kwActivityCounters(),t.counter||t.id))&&(l>=7||!tasks.some(t=>t.id==='searches'))&&(l>=10||!tasks.some(t=>t.id==='sacrifices'))&&(l>=30||!tasks.some(t=>t.id==='excavations'))});b.level=level;return ok});
+test('pool contains fifty unique templates',()=>KW_BOARD_POOL.length===50&&new Set(KW_BOARD_POOL.map(t=>t.id)).size===50);
+test('ten unique daily tasks at each unlock level',()=>[5,7,10,15,25,30,40,50].every(l=>Array.from({length:30},(_,i)=>kwBoardSelect(20000+i,l)).every(tasks=>tasks.length===10&&new Set(tasks.map(t=>t.counter)).size===10&&tasks.every(t=>t.min<=l&&Object.hasOwn(kwActivityCounters(),t.counter)))));
+test('daily rotation changes and covers all fifty templates',()=>{let all=Array.from({length:365},(_,i)=>kwBoardSelect(20000+i,50).map(t=>t.id));return new Set(all.flat()).size===50&&all.slice(1).every((ids,i)=>ids.join()!==all[i].join())});
+test('existing day selection survives level changes and reload',()=>{let a=kwActivityState(),ids=kwBoardTasks().map(t=>t.id).join(),level=s.level;a.board=JSON.parse(JSON.stringify(a.board));s.level=50;kwActivityTick();s.level=level;return ids===kwBoardTasks().map(t=>t.id).join()});
+
 test('new counters do not credit old progress on migration',()=>{let a=kwActivityState(),b=a.board;delete b.base.purchases;a.purchases=12;kwActivityTick();return b.claimed.wins&&kwBoardProgress(kwBoardTasks().find(t=>t.id==='purchases'))===0});
 test('new purchase counter and independent claim',()=>{kwBoardRecord('purchases');return kwBoardClaim('purchases')&&!kwBoardClaim('purchases')});
 test('board contains ten nonshrinking scrollable rows',()=>{let html=kwActivityView('SchwarzesBrett');return html.includes('overflow-y:auto')&&(html.match(/flex-shrink:0/g)||[]).length===10});
