@@ -10,6 +10,10 @@ assert(read('src/engine/frame.html').includes('<span class="gameVersion">v'+vers
 assert.equal(read('generated/engine-template.js'),generated(),'Generated engine is outdated; run npm run build');
 for(const name of ['container','electronics','expedition','mine','pickaxe','scrapyard']){const p='assets/activities/'+name+'.webp';assert(existsSync(resolve(root,p)),'Missing activity artwork: '+p);}
 assert(existsSync(resolve(root,'assets/branding/kurvflict-loading.webp')),'Missing KURVFLICT loading artwork');
+assert.match(read('src/engine/frame.html'), /<header><img class="kwHeaderLogo"/);
+const logoCss=read('src/styles/engine/11-responsive-header.css');
+assert.match(logoCss,/header:has\(>\.kwHeaderLogo\)\s*\{[^}]*minmax\(0,100px\) max-content minmax\(max-content,1fr\) 40px 40px/);
+assert.match(logoCss,/header>\.kwHeaderLogo\s*\{[^}]*object-fit:contain/);
 const paths=new Set();
 const webManifest=JSON.parse(read('manifest.webmanifest'));
 for(const icon of webManifest.icons){
