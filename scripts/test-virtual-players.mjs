@@ -27,7 +27,7 @@ function fresh(){return {level:1,gold:500,xp:0,energy:100,stats:[10,10,10,10,10]
 function totals(eq,state){return {hp:100+state.level*10,atk:20+state.stats[0],def:10,crit:.1,dodge:.05,a:state.stats}}
 function combatPower(p,l){return p.hp+p.atk+l}function reduction(a,l){return a/(a+45+11*l)}
 function codexCount(){return {ratio:0}}function trainCost(){return 100}
-function kwMissionTerms(l,i){return {l,cost:5+i*5,g:30,x:50}}
+function kwMissionTerms(l,i){return {l,cost:5+i*5,g:30,x:50,duration:[10000,30000,60000][i]}}
 function enemyStats(){return {hp:50,atk:10,def:0,crit:0}}
 function foeKey(){return 'mob:f'}function battleDropChance(){return 0}function gearDropBaseChance(){return 0}
 function kwGenerateGear(){throw Error('unexpected drop')}function profileEscape(s){return s}
@@ -49,7 +49,7 @@ test('arena defeat has cooldown',()=>{let p=w.players[1];kwSimArenaResult(p,fals
 test('stronger fighter wins bounded duel',()=>kwSimResolve({hp:1000,atk:1000,def:0,crit:0},1,{hp:100,atk:1,def:0,crit:0},1,()=>.5));
 test('stalemate capped',()=>{let d=kwSimDuel({hp:100000,atk:1,def:0,crit:0},1,{hp:100000,atk:1,def:0,crit:0},1);while(d.winner===null)kwSimTurn(d,()=>.5);return d.turn===400});
 test('catch-up bounded and respects energy',()=>kwSimAdvance(w,KW_SIM_DAY*10,4)&&w.steps===4&&w.players.every(p=>p.state.energy>=0&&p.state.energy<=100));
-test('legacy pool migration retains progress',()=>{let old=kwSimCreate(2,0);delete old.paceRevision;old.steps=64;old.players[0].state.level=7;old.players[0].state.arena.wins=4;kwSimWrite(old);let migrated=kwSimRead();const ok=migrated.recoverySteps===32&&migrated.players[0].state.level===7&&migrated.players[0].state.arena.wins===4;kwSimWrite(w);return ok});
+test('legacy pool migration retains progress',()=>{let old=kwSimCreate(2,0);delete old.paceRevision;old.steps=64;old.players[0].state.level=7;old.players[0].state.arena.wins=4;kwSimWrite(old);let migrated=kwSimRead();const ok=migrated.paceRevision===3&&migrated.recoverySteps===0&&migrated.modelStartStep===64&&migrated.players[0].state.level===7&&migrated.players[0].state.arena.wins===4;kwSimWrite(w);return ok});
 test('matchmaking excludes engaged opponents',()=>{const w2=kwSimCreate(2,0),p=w2.players[0];return kwSimOpponent(w2,p,kwSimStats(p),1,0,new Set([w2.players[1].id]))===null});
 test('shared damage formula',()=>kwCombatDamage(100,0,1,1,true,1)===175);
 test('mythic third attack damage applies',()=>{let p={hp:1000,atk:100,def:0,crit:0,myth47:[1,0,0]},q={hp:1000,atk:1,def:0,crit:0};let d=kwSimDuel(p,1,q,1);for(let i=0;i<5;i++)kwSimTurn(d,()=>.5);return d.fighters[1].hp<680});
@@ -61,6 +61,9 @@ test('holy heals on finishing blow',()=>{const p={hp:1000,atk:100,def:0,crit:0,p
 test('element effects cannot trigger on zero damage',()=>{const a={},b={};const p=kwWeaponProc({pctHoly:1,pctPoison:1,pctLightning:1},0,a,b,()=>0);return !p.heal&&!p.extra&&!p.events.length&&!Object.keys(b).length});
 test('arena applies same poison to both fighters',()=>{const p={hp:1000,atk:100,def:0,crit:0,pctPoison:1},d=kwSimDuel(p,1,p,1);kwSimTurn(d,()=>.1);kwSimTurn(d,()=>.1);return d.fighters.every(f=>f.weaponFx.poison?.turns>0)});
 test('two-day progression diversifies levels',()=>{const q=kwSimCreate(100,0);for(let i=0;i<192;i++)kwSimStep(q);const lv=q.players.map(p=>p.state.level),casual=q.players.filter(p=>p.style===0),hard=q.players.filter(p=>p.style===2);const mean=a=>a.reduce((n,p)=>n+p.state.level,0)/a.length;return Math.max(...lv)>3&&new Set(lv).size>3&&mean(hard)>mean(casual)&&q.players.every(p=>p.state.energy>=0&&p.state.energy<=100&&p.state.gold>=0)});
+test('travel time delays XP and mission completion',()=>{let q=kwSimCreate(1,0),p=q.players[0],a=kwSimModel(p,0),old=p.state.xp;a.pending={kind:'travel',o:{l:1,cost:5,g:30,x:50,type:0},ready:KW_SIM_STEP*2};kwSimSession(p,KW_SIM_TYPES[0],0,KW_SIM_STEP,q,new Set());return p.missions===0&&p.state.xp===old&&a.pending.kind==='travel'});
+test('daily attendance is bounded',()=>{let q=kwSimCreate(100,0);return q.players.every(p=>{let slots=kwSimSchedule(p,0),[lo,hi]=KW_SIM_ATTENDANCE[p.style];return slots.length>=lo&&slots.length<=hi&&new Set(slots).size===slots.length})});
+test('offline defense does not grant free rewards',()=>{let p=kwSimCreate(1,0).players[0],gold=p.state.gold,xp=p.state.xp;kwSimArenaResult(p,true,0,false);return p.state.gold===gold&&p.state.xp===xp&&p.state.arena.wins===1});
 test('GM factors and active save unchanged',()=>JSON.stringify(s)===original);
 const beforeRank=s;s=fresh();profileWrite('kwars_rank:real',{cp:1,level:1});
 test('active rank ignores stale snapshot and updates instantly',()=>{const a=kwRankLocalRecord(activeProfile).cp;s.stats[0]+=400000;return kwRankLocalRecord(activeProfile).cp-a===400000});
