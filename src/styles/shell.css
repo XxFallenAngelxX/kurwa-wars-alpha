@@ -23,3 +23,55 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 .kwFeedbackActions>*{flex:1 1 130px}
 .kwFeedbackDialog button,.kwSponsorRail button,.kwCommercialLink{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:38px;padding:6px 9px;border:1px solid #a47b47;border-radius:6px;background:#45323d;color:#fff1d4;font:700 12px system-ui;text-decoration:none;cursor:pointer;text-align:center}
 .kwFeedbackDialog [hidden],.kwSponsorRail[hidden]{display:none!important}
+
+/* Victory and newly recorded codex entries. */
+.kwVictoryOverlay {
+ position:fixed; inset:0; z-index:900; overflow:hidden; pointer-events:none;
+}
+.kwVictoryScene {
+ position:absolute; width:min(300px,calc(100vw - 20px));
+ transform:translateX(-50%); text-align:center; color:#fff3cf;
+ filter:drop-shadow(0 2px 4px #180a0a);
+}
+.kwVictoryTitle {
+ display:block; position:relative; isolation:isolate; font-size:clamp(26px,7vw,40px); line-height:1;
+ letter-spacing:.04em; color:#ffe5a2; -webkit-text-stroke:.6px #9c250b;
+ text-shadow:0 -3px 8px #ff8b1c,0 -9px 20px #e9290b,0 3px 1px #571007,0 0 23px #ffb52a;
+ animation:kwVictoryFlame .7s ease-in-out infinite alternate;
+}
+.kwVictoryTitle::before {
+ content:""; position:absolute; z-index:-1; inset:-18px 12% 0;
+ background:radial-gradient(ellipse at 20% 80%,#ffb52a 0%,transparent 38%),radial-gradient(ellipse at 47% 70%,#ff4c0c 0%,transparent 45%),radial-gradient(ellipse at 78% 80%,#ffbd36 0%,transparent 38%);
+ filter:blur(5px); animation:kwVictoryFlame .45s ease-in-out infinite alternate;
+}
+.kwVictoryQuote {
+ display:inline-block; margin-top:5px; padding:3px 9px; border-radius:7px;
+ background:#211322de; color:#fff2ce; font-size:12px; font-weight:800; line-height:1.2;
+}
+.kwCodexVisual { position:relative; height:155px; width:210px; margin:0 auto; animation:kwBookJourney 5.6s ease-in forwards; transform-origin:50% 48%; }
+.kwCodexVisual>img { position:absolute; object-fit:contain; }
+.kwCodexClosed { width:126px; height:150px; left:42px; top:0; opacity:0; animation:kwClosedBook 5.6s linear forwards; }
+.kwCodexOpen { width:196px; height:150px; left:7px; top:0; opacity:0; animation:kwOpenBook 5.6s linear forwards; }
+.kwCodexPage { width:78px; height:100px; left:72px; top:21px; opacity:0; transform-origin:30% 50%; animation:kwTurnPage 5.6s ease-in-out forwards; }
+.kwCodexSoul { position:absolute; width:76px; height:76px; left:67px; top:35px; opacity:0; animation:kwSoulToBook 5.6s ease-in-out forwards; filter:drop-shadow(0 0 10px #70eaff); }
+.kwCodexSoul>img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+.kwCodexSoul>.kwCodexSticker { inset:34% 32% auto; width:36%; height:36%; object-fit:cover; border:2px solid #ffe8a0; border-radius:50%; box-shadow:0 0 8px #9afaff; }
+.kwCodexDiscovery { display:grid; justify-items:center; gap:1px; margin:auto; width:max-content; max-width:100%; padding:5px 12px; border:1px solid #daae61; border-radius:8px; background:#211322eb; font-size:12px; line-height:1.2; animation:kwDiscoveryText 5.6s ease both; }
+.kwCodexDiscovery b { color:#ffd46f; letter-spacing:.06em; font-size:11px; }
+.kwCodexDiscovery span { max-width:100%; overflow-wrap:anywhere; }
+.kwCodexDiscovery small { color:#d8caba; }
+.kwVictoryScene:not(.hasDiscovery) { animation:kwVictoryOnly 2.2s ease both; }
+@keyframes kwVictoryFlame { from { filter:brightness(.93); transform:scale(.98); } to { filter:brightness(1.15); transform:scale(1.015); } }
+@keyframes kwVictoryOnly { 0% { opacity:0; transform:translateX(-50%) translateY(8px) scale(.9); } 12%,78% { opacity:1; transform:translateX(-50%) scale(1); } 100% { opacity:0; transform:translateX(-50%) translateY(-8px); } }
+@keyframes kwClosedBook { 0%,7% { opacity:0; transform:scale(.65); } 13%,22% { opacity:1; transform:scale(1); } 25%,68% { opacity:0; } 72%,96% { opacity:1; } 100% { opacity:0; } }
+@keyframes kwOpenBook { 0%,22% { opacity:0; transform:scaleX(.2); } 29%,64% { opacity:1; transform:scaleX(1); } 70%,100% { opacity:0; transform:scaleX(.2); } }
+@keyframes kwTurnPage { 0%,31% { opacity:0; transform:scaleX(.05) rotate(-7deg); } 34% { opacity:1; transform:scaleX(1) rotate(-3deg); } 41% { opacity:1; transform:scaleX(-1) rotate(4deg); } 44% { opacity:1; transform:scaleX(1) rotate(-3deg); } 51% { opacity:0; transform:scaleX(-1) rotate(4deg); } 100% { opacity:0; } }
+@keyframes kwSoulToBook { 0%,32% { opacity:0; transform:translate(var(--kw-soul-x),var(--kw-soul-y)) scale(.8); } 38% { opacity:1; transform:translate(var(--kw-soul-x),var(--kw-soul-y)) scale(1); } 60% { opacity:1; transform:translate(0,0) scale(.44); } 66%,100% { opacity:0; transform:translate(0,0) scale(.15); } }
+@keyframes kwBookJourney { 0%,72% { transform:translate(0,0) scale(1); } 91%,100% { transform:translate(var(--kw-book-x),var(--kw-book-y)) scale(.16) rotate(-18deg); } }
+@keyframes kwDiscoveryText { 0%,52% { opacity:0; transform:translateY(6px); } 60%,92% { opacity:1; transform:translateY(0); } 100% { opacity:0; } }
+@media(prefers-reduced-motion:reduce) {
+ .kwVictoryScene,.kwVictoryTitle,.kwVictoryTitle::before,.kwCodexVisual,.kwCodexVisual>img,.kwCodexSoul,.kwCodexDiscovery { animation:none!important; }
+ .kwCodexOpen,.kwCodexPage,.kwCodexSoul { display:none; }
+ .kwCodexClosed { opacity:1; transform:none; }
+ .kwCodexDiscovery { opacity:1; }
+}

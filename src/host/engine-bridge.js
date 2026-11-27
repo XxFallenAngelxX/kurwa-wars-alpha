@@ -36,8 +36,10 @@ async function localApi(path,data){
  let result={};if(path==='/api/game/action')result=w.__act(data.token,data.value,data.confirmed);
  const x=w.__snapshot(),rawStyles=!kwStyles?Array.from(w.document.querySelectorAll('style'),e=>e.textContent).join('\n'):undefined;
  const prepared=await kwPrepareAssets(x.markup,rawStyles);
+ const eventAssets=await kwPrepareAssets(JSON.stringify(x.events||[]));
  if(ready!==kwReady)throw Error('Profil wurde gewechselt.');
  x.markup=prepared.markup;
+ x.events=JSON.parse(eventAssets.markup);
  if(x.markup!==kwMarkup){kwMarkup=x.markup;kwEtag++}else if(data?.etag===String(kwEtag))delete x.markup;
  x.etag=String(kwEtag);
  if(rawStyles!==undefined){x.styles=prepared.styles;kwStyles=true;}

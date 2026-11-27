@@ -10,7 +10,15 @@ function roomBonus(i,l=s.rooms[i]){return [.05,.08,.10,.04,.03,.08,.08,.05,.10,.
 function roomDuration(i){return gmTime('garage',Math.round((180000+20000*i)*(1+s.rooms[i])**1.15))}
 function longTime(ms){let n=Math.max(0,Math.ceil(ms/1000)),d=Math.floor(n/86400),h=Math.floor(n/3600)%24,m=Math.floor(n/60)%60;return d?`${d} T ${h} h ${m} min`:h?`${h} h ${m} min`:m?`${m} min ${n%60} s`:`${n} s`}
 function rememberItem(i){if(i&&catalog[i.a]){s.codex??={items:{},foes:{}};s.codex.items??={};s.codex.items[catalog[i.a][0]]=true}}
-function rememberFoe(o){s.codex.foes[foeKey(o)]=true}
+function rememberFoe(o){
+ const key=foeKey(o),isNew=!s.codex.foes[key];
+ s.codex.foes[key]=true;
+ if(!isNew||typeof window==='undefined'||!Array.isArray(window.__events)||!battle?.win||battle.o!==o)return;
+ const entry=foeCatalog.find(x=>x.key===key);
+ if(!entry)return;
+ const count=codexCount();
+ window.__events.push(['codexDiscovery',{name:entry.name,foes:count.foes,total:foeCatalog.length,percent:Math.floor(count.ratio*1000)/10,portrait:battlePortrait(o)}]);
+}
 function foeKey(o){return o.d!==undefined?'boss:'+zones[o.d][0]+':'+o.enemy:(o.event||o.fairy)?'mob:'+foeTypes[o.type]?.[0]:o.tower?'tower:'+towerNames[((o.floor||o.l)-1)%4]:'mob:'+foeTypes[o.type]?.[0]}
 function codexCount(state=s){let items=catalog.filter(c=>state.codex?.items?.[c[0]]).length,foes=foeCatalog.filter(c=>state.codex?.foes?.[c.key]).length,total=catalog.length+foeCatalog.length;return {items,foes,total,found:items+foes,ratio:(items+foes)/total}}
 function xpBonus(){return codexCount().ratio}
