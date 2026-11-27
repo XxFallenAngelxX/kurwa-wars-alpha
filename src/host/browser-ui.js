@@ -57,9 +57,10 @@ function kwShowVictory(discovery){
   const arena=mount.querySelector('.arena')?.getBoundingClientRect(),hero=mount.querySelector('#nav button:first-child')?.getBoundingClientRect(),foe=mount.querySelector('.fighter.foe .fightart')?.getBoundingClientRect();
   const player=mount.querySelector('.fighter:not(.foe) .fightart')?.getBoundingClientRect(),vs=mount.querySelector('.arena .vs')?.getBoundingClientRect();
   const gap=player&&foe?Math.max(0,foe.left-player.right):0;
-  const scale=item?Math.min(.55,Math.max(.28,(gap||140)/280),Math.max(.28,(innerHeight-80)/320)):1;
-  const x=item&&player&&foe?(player.right+foe.left)/2:arena?arena.left+arena.width/2:innerWidth/2;
-  const y=item&&arena?Math.max(arena.top+4,Math.min(player?.top??arena.top+30,foe?.top??arena.top+30)-210*scale*.72):arena?arena.top+Math.min(32,arena.height*.1):Math.max(12,innerHeight*.14);
+  const scale=item?Math.min(.67,Math.max(.43,(gap+28||140)/280),Math.max(.35,(innerHeight-60)/300)):1;
+  const x=item&&vs?vs.left+vs.width/2:arena?arena.left+arena.width/2:innerWidth/2;
+  const portraitTop=Math.min(player?.top??arena?.top??0,foe?.top??arena?.top??0);
+  const y=item&&arena?Math.max(8,arena.top+3,portraitTop-136*scale):arena?arena.top+Math.min(32,arena.height*.1):Math.max(12,innerHeight*.14);
   const layer=document.createElement('div'),scene=document.createElement('div');
   layer.className='kwVictoryOverlay'+(item?' hasDiscovery':'');layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
   scene.className='kwVictoryScene'+(item?' hasDiscovery':'');
@@ -83,7 +84,7 @@ function kwShowVictory(discovery){
    visual.append(closed,open,page,soul);
    for(let n=1;n<4;n++){const leaf=page.cloneNode(false);leaf.style.setProperty('--leaf',n);visual.append(leaf)}
    const rays=document.createElement('div');rays.className='kwCodexRays';visual.prepend(rays);
-   for(let n=0;n<24;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--angle',(n*15)+'deg');spark.style.setProperty('--reach',(66+(n%5)*15)+'px');spark.style.setProperty('--hue',[42,184,286,325,15,215][n%6]);visual.append(spark)}
+   for(let n=0;n<24;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--angle',(n*15)+'deg');spark.style.setProperty('--reach',(35+(n%5)*10)+'px');spark.style.setProperty('--hue',[42,184,286,325,15,215][n%6]);visual.append(spark)}
    const ring=document.createElement('i');ring.className='kwCodexImpact';visual.append(ring);
    scene.append(visual);
    const info=document.createElement('div');info.className='kwCodexDiscovery';
@@ -94,7 +95,10 @@ function kwShowVictory(discovery){
    info.append(title,name,progress);scene.append(info);
   }
   layer.append(scene);document.body.append(layer);
-  if(item){const visual=scene.querySelector('.kwCodexVisual'),r=visual.getBoundingClientRect(),cx=r.left+140*scale,cy=r.top+96*scale;
+  if(item){
+   const visual=scene.querySelector('.kwCodexVisual'),r=visual.getBoundingClientRect(),css=getComputedStyle(visual);
+   const ox=parseFloat(css.getPropertyValue('--kw-soul-origin-x')),oy=parseFloat(css.getPropertyValue('--kw-soul-origin-y'));
+   const cx=r.left+ox*scale,cy=r.top+oy*scale;
    scene.style.setProperty('--kw-soul-x',((foe?foe.left+foe.width/2:x+70)-cx)/scale+'px');
    scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+60)-cy)/scale+'px');
   }

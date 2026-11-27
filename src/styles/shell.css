@@ -151,47 +151,92 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 .kwVictoryScene.hasDiscovery .kwCodexDiscovery { border-color:#ffc76b; background:linear-gradient(130deg,#4b2150ee,#201b3aee); box-shadow:0 0 14px #aa4bd866; }
 @media(prefers-reduced-motion:reduce) { .kwCodexVisual .kwCodexPage,.kwCodexRays,.kwCodexImpact { animation:none!important; display:none; } }
 
-/* In-combat codex: local, nonmodal VFX above the two portraits. */
+/* In-combat codex, coordinates registered to the square 320px book art.
+   Keep the stage flat; perspective is applied to each hinged paper leaf only. */
 .kwVictoryOverlay.hasDiscovery { inset:auto; width:0; height:0; overflow:visible; background:none; animation:none; pointer-events:none; }
-.kwVictoryScene.hasDiscovery { width:280px; transform:translateX(-50%) scale(var(--kw-local-scale,.5)); transform-origin:top center; }
-.kwVictoryScene.hasDiscovery .kwVictoryTitle { font-size:28px; line-height:1; }
+.kwVictoryScene.hasDiscovery { width:280px; transform:translateX(-50%) scale(var(--kw-local-scale,.5)); transform-origin:top center; filter:none; }
+.kwVictoryScene.hasDiscovery .kwVictoryTitle { font-size:25px; line-height:1; }
 .kwVictoryScene.hasDiscovery .kwVictoryQuote { display:none; }
-.kwVictoryScene.hasDiscovery .kwCodexVisual { animation-name:kwLocalBookExit; animation-duration:4.4s; }
-.kwVictoryScene.hasDiscovery .kwCodexClosed,.kwVictoryScene.hasDiscovery .kwCodexOpen,.kwVictoryScene.hasDiscovery .kwCodexSoul,.kwVictoryScene.hasDiscovery .kwCodexPageSticker,.kwVictoryScene.hasDiscovery .kwCodexHalo,.kwVictoryScene.hasDiscovery .kwCodexSpark,.kwVictoryScene.hasDiscovery .kwCodexImpact,.kwVictoryScene.hasDiscovery .kwCodexRays,.kwVictoryScene.hasDiscovery .kwCodexDiscovery { animation-duration:4.4s; }
-.kwVictoryScene.hasDiscovery .kwCodexPage { animation-duration:.46s; animation-delay:calc(1.18s + var(--leaf,0)*.19s); }
-.kwVictoryScene.hasDiscovery .kwCodexVisual { --kw-imprint-x:187px; --kw-imprint-y:94px; }
-.kwCodexVisual .kwCodexPageSticker { width:48px; height:58px; left:calc(var(--kw-imprint-x) - 24px); top:calc(var(--kw-imprint-y) - 29px); border:2px solid #be8b4a; border-radius:3px; object-fit:cover; box-shadow:0 0 10px #ffcf7e; animation-name:kwLocalImprint; }
-.kwCodexVisual .kwCodexSoul { animation-name:kwLocalSoul; }
-.kwCodexVisual .kwCodexImpact { left:var(--kw-imprint-x); top:var(--kw-imprint-y); width:54px; height:54px; margin:-27px; border-width:2px; box-shadow:0 0 10px #f745ff,inset 0 0 8px #4eeaff; animation-name:kwLocalRing; }
-.kwCodexVisual .kwCodexSpark { left:var(--kw-imprint-x); top:var(--kw-imprint-y); }
-.kwCodexVisual .kwCodexRays { left:var(--kw-imprint-x); top:var(--kw-imprint-y); width:220px; height:220px; }
-.kwVictoryScene.hasDiscovery .kwCodexDiscovery { font-size:18px; padding:3px 7px; max-width:95%; }
+.kwVictoryScene.hasDiscovery .kwCodexVisual {
+ width:280px; height:184px; perspective:none; transform-style:flat;
+ --kw-imprint-x:190px; --kw-imprint-y:94px; --kw-soul-origin-x:140px; --kw-soul-origin-y:94px;
+ --kw-dx:calc(var(--kw-imprint-x) - var(--kw-soul-origin-x)); --kw-dy:calc(var(--kw-imprint-y) - var(--kw-soul-origin-y));
+ animation:kwLocalBookExit 4.4s ease-in forwards;
+}
+.kwVictoryScene.hasDiscovery .kwCodexOpen { left:10px; top:-26px; width:260px; height:260px; object-fit:contain; animation:kwLocalOpen 4.4s linear both; }
+.kwVictoryScene.hasDiscovery .kwCodexClosed { left:46px; top:-2px; width:188px; height:188px; object-fit:contain; animation:kwLocalClosed 4.4s linear both; }
+.kwVictoryScene.hasDiscovery .kwCodexPage {
+ left:140px; top:24px; width:93px; height:137px; box-sizing:border-box;
+ border-radius:1px 12px 12px 1px;
+ background:linear-gradient(90deg,#b88046,#f3d291 16%,#ffebbf 55%,#edc486);
+ animation:kwLocalLeaf .44s cubic-bezier(.35,.1,.55,1) both;
+ animation-delay:calc(.95s + var(--leaf,0)*.19s);
+}
+@keyframes kwLocalLeaf {
+ 0% { opacity:0; transform:perspective(440px) rotateY(0deg); }
+ 10% { opacity:1; transform:perspective(440px) rotateY(-8deg); }
+ 48% { opacity:1; transform:perspective(440px) rotateY(-86deg); }
+ 90% { opacity:1; transform:perspective(440px) rotateY(-172deg); }
+ 100% { opacity:0; transform:perspective(440px) rotateY(-180deg); }
+}
+.kwVictoryScene.hasDiscovery .kwCodexSoul {
+ left:calc(var(--kw-soul-origin-x) - 50px); top:calc(var(--kw-soul-origin-y) - 50px); width:100px; height:100px;
+ animation:kwLocalSoul 4.4s ease-in-out both;
+}
+.kwVictoryScene.hasDiscovery .kwCodexSoul>.kwCodexSticker { inset:30% 30% auto; width:40%; height:40%; border-radius:6px; object-fit:contain; }
+.kwVictoryScene.hasDiscovery .kwCodexPageSticker {
+ left:calc(var(--kw-imprint-x) - 33px); top:calc(var(--kw-imprint-y) - 37px); width:66px; height:74px;
+ box-sizing:border-box; padding:2px; border:2px solid #a76d36; border-radius:4px; object-fit:contain;
+ background:#d5ab73; box-shadow:inset 0 0 5px #7b462d,0 0 5px #ffdf9c;
+ animation:kwLocalImprint 4.4s linear both;
+}
+.kwVictoryScene.hasDiscovery .kwCodexImpact {
+ left:var(--kw-imprint-x); top:var(--kw-imprint-y); width:72px; height:72px; margin:-36px; border:2px solid #ffe2a0;
+ box-sizing:border-box; box-shadow:0 0 12px #ed54ff,inset 0 0 9px #46eaff; animation:kwLocalRing 4.4s ease-out both;
+}
+.kwVictoryScene.hasDiscovery .kwCodexSpark { left:var(--kw-imprint-x); top:var(--kw-imprint-y); animation:kwLocalBurst 4.4s ease-out both; }
+.kwVictoryScene.hasDiscovery .kwCodexRays { left:var(--kw-imprint-x); top:var(--kw-imprint-y); width:160px; height:160px; animation:kwLocalRays 4.4s ease-out both; }
+.kwVictoryScene.hasDiscovery .kwCodexHalo { inset:10px 28px; animation-duration:4.4s; }
+.kwVictoryScene.hasDiscovery .kwCodexDiscovery { font-size:18px; padding:3px 7px; max-width:95%; animation-duration:4.4s; }
 .kwVictoryScene.hasDiscovery .kwCodexDiscovery b { font-size:17px; }
+@keyframes kwLocalClosed {
+ 0% { opacity:0; transform:scale(.65); } 8%,17% { opacity:1; transform:scale(1); }
+ 23%,82% { opacity:0; } 87%,100% { opacity:1; transform:scale(1); }
+}
+@keyframes kwLocalOpen {
+ 0%,17% { opacity:0; transform:scaleX(.15); } 23%,82% { opacity:1; transform:scaleX(1); }
+ 87%,100% { opacity:0; transform:scaleX(.15); }
+}
 @keyframes kwLocalSoul {
  0%,32% { opacity:0; transform:translate(var(--kw-soul-x),var(--kw-soul-y)) scale(.3); }
- 39% { opacity:1; transform:translate(var(--kw-soul-x),var(--kw-soul-y)) scale(.85); }
- 50% { opacity:1; transform:translate(calc(var(--kw-soul-x)*.6 + 18px),calc(var(--kw-soul-y)*.6 - 20px)) scale(.8); }
- 61% { opacity:1; transform:translate(47px,-2px) scale(.38); }
- 66%,100% { opacity:0; transform:translate(47px,-2px) scale(.12); }
+ 38% { opacity:1; transform:translate(var(--kw-soul-x),var(--kw-soul-y)) scale(.8); }
+ 49% { opacity:1; transform:translate(calc(var(--kw-soul-x)*.55 + var(--kw-dx)*.45),calc(var(--kw-soul-y)*.55 + var(--kw-dy)*.45 - 24px)) scale(.75); }
+ 60% { opacity:1; transform:translate(var(--kw-dx),var(--kw-dy)) scale(.32); }
+ 64%,100% { opacity:0; transform:translate(var(--kw-dx),var(--kw-dy)) scale(.08); }
 }
 @keyframes kwLocalImprint {
- 0%,60% { opacity:0; transform:scale(.4); }
- 65% { opacity:1; transform:scale(1.04); }
- 69%,73% { opacity:1; transform:scale(1); }
- 77%,100% { opacity:0; transform:scale(.96); }
+ 0%,60% { opacity:0; transform:scale(.6); } 64% { opacity:1; transform:scale(1.04); }
+ 68%,82% { opacity:1; transform:scale(1); } 86%,100% { opacity:0; transform:scaleX(.15); }
 }
 @keyframes kwLocalRing {
- 0%,60% { opacity:0; transform:scale(.3); }
- 64% { opacity:1; transform:scale(.9); }
- 72%,100% { opacity:0; transform:scale(1.9); }
+ 0%,60% { opacity:0; transform:scale(.3); } 63% { opacity:1; transform:scale(.7); }
+ 72%,100% { opacity:0; transform:scale(1.5); }
+}
+@keyframes kwLocalBurst {
+ 0%,60% { opacity:0; transform:rotate(var(--angle)) translateX(4px) scale(.2); }
+ 64% { opacity:1; transform:rotate(var(--angle)) translateX(14px) scale(1.2); }
+ 73%,100% { opacity:0; transform:rotate(var(--angle)) translateX(var(--reach)) scale(.2); }
+}
+@keyframes kwLocalRays {
+ 0%,60% { opacity:0; transform:translate(-50%,-50%) scale(.4); }
+ 64% { opacity:.8; transform:translate(-50%,-50%) scale(.9); }
+ 73%,100% { opacity:0; transform:translate(-50%,-50%) rotate(25deg) scale(1.1); }
 }
 @keyframes kwLocalBookExit {
- 0%,83% { opacity:1; transform:scale(1); }
- 100% { opacity:0; transform:translateY(-10px) scale(.28); }
+ 0%,89% { opacity:1; transform:scale(1); } 100% { opacity:0; transform:translateY(-10px) scale(.28); }
 }
 @media(prefers-reduced-motion:reduce) {
  .kwVictoryScene.hasDiscovery .kwCodexVisual { animation:none!important; }
  .kwVictoryScene.hasDiscovery .kwCodexClosed { display:none; }
- .kwVictoryScene.hasDiscovery .kwCodexOpen { display:block; opacity:1; transform:none; }
- .kwVictoryScene.hasDiscovery .kwCodexPageSticker { display:block; opacity:1; transform:none; }
+ .kwVictoryScene.hasDiscovery .kwCodexOpen,.kwVictoryScene.hasDiscovery .kwCodexPageSticker { display:block; opacity:1; transform:none; }
 }
