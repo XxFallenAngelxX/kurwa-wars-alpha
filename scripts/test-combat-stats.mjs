@@ -36,3 +36,10 @@ const classes=context.weaponClasses,assigned=[...classes.melee,...classes.ranged
 assert.equal(new Set(assigned).size,assigned.length,'Duplicate weapon class assignment');
 assert.deepEqual(Array.from(assigned).sort((a,b)=>a-b),Array.from(data.weapons,x=>x.id).sort((a,b)=>a-b),'Every catalog weapon must have an explicit class');
 console.log('OK: weapon classes, damage attributes, item armor, dodge and luck bounds');
+
+const affixData={};runInNewContext(section('const affixDefs=','const ITEM_TITLE_VARIANTS=')+';this.data={affixDefs,KW_WEAPON_AFFIXES,kwWeaponAffixAllowed,combatValues}',affixData);
+const aff=affixData.data;
+assert.equal(aff.affixDefs.length,28);assert.equal(aff.KW_WEAPON_AFFIXES.length,7);
+for(let i=21;i<28;i++){assert(aff.kwWeaponAffixAllowed(aff.affixDefs[i],0,new Set()));assert(!aff.kwWeaponAffixAllowed(aff.affixDefs[i],1,new Set()));assert(!aff.kwWeaponAffixAllowed(aff.affixDefs[i],0,new Set([21])));}
+assert.equal(aff.combatValues([{pctPoison:.1}]).weaponAura,'poison');assert.equal(aff.combatValues([]).weaponAura,'');assert.equal(aff.combatValues([{pctPoison:.9}]).pctPoison,.25);
+console.log('OK: seven append-only weapon affixes, weapon-only eligibility, aura and proc caps');

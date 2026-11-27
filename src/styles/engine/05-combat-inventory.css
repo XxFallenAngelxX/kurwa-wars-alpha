@@ -133,3 +133,7 @@ main.gmScreen>*{flex:0 0 auto;min-height:auto}
 .fighter[class*="kwStatus-"] .fightart:after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 14px var(--kwStatus);opacity:.7;animation:kwStatusPulse 1.5s ease-in-out infinite alternate}
 @keyframes kwStatusPulse{from{opacity:.42}to{opacity:.9}}
 @media(prefers-reduced-motion:reduce){.fighter[class*="kwStatus-"] .fightart:after{animation:none}}
+
+/* Keep weapon aura visible independently from the temporary status border. */
+.fighter[class*="kwAura-"]{background:radial-gradient(ellipse at 50% 24%,color-mix(in srgb,var(--kwAura) 26%,transparent),transparent 68%);border-radius:8px}
+.fighter[class*="kwAura-"][class*="kwStatus-"] .fightart{box-shadow:0 0 10px var(--kwStatus),0 0 19px color-mix(in srgb,var(--kwAura) 58%,transparent),inset 0 0 10px var(--kwStatus)}
