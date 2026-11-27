@@ -123,3 +123,29 @@ console.log('OK: quest dialogue on both arrows, no immediate repeat, travel dial
 
 if(!missionUI.includes('<small class="difficulty">${difficultyLabel(o)}</small>')||missionUI.includes('Beute iLvl ca.'))throw Error('Redundant adventure loot item level');
 console.log('OK: adventure difficulty without duplicate item level');
+
+
+// Universal modal dismissal respects the existing visible close controls.
+const modalCore=read('src/engine/core/05-materials-enemies.js');
+const dismissCode=modalCore.split('\n').find(l=>l.trimStart().startsWith('function kwModalCanDismiss('));
+const dismiss=runInNewContext(dismissCode+'\nkwModalCanDismiss');
+const closeButton=(action='closeItem()',cls=false,disabled=false,hidden=false)=>({disabled,closest:()=>hidden?{}:null,getAttribute:()=>action,classList:{contains:k=>k==='close'&&cls}});
+const modal=(buttons,hidden=false)=>({hidden,querySelectorAll:()=>buttons});
+for(const [label,window,expected] of [
+ ['item comparison',modal([closeButton()]),true],
+ ['nested item detail',modal([closeButton("showItem('id')",true)]),true],
+ ['affix detail back',modal([closeButton('enchantOpen47()',true)]),true],
+ ['mandatory confirmation',modal([closeButton('commitPurchase()')]),false],
+ ['disabled close',modal([closeButton('closeItem()',false,true)]),false],
+ ['hidden close',modal([closeButton('closeItem()',false,false,true)]),false],
+ ['closed dialog',modal([closeButton()],true),false],
+ ['missing dialog',null,false]
+])if(dismiss(window)!==expected)throw Error('Modal dismissal: '+label);
+const hostUI=read('src/host/browser-ui.js');
+const backdropCode=hostUI.split('\n').find(l=>l.trimStart().startsWith('function kwBackdropToken('));
+const backdrop=runInNewContext(backdropCode+'\nkwBackdropToken');
+if(backdrop({matches:()=>true,dataset:{backdropControl:'abc'}})!=='abc'||backdrop({matches:()=>false,dataset:{backdropControl:'abc'}})!==null||backdrop(null)!==null)throw Error('Backdrop only, not inner controls');
+if(!hostUI.includes('token===started')||!hostUI.includes('action(ev.target,undefined,token)'))throw Error('Backdrop pointer guard or action missing');
+const snapshotUI=read('src/engine/features/04-interface-updates.js');
+if(!snapshotUI.includes('clone.querySelector(\'#modal\').dataset.backdropControl=token')||!snapshotUI.includes("action:'kwDismissBackdrop()'")||!snapshotUI.includes('!kwModalCanDismiss(e)'))throw Error('Backdrop capability missing');
+console.log('OK: universal dismissible modal backdrop and protected required dialogs');

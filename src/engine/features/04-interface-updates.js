@@ -55,6 +55,13 @@ window.__snapshot=function(drain=true){
   if(action.startsWith('AudioGame.'))c.dataset.audio=action;
   if(action==='serverPortal()')c.dataset.portal='1';
  }
+ // The replicated backdrop has its own capability, not a parent data-control.
+ // Bind it to the current modal controls so stale clicks cannot dismiss a different dialog.
+ if(isModal&&kwModalCanDismiss(modal)){
+  const key=context+'|backdrop|'+[...controls.values()].map(c=>c.action).join('|');
+  const token=old.get(key)||Array.from(crypto.getRandomValues(new Uint32Array(4)),x=>x.toString(16).padStart(8,'0')).join('');
+  next.set(key,token);controls.set(token,{element:modal,action:'kwDismissBackdrop()'});clone.querySelector('#modal').dataset.backdropControl=token;
+ }
  window.__tokens=next;window.__controls=controls;
  const clean=root=>{for(const el of [root,...root.querySelectorAll('*')])for(const a of [...el.attributes]){if(/^on/i.test(a.name))el.removeAttribute(a.name);else if(a.value.includes('http://kw-engine.invalid'))el.setAttribute(a.name,a.value.split('http://kw-engine.invalid').join(''));}root.querySelectorAll('script,iframe,object,embed').forEach(e=>e.remove());};
  world45Dialogues(clone);clean(clone);const walker=document.createTreeWalker(clone,NodeFilter.SHOW_TEXT);let nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue.includes('◆'))nodes.push(walker.currentNode);for(let node of nodes){let f=document.createDocumentFragment(),parts=node.nodeValue.split('◆');parts.forEach((v,j)=>{if(j){let img=document.createElement('img');img.className='crystal52Icon';img.src='@@LOCAL:kw52_crystal.webp@@';img.alt=hubLabel('Kristalle','Crystals','Кристаллы');f.append(img)}f.append(document.createTextNode(v))});node.replaceWith(f)}let sub=null;
@@ -66,6 +73,7 @@ window.__act=function(token,value,confirmed){
  const e=c.element;window.__confirmed=confirmed===true;
  try{
   if(c.action==='serverPortal()')return {ok:true,portal:true};
+  if(c.action==='kwDismissBackdrop()'){if(e!==$('modal')||!kwModalCanDismiss(e))return {ok:false,reason:'Dialog kann nicht geschlossen werden.'};closeItem();window.__tokens.clear();return {ok:true,action:c.action};}
   if(e.tagName==='INPUT'||e.tagName==='SELECT'){
    if(c.action==='profileTextInput'){if(typeof value!=='string'||value.length>20)return {ok:false,reason:'Ungültiger Name.'};window.__profileDraft=value;e.value=value;return {ok:true};}if(e.id==='warehouseSearch47'){if(typeof value!=='string'||value.length>100)return {ok:false,reason:'Invalid search'};warehouseSearch47(value);window.__tokens.clear();return {ok:true};}if(e.tagName==='SELECT'){if(typeof value!=='string'||![...e.options].some(o=>o.value===value))return {ok:false,reason:'Invalid filter'};e.value=value;e.dispatchEvent(new Event('change',{bubbles:true}));window.__tokens.clear();return {ok:true};}if(!['number','range'].includes(e.type)||typeof value!=='string'||value.length>32||!/^[-+]?\d+(\.\d+)?$/.test(value)||!Number.isFinite(Number(value)))return {ok:false,reason:'Ungültiger Eingabewert.'};
    e.value=value;if(c.action==='gmLevelInput')window.__gmLevelDraft=e.value;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));
