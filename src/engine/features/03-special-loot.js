@@ -30,7 +30,19 @@ const ENCHANT47=[
  {n:['Express-Schlappen','Express slippers','Экспресс-тапочки'],slot:2,material:'rubber',trait:'shrineTravel',d:['Neue Abenteuerreisen dauern 20 % weniger Zeit.','New adventure journeys take 20% less time.','Новые путешествия занимают на 20% меньше времени.']},
  {n:['Pfandbon des Überlebens','Deposit receipt of survival','Чек выживания'],slot:3,material:'tape',trait:'shrineSurvival',d:['Einmal pro Kampf einen tödlichen direkten Treffer mit 1 LP überleben.','Survive one fatal direct hit per battle with 1 HP.','Один раз за бой пережить смертельный прямой удар с 1 ОЗ.']},
  {n:['Panzerung der zweiten Chance','Armor of second chances','Броня второго шанса'],slot:4,material:'rubber',bonuses:[['hp',.12],['def',.12]]},
- {n:['Faust des Rückschlags','Fist of retaliation','Кулак возмездия'],slot:5,material:'oil',bonuses:[['pctCounter',.15],['pctLeech',.035]]}
+ {n:['Faust des Rückschlags','Fist of retaliation','Кулак возмездия'],slot:5,material:'oil',bonuses:[['pctCounter',.15],['pctLeech',.035]]},
+ {n:['Blutrohr der Mahnung','Blood pipe of the final notice','Кровавая труба предупреждения'],slot:0,material:'wire',bonuses:[['pctBleed',.15],['pctLeech',.05]]},
+ {n:['Brechstange der Hochdruckleitung','High-pressure crowbar','Лом высокого давления'],slot:0,material:'bolts',bonuses:[['atk',.12],['pctWeaken',.10]]},
+ {n:['Visier des Nachtschicht-Orakels','Night-shift oracle visor','Визор оракула ночной смены'],slot:1,material:'electronics',bonuses:[['crit',.06],['pctFury',.12]]},
+ {n:['Helm der eisernen Reserve','Helmet of iron reserves','Шлем железного запаса'],slot:1,material:'bolts',bonuses:[['hp',.10],['def',.10]]},
+ {n:['Stiefel der Seitengasse','Side-street boots','Сапоги бокового переулка'],slot:2,material:'rubber',bonuses:[['dodge',.07],['pctCounter',.06]]},
+ {n:['Schlappen des Heimwegs','Homeward slippers','Тапочки обратной дороги'],slot:2,material:'tape',bonuses:[['pctRegen',.012],['hp',.08]]},
+ {n:['Amulett der Rückforderung','Amulet of reclamation','Амулет возмещения'],slot:3,material:'electronics',bonuses:[['pctRecoup',.10],['pctRegen',.008]]},
+ {n:['Bon des großen Gewinns','Receipt of the big win','Чек большого выигрыша'],slot:3,material:'tape',bonuses:[['crit',.05],['atk',.07]]},
+ {n:['Kittel des zähen Überlebens','Coat of stubborn survival','Халат упрямого выживания'],slot:4,material:'rubber',bonuses:[['hp',.14],['pctRegen',.008]]},
+ {n:['Mantel der Rückzahlung','Coat of repayment','Плащ возмещения'],slot:4,material:'tape',bonuses:[['def',.12],['pctRecoup',.08]]},
+ {n:['Handschuhe der roten Rechnung','Gloves of the red bill','Перчатки красного счёта'],slot:5,material:'oil',bonuses:[['pctBleed',.14],['pctLeech',.05]]},
+ {n:['Greifer des Kritrauschs','Critical frenzy grips','Перчатки критического ража'],slot:5,material:'wire',bonuses:[['crit',.04],['pctFury',.14]]}
 ];
 function set47(i){return Number.isInteger(i?.set47)?SET47[i.set47]:null}
 function myth47(i){return Number.isInteger(i?.myth47)?MYTH47[i.myth47]:null}
