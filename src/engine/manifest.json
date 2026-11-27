@@ -17,7 +17,8 @@
     "src/engine/core/09-gems.js",
     "src/engine/core/10-headquarters.js",
     "src/engine/core/11-expeditions.js",
-    "src/engine/core/12-milestones-profiles.js"
+    "src/engine/core/12-milestones-profiles.js",
+    "src/engine/core/13-virtual-players.js"
   ],
   "@@KW_BLOCK_03@@": [
     "src/styles/engine/02-language.css"

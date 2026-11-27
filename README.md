@@ -98,3 +98,6 @@ The initial engine starts with stable image placeholders. Four legacy image pack
 ## Asset integrity v0.60.2
 
 All 541 referenced engine assets were checked against the original four packs. Each view resolves its image references before being displayed. Only required packs are requested, with an original root-path fallback and a timeout. Audio stays deferred. No image placeholder is intentionally exposed in the visible UI. The old pack files, saves, world layout and engine are unchanged.
+
+## Virtuelle Rivalen (lokal)
+Arena ab Stufe 1. Die lokale Rangliste enthält klar als NPC gekennzeichnete, persistente Rivalen (100 standardmäßig). Sie beginnen auf Stufe 1 und absolvieren simulierte Abenteuer, Attributtraining und Arena-Duelle. Der normale Spielerpool und der GM-Sandbox-Pool sind separat; keine Online-Spieler oder verifizierte Rangliste. Offline-Nachholung maximal 24 Stunden, in kleinen Batches. GM kann den Testpool zurücksetzen und 1/7/30 simulierte Tage vorlaufen lassen. Simulation umfasst Basisprogression, reguläre/Unique-Beute und Arena; keine vollständige Simulation von HQ, Dungeons, Expeditionen, Edelsteinen oder Spezialloot. Keine Retention-Prognose. Tests: `node scripts/test-virtual-players.mjs`.

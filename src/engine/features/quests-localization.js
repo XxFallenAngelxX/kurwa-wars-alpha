@@ -269,8 +269,8 @@ const SPECIAL_LORE={
   function localizeOffer(o,lang,previous=s.lang){if(!o)return;const q=questById.get(o.qid);if(q){const tx=q[lang]||q.de;o.name=tx.name;o.desc=tx.desc;}
     if(!Number.isInteger(o.ai)){const old=KW_ADJ[previous]||KW_ADJ.de;const n=old.findIndex(row=>row.some(a=>o.enemy?.startsWith(a+' ')));o.ai=Math.max(0,n);}o.enemy=questEnemy(o.type,lang,o.ai);}
   roll=function(){const pool=KW_QUESTS.slice();offers=Array.from({length:3},(_,i)=>{
-    const q=pool.splice(rand(pool.length),1)[0],l=Math.max(1,s.level+[-2,0,2][i]),tx=q[s.lang]||q.de,ai=rand(KW_ADJ.de.length);
-    return {qid:q.id,bg:q.bg,type:q.type,ai,name:tx.name,desc:tx.desc,enemy:questEnemy(q.type,s.lang,ai),l,cost:5+i*5,duration:adventureDuration(i),g:Math.round((26+l*13)*[1,1.9,3.2][i]*(1+roomBonus(1))),x:Math.round((18+l*10)*[1,1.7,3][i]),difficulty:[.76,1,1.34][i],variance:range(92,108)/100};
+    const q=pool.splice(rand(pool.length),1)[0],tx=q[s.lang]||q.de,ai=rand(KW_ADJ.de.length);
+    return {qid:q.id,bg:q.bg,type:q.type,ai,name:tx.name,desc:tx.desc,enemy:questEnemy(q.type,s.lang,ai),...kwMissionTerms(s.level,i,s.rooms)};
   });s.offers=offers;s.offerLevel=s.level;s.offerLang=s.lang;s.questPatch=QUEST_PATCH_VERSION;save();};
   arenaName=(t,ai)=>questEnemy(t,s.lang,ai);
   window.setLang=function(lang){if(!['de','en','ru'].includes(lang)||s.lang===lang||battle?.running)return;const previous=s.lang;offers.forEach(o=>localizeOffer(o,lang,previous));if(s.travel?.o)localizeOffer(s.travel.o,lang,previous);s.lang=lang;s.offerLang=lang;s.offers=offers;closeItem();note(langNote());render();};
