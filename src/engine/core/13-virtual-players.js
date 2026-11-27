@@ -31,14 +31,14 @@ function kwSimStats(p){return totals(p.state.eq,p.state)}
 function kwSimCP(p){return combatPower(kwSimStats(p),p.state.level)}
 function kwSimAward(p,g,x){let q=p.state;return kwApplyProgress(q,Math.floor(g),Math.floor(x*(1+codexCount(q).ratio)))}
 function kwSimHeal(f,n){if(f.hp>0)f.hp=Math.min(f.stats.hp,f.hp+Math.max(0,Math.floor(n||0)))}
-function kwSimFighter(stats,level){return {stats,level,hp:stats.hp,bleed:0,bleedDamage:0,weaken:0,fury:0}}
+function kwSimFighter(stats,level){return {stats,level,hp:stats.hp,actions:0,bleed:0,bleedDamage:0,weaken:0,fury:0}}
 function kwSimDuel(a,al,b,bl,first=0){return {fighters:[kwSimFighter(a,al),kwSimFighter(b,bl)],turn:0,first,winner:null}}
 /* The same symmetric arena turn is used for NPC/NPC and human/NPC.
    Core armor reduction, crit, variance, rage and proc factors match normal combat. */
 function kwSimTurn(d,random=Math.random){
  if(d.winner!==null)return null;
  const i=(d.turn+d.first)%2,a=d.fighters[i],b=d.fighters[1-i],p=a.stats,q=b.stats;
- d.turn++;let damage=0,crit=false,dodge=false;
+ d.turn++;a.actions=(a.actions||0)+1;let damage=0,crit=false,dodge=false;
  if(a.bleed>0){a.hp=Math.max(0,a.hp-a.bleedDamage);a.bleed--;}
  kwSimHeal(a,p.hp*(p.pctRegen||0));
  if(a.hp>0&&b.hp>0){
@@ -48,6 +48,8 @@ function kwSimTurn(d,random=Math.random){
    b.hp-=damage;kwSimHeal(a,damage*(p.pctLeech||0));
    if(b.hp>0){kwSimHeal(b,damage*(q.pctRecoup||0));if(random()<(p.pctBleed||0)){b.bleed=2;b.bleedDamage=Math.max(1,Math.floor(damage*.15))}if(random()<(p.pctWeaken||0))b.weaken=2;
     if(random()<(q.pctCounter||0)){const counter=Math.min(a.hp,Math.max(1,Math.round(q.atk*.5*(1-reduction(p.def,a.level)))));a.hp-=counter;kwSimHeal(b,counter*(q.pctLeech||0))}
+    // Existing mythic periodic effects, symmetric for either arena fighter.
+    if(a.hp>0&&b.hp>0&&a.actions%3===0){const m=p.myth47||[],n=q.myth47||[];if(m[0])b.hp=Math.max(0,b.hp-Math.round(damage*.18*m[0]));if(b.hp>0){if(n[1])kwSimHeal(b,q.hp*.02*n[1]);if(n[2])a.hp=Math.max(0,a.hp-Math.round(q.atk*.25*n[2]*(1-reduction(p.def,a.level))));}}
    }
   }
   a.fury=Math.max(0,a.fury-1);a.weaken=Math.max(0,a.weaken-1);
@@ -144,9 +146,10 @@ function kwSimArenaTick(b){
 function kwSimGMMarkup(){
  if(!gmAllowed()||serverBoot)return '';
  const w=kwSimRead(),ps=w?.players||[],n=ps.length,avg=n?Math.round(ps.reduce((a,p)=>a+p.state.level,0)/n*10)/10:0;
- const wins=ps.reduce((a,p)=>a+p.state.arena.wins,0),losses=ps.reduce((a,p)=>a+p.state.arena.losses,0),missions=ps.reduce((a,p)=>a+p.missions,0);
+ const wins=ps.reduce((a,p)=>a+p.state.arena.wins,0),losses=ps.reduce((a,p)=>a+p.state.arena.losses,0),missions=ps.reduce((a,p)=>a+p.missions,0),failed=ps.reduce((a,p)=>a+p.failed,0);
+ const byStyle=KW_SIM_TYPES.map((style,i)=>{let group=ps.filter(p=>p.style===i);if(!group.length)return '';let lv=(group.reduce((a,p)=>a+p.state.level,0)/group.length).toFixed(1);let won=group.reduce((a,p)=>a+p.state.arena.wins,0),lost=group.reduce((a,p)=>a+p.state.arena.losses,0);return '<small>'+style[0]+' · '+group.length+' · Ø Lv '+lv+' · '+(won+lost?Math.round(100*won/(won+lost))+'% W':'–')+'</small>'}).join('');
  const disabled=kwSimBusy||battle?.running?'disabled':'';
- return '<div class="panel"><h3>Player Simulation · GM</h3><small>'+hubLabel('Separater Testpool','Separate test pool','Отдельный тестовый пул')+'</small><p>'+n+' NPC · Ø Lv '+avg+' · '+missions+' missions · '+wins+' W / '+losses+' L</p><small>'+profileEscape(kwSimLastError||kwSimStatus||('Simulated days: '+((w?.steps||0)/96).toFixed(2)))+'</small><div class="row">'+[50,100,500,1000].map(n=>'<button '+disabled+' onclick="kwSimReset('+n+')">Reset '+n+'</button>').join('')+'</div><div class="row">'+[1,7,30].map(n=>'<button '+disabled+' onclick="kwSimRun('+n+')">+'+n+' d</button>').join('')+'</div></div>';
+ return '<div class="panel"><h3>Player Simulation · GM</h3><small>'+hubLabel('Separater Testpool','Separate test pool','Отдельный тестовый пул')+'</small><p>'+n+' NPC · Ø Lv '+avg+' · '+missions+' missions · '+(missions?Math.round(100*(missions-failed)/missions):0)+'% PvE W · '+wins+' W / '+losses+' L</p><details><summary>Playstyle metrics</summary><div class="panel">'+byStyle+'</div></details><small>'+profileEscape(kwSimLastError||kwSimStatus||('Simulated days: '+((w?.steps||0)/96).toFixed(2)))+'</small><div class="row">'+[50,100,500,1000].map(n=>'<button '+disabled+' onclick="kwSimReset('+n+')">Reset '+n+'</button>').join('')+'</div><div class="row">'+[1,7,30].map(n=>'<button '+disabled+' onclick="kwSimRun('+n+')">+'+n+' d</button>').join('')+'</div></div>';
 }
 function kwSimReset(count){if(!gmAllowed()||serverBoot||kwSimBusy||battle?.running||![50,100,500,1000].includes(count))return false;const w=kwSimCreate(count);if(!kwSimWrite(w)){render();return false;}arenaState().offer=null;save();kwSimStatus='Reset: '+count+' NPC';render();return true;}
 function kwSimRun(days){

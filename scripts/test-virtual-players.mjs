@@ -40,6 +40,7 @@ test('stalemate capped',()=>{let d=kwSimDuel({hp:100000,atk:1,def:0,crit:0},1,{h
 test('catch-up bounded and respects energy',()=>kwSimAdvance(w,KW_SIM_DAY*10,4)&&w.steps===4&&w.players.every(p=>p.state.energy>=0&&p.state.energy<=100));
 test('matchmaking excludes engaged opponents',()=>{const w2=kwSimCreate(2,0),p=w2.players[0];return kwSimOpponent(w2,p,kwSimStats(p),1,0,new Set([w2.players[1].id]))===null});
 test('shared damage formula',()=>kwCombatDamage(100,0,1,1,true,1)===175);
+test('mythic third attack damage applies',()=>{let p={hp:1000,atk:100,def:0,crit:0,myth47:[1,0,0]},q={hp:1000,atk:1,def:0,crit:0};let d=kwSimDuel(p,1,q,1);for(let i=0;i<5;i++)kwSimTurn(d,()=>.5);return d.fighters[1].hp<680});
 test('GM factors and active save unchanged',()=>JSON.stringify(s)===original);
 results;`);
 console.log('OK virtual players:',out.join('; '));
