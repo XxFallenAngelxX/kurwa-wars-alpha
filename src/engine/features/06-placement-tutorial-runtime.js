@@ -62,7 +62,7 @@ function kwTourMeta55(){
  if(s.tutorial55===undefined)kwTourSet55([0,1,2,3].includes(s.tutorial54)?0:99);
  let n=s.tutorial55,L=hubLabel;
  if(n===99)return null;
- if(n===0)return {n,total:23,title:L('Willkommen bei KURWA WARS','Welcome to KURWA WARS','Добро пожаловать в KURWA WARS'),body:L('Erledige Aufträge, sammle Erfahrung, Cash und Beute und entwickle deinen Helden. Wir zeigen dir jetzt die wichtigsten Bedienelemente direkt im Spiel.','Complete missions, earn XP, cash and loot, and develop your hero. We will show you the actual controls in the game.','Выполняй задания, собирай опыт, деньги и добычу, развивай героя. Покажем основные элементы прямо в игре.'),next:L('Rundtour starten','Start tour','Начать экскурсию'),skip:L('Später','Later','Позже')};
+ if(n===0)return {n,total:23,title:L('Willkommen bei KURVFLICT','Welcome to KURVFLICT','Добро пожаловать в KURVFLICT'),body:L('Erledige Aufträge, sammle Erfahrung, Cash und Beute und entwickle deinen Helden. Wir zeigen dir jetzt die wichtigsten Bedienelemente direkt im Spiel.','Complete missions, earn XP, cash and loot, and develop your hero. We will show you the actual controls in the game.','Выполняй задания, собирай опыт, деньги и добычу, развивай героя. Покажем основные элементы прямо в игре.'),next:L('Rundtour starten','Start tour','Начать экскурсию'),skip:L('Später','Later','Позже')};
  if(n===12&&s.travel){kwTourSet55(13);n=13}
  if(n===13&&battle){kwTourSet55(14);n=14}
  if(n===14&&!battle){kwTourSet55(s.travel?13:16);n=s.tutorial55}

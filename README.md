@@ -1,4 +1,4 @@
-# KURWA WARS – Modular Browser Alpha
+# KURVFLICT – Modular Browser Alpha
 
 ## Starten und entwickeln (Node.js 18+)
 
@@ -70,7 +70,7 @@ In GitHub Desktop Quelländerungen und generiertes Bundle gemeinsam committen un
 
 ## Bisherige Hosting- und Alpha-Hinweise
 
-# KURWA WARS – Browser Alpha v0.52
+# KURVFLICT – Browser Alpha v0.52
 
 ## GitHub Desktop + GitHub Pages
 1. ZIP komplett entpacken. Ordner `kurwa-wars-alpha` in GitHub Desktop ziehen (File > Add local repository). Das Git-Repository ist bereits initialisiert und hat einen ersten Commit.
@@ -101,3 +101,6 @@ All 541 referenced engine assets were checked against the original four packs. E
 
 ## Virtuelle Rivalen (lokal)
 Arena ab Stufe 1. Die lokale Rangliste enthält klar als NPC gekennzeichnete, persistente Rivalen (100 standardmäßig). Sie beginnen auf Stufe 1 und absolvieren simulierte Abenteuer, Attributtraining und Arena-Duelle. Der normale Spielerpool und der GM-Sandbox-Pool sind separat; keine Online-Spieler oder verifizierte Rangliste. Offline-Nachholung maximal 24 Stunden, in kleinen Batches. GM kann den Testpool zurücksetzen und 1/7/30 simulierte Tage vorlaufen lassen. Simulation umfasst Basisprogression, reguläre/Unique-Beute und Arena; keine vollständige Simulation von HQ, Dungeons, Expeditionen, Edelsteinen oder Spezialloot. Keine Retention-Prognose. Tests: `node scripts/test-virtual-players.mjs`.
+
+## Branding
+KURVFLICT – Legendary Bullshit · Gang Shit. Original repository URLs, localStorage keys, manifest ID and gameplay IDs are intentionally retained for existing saves and installations. Artwork import: place the selected image at `assets/branding/kurvflict-source.webp`, then run `python scripts/import-branding.py` (Pillow), `npm run build`, `npm run check`. The import updates the existing header asset in pack 2, the loading art and both PWA icons; only the affected pack version is invalidated.

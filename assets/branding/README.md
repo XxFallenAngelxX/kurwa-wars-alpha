@@ -1,0 +1,1 @@
+Upload the selected KURVFLICT artwork as `kurvflict-source.webp` in this directory. The fix-branch validation workflow derives the loading artwork, compact header logo and app icons from that source. Existing storage keys and IDs are not renamed.
