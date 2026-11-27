@@ -103,6 +103,14 @@
  overscroll-behavior-y:contain;
 }
 #app #screen:has(>.arena)>:not(.arena) { flex-shrink:0; }
+#app .raidRecentRunning {
+ height:clamp(75px,18dvh,118px);
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ flex-direction:column-reverse;
+ justify-content:flex-start;
+}
+#app .raidRecentRunning>.raidLine { flex-shrink:0; }
 #app #screen>.raidLogFinished {
  flex:none; grid-template-rows:auto auto auto; gap:5px;
 }
