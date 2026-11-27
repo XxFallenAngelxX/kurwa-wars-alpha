@@ -333,3 +333,12 @@
 #app .bagCompareSheet .cmpDetails>summary { padding:3px 4px; }
 #app .bagCompareSheet>.tagline { margin:0; }
 #app .bagCompareSheet>.invActions { gap:4px; }
+
+/* Defeat status is anchored below VS, outside the layout flow. */
+#app .arena .vs { position:relative; }
+#app .arena .vs>.vsDefeat {
+ position:absolute; top:calc(100% + 5px); left:50%; transform:translateX(-50%);
+ z-index:2; color:#ff8d86; font-size:clamp(9px,2.7vw,12px); font-weight:900;
+ line-height:1.15; white-space:nowrap; text-shadow:0 1px 3px #140b15,0 0 6px #140b15;
+ pointer-events:none;
+}
