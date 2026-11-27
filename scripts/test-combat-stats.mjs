@@ -37,9 +37,31 @@ assert.equal(new Set(assigned).size,assigned.length,'Duplicate weapon class assi
 assert.deepEqual(Array.from(assigned).sort((a,b)=>a-b),Array.from(data.weapons,x=>x.id).sort((a,b)=>a-b),'Every catalog weapon must have an explicit class');
 console.log('OK: weapon classes, damage attributes, item armor, dodge and luck bounds');
 
-const affixData={};runInNewContext(section('const affixDefs=','const ITEM_TITLE_VARIANTS=')+';this.data={affixDefs,KW_WEAPON_AFFIXES,kwWeaponAffixAllowed,combatValues}',affixData);
+const affixData={};runInNewContext(section('const affixDefs=','const ITEM_TITLE_VARIANTS=')+';this.data={affixDefs,KW_WEAPON_AFFIXES,kwWeaponAffixAllowed,combatValues,affixBestTier,affixTierGate,rollAffixTier,affixValue,applyAffix,affixSecondaryValue,KW_EXTRA_AFFIXES}',affixData);
 const aff=affixData.data;
-assert.equal(aff.affixDefs.length,28);assert.equal(aff.KW_WEAPON_AFFIXES.length,7);
+assert.equal(aff.affixDefs.length,50);assert.equal(aff.KW_EXTRA_AFFIXES.length,22);assert.equal(aff.KW_WEAPON_AFFIXES.length,7);
 for(let i=21;i<28;i++){assert(aff.kwWeaponAffixAllowed(aff.affixDefs[i],0,new Set()));assert(!aff.kwWeaponAffixAllowed(aff.affixDefs[i],1,new Set()));assert(!aff.kwWeaponAffixAllowed(aff.affixDefs[i],0,new Set([21])));}
 assert.equal(aff.combatValues([{pctPoison:.1}]).weaponAura,'poison');assert.equal(aff.combatValues([]).weaponAura,'');assert.equal(aff.combatValues([{pctPoison:.9}]).pctPoison,.25);
 console.log('OK: seven append-only weapon affixes, weapon-only eligibility, aura and proc caps');
+
+for(let l=1;l<=150;l++){
+ const expected=Math.max(1,11-Math.max(1,Math.floor(l/10)));
+ assert.equal(aff.affixBestTier(l),expected);
+ assert.equal(aff.rollAffixTier(l,()=>0),expected);
+ assert.equal(aff.rollAffixTier(l,()=>.999999),10);
+ for(let r=0;r<100;r++){const tier=aff.rollAffixTier(l,()=>r/100);assert(tier>=expected&&tier<=10);assert(aff.affixTierGate(tier)<=l);}
+}
+for(const d of aff.affixDefs)for(let tier=1;tier<=10;tier++){
+ const lo=aff.affixValue(d,100,4,tier,.85),hi=aff.affixValue(d,100,4,tier,1.15);
+ assert(Number.isFinite(lo)&&lo>0&&hi>=lo);
+ if(tier<10)assert(aff.affixValue(d,100,4,tier,1)>=aff.affixValue(d,100,4,tier+1,1));
+ const out={v:[0,0,0,0,0]};aff.applyAffix(out,d,lo);assert(Object.values(out).flat().every(Number.isFinite));
+ if(d[5])assert.equal(out[d[5][0]],aff.affixSecondaryValue(d,lo));
+}
+assert.equal(aff.affixValue(aff.affixDefs[0],100,4,1,1,1),Math.max(1,Math.round(102*(1+4*.27)*.51*1.2)));
+for(const locale of [0,1,2])assert.equal(new Set(aff.KW_EXTRA_AFFIXES.map(row=>row[0][locale])).size,22);
+const reqSource=content.slice(content.indexOf('function relicGate('),content.indexOf('function gearLevel('));
+const req=new Function('affixTierGate','UNIQUES',reqSource+'return itemReq')(aff.affixTierGate,[]);
+assert.equal(req({l:100,mods:[{tier:1,tierScale:2}]}),100);
+assert.equal(req({l:100,mods:[{tier:1}]}),85);
+console.log('OK: 50 affixes, T10–T1 level gates, hybrid values and legacy roll compatibility');

@@ -294,6 +294,7 @@ const SPECIAL_LORE={
   const KW_AFFIX_STAT_EN=['Strength','Dexterity','Intelligence','Stamina','Luck','Crit bonus','Damage','Armor','Health','Damage (%)','Armor (%)','Health (%)','Strength & Dexterity','Intelligence & Stamina','Life leech','Regen / round','Damage recovery','Counter chance','Bleed chance','Weaken chance','Crit buff chance'];
   const KW_AFFIX_STAT_RU=['Сила','Ловкость','Интеллект','Выносливость','Удача','Крит-бонус','Урон','Броня','Здоровье','Урон (%)','Броня (%)','Здоровье (%)','Сила и ловкость','Интеллект и выносливость','Вампиризм','Регенерация / раунд','Возмещение урона','Шанс контратаки','Шанс кровотечения','Шанс ослабления','Шанс усиления от крита'];
   for(const [,key,kind,names,stats] of KW_WEAPON_AFFIXES){KW_COMBAT_EN.push(stats[1]);KW_COMBAT_RU.push(stats[2]);KW_AFFIX_NAME_EN.push(names[1]);KW_AFFIX_NAME_RU.push(names[2]);KW_AFFIX_STAT_EN.push(stats[1]);KW_AFFIX_STAT_RU.push(stats[2]);}
+  for(const [names,kind,key,labels] of KW_EXTRA_AFFIXES){KW_AFFIX_NAME_EN.push(names[1]);KW_AFFIX_NAME_RU.push(names[2]);KW_AFFIX_STAT_EN.push(labels[1]);KW_AFFIX_STAT_RU.push(labels[2]);}
   const KW_EPITHET_MAP={
     'TÜV Edition':['Inspection Edition','Версия техосмотра'],
     'Unikat':['One-off','Единственный экземпляр'],'Sondermodell':['Special model','Особая модель'],

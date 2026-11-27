@@ -39,3 +39,6 @@ header{grid-template-columns:clamp(43px,16vw,70px) minmax(0,1fr) minmax(0,auto);
 #screen .missionScene .travelClock{font-size:clamp(22px,5vh,34px);line-height:1.1}
 #screen .missionScene .travelBar{flex-shrink:0}
 @media(max-height:580px){#screen .missionScene{padding:5px;gap:3px}#screen .missionScene>.missionDesc{font-size:10px}#screen .missionReward{padding:3px 6px;font-size:12px}#screen .missionScene>img{max-height:43%}#screen .missionMeta{min-height:25px}#screen .missionPager button{min-height:25px}}
+
+/* Ten-tier affix scale. */
+.affixMod{grid-template-columns:38px minmax(0,1fr)}.affixMod>div{min-width:0;overflow-wrap:anywhere}.tier{white-space:nowrap;font-variant-numeric:tabular-nums}.tier.t6{color:#a8c0a4}.tier.t7{color:#9bb6c8}.tier.t8{color:#b6afb9}.tier.t9{color:#a89cae}.tier.t10{color:#9c929e}
