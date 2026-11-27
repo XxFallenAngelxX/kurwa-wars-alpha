@@ -97,8 +97,11 @@ function kwSimModel(p,now=0){
  q.rooms??=Array(13).fill(0);q.training??=[0,0,0,0,0];q.bag??=[];q.premium??=12;
  q.d??=typeof zones==='undefined'?[]:zones.map(()=>0);q.keys??=q.d.map(()=>false);
  q.codex??={items:{},foes:{}};q.tower??=0;q.eventTower??=0;q.fairyTower??=0;q.keyPity??=0;
- return p.sim??={day:-1,slots:[],pending:null,activeMs:0,engagedMs:0,material:{},reserve:[],
+ let a=p.sim??={day:-1,slots:[],pending:null,travel:null,activeMs:0,engagedMs:0,material:{},reserve:[],
   counters:{},nextShop:0,shopLevel:0,nextBoss:0,board:null,lastEnergy:Number.isFinite(q.last)?q.last:now};
+ if(a.pending?.kind==='travel'){a.travel=a.pending;a.pending=null}
+ a.difficulty??=[0,1,1,1,0,0][p.style]??0;a.missionStreak??=0;
+ return a;
 }
 function kwSimCount(p,key,n=1){let a=kwSimModel(p).counters;a[key]=(a[key]||0)+n}
 function kwSimSchedule(p,day){
@@ -210,8 +213,11 @@ function kwSimOfferMission(p,ride){
  let q=p.state,options=[0,1,2].map(i=>kwMissionTerms(q.level,i,q.rooms)).filter(o=>q.energy>=o.cost);
  if(!options.length)return null;
  // Players trade reward efficiency against risk; no perfect pre-fight oracle.
- let o=p.style===4?options[0]:p.style===2?options.at(-1):Math.random()<.65?options.at(-1):pick(options);
- o.type=rand(foeTypes.length);o.g=Math.round(o.g*(1+ride.gold));o.x=Math.round(o.x*(1+ride.xp));o.rideDrop=ride.drop;o.rideGems=ride.gems;
+ let a=kwSimModel(p),target=p.style===4?0:a.difficulty;
+ let o=options.reduce((best,x)=>x.cost/5-1<=target?x:best,options[0]);
+ // An occasional harder attempt after successes; repeated failures teach the NPC to back off.
+ if(p.style!==4&&a.missionStreak>=3&&Math.random()<.12)o=options[Math.min(options.length-1,options.indexOf(o)+1)];
+ o.tier=o.cost/5-1;o.type=rand(foeTypes.length);o.g=Math.round(o.g*(1+ride.gold));o.x=Math.round(o.x*(1+ride.xp));o.rideDrop=ride.drop;o.rideGems=ride.gems;
  o.duration=Math.max(1000,Math.round((o.duration||10000)*(1-roomBonus(6,q.rooms[6]))*(kwSimStats(p).shrineTravel?.8:1)*(1-ride.speed)/1000)*1000);return o;
 }
 function kwSimSideOffer(p,now){
@@ -258,21 +264,25 @@ function kwSimFinishFight(p,o,r,now){
  let q=p.state,a=kwSimModel(p);
  if(o.expedition){if(r.won){let e=a.expedition;if(e){e.hpRatio=Math.max(.01,r.hpRatio);e.cash+=o.g;e.xp+=o.x;q.codex.foes[foeKey(o)]=true;if(e.danger>0&&Math.random()<.35)e.danger--;kwSimExpAdvance(p)}}else kwSimExpFinish(p,false);kwSimCount(p,r.won?'expeditionWins':'expeditionDefeats');return}
  let mission=o.d===undefined&&!o.tower&&!o.activity;
- if(mission){p.missions++;if(!r.won)p.failed++}
- if(!r.won){if(!mission){kwSimCount(p,'sideDefeats');a.nextBoss=now+3600000}a.eventHp=1;return}
+ if(mission){
+  p.missions++;kwSimCount(p,'missionTier'+(o.tier??o.cost/5-1));
+  if(!r.won){p.failed++;a.missionStreak=0;a.difficulty=Math.max(0,(o.tier??o.cost/5-1)-1);kwSimCount(p,'missionLossTier'+(o.tier??o.cost/5-1))}
+  else if(++a.missionStreak>=(p.style===2?3:5)){if(p.style!==4)a.difficulty=Math.min(2,Math.max(a.difficulty,o.tier??o.cost/5-1)+1);a.missionStreak=0}
+ }
+ if(!r.won){if(!mission){kwSimCount(p,'sideDefeats');a.nextBoss=now+3600000}a.eventHp=1;a.eventRun=false;return}
  q.wins++;kwSimAward(p,o.g,o.x);q.codex.foes[foeKey(o)]=true;
  if(mission){kwSimCount(p,'missions');kwSimNextKey(p)}
  if(o.d!==undefined){q.d[o.d]++;kwSimCount(p,'bosses')}
  else if(o.fairy){q.fairyTower=Math.min(100,o.floor);kwSimCount(p,'fairyFloors')}
- else if(o.event){q.eventTower++;a.eventHp=Math.max(.01,r.hpRatio);kwSimCount(p,'eventFloors')}
+ else if(o.event){q.eventTower++;a.eventHp=Math.max(.01,r.hpRatio);a.eventRun=true;kwSimCount(p,'eventFloors')}
  else if(o.tower){q.tower++;kwSimCount(p,'towerFloors')}
  if(o.activity)kwSimFind(p,o.find);
  kwSimDrops(p,o,r);kwSimReserve(p);
 }
-function kwSimStartFight(p,o,now){let a=kwSimModel(p),r=kwSimBattle(p,o,o.expedition?o.hpRatio:o.event?(a.eventHp||1):1);a.pending={kind:'fight',o,result:r,ready:now+KW_SIM_ACTION_MS+r.turns*KW_SIM_COMBAT_MS};return a.pending.ready}
+function kwSimStartFight(p,o,now){let a=kwSimModel(p);if(!o.event){a.eventRun=false;a.eventHp=1}let r=kwSimBattle(p,o,o.expedition?o.hpRatio:o.event&&a.eventRun?(a.eventHp||1):1);a.pending={kind:'fight',o,result:r,ready:now+KW_SIM_ACTION_MS+r.turns*KW_SIM_COMBAT_MS};return a.pending.ready}
 function kwSimSession(p,style,start,end,w,used,lastSlot=false){
  let q=p.state,a=kwSimModel(p,start),t=start;p.actions++;a.activeMs+=end-start;
- kwSimRegen(p,t);let ride=kwSimJobs(p,t,true);kwSimBoard(p,Math.floor((w.steps-1)/96));kwSimReserve(p);kwSimShop(p,t);kwSimGemSocket(p);
+ kwSimRegen(p,t);let ride=kwSimJobs(p,t,true);kwSimBoard(p,Math.floor(start/KW_SIM_DAY));kwSimReserve(p);kwSimShop(p,t);kwSimGemSocket(p);
  let primary=weaponClass(q.eq[0])==='ranged'?2:0,attr=Math.random()<.55?primary:pick(style[4]),cost=trainCost(attr,q);
  if(q.gold>=cost){q.gold-=cost;q.stats[attr]++;q.training[attr]++}t+=20000;
  // Arena requires an active challenger, a free time slot and a real cooldown.
@@ -284,27 +294,31 @@ function kwSimSession(p,style,start,end,w,used,lastSlot=false){
   kwSimRegen(p,t);
   if(a.pending){
    let x=a.pending;if(x.ready>end){t=end;break}t=Math.max(t,x.ready);if(t+KW_SIM_ACTION_MS>end)break;
-   if(x.kind==='travel'){kwSimStartFight(p,x.o,t);continue}
    a.pending=null;kwSimFinishFight(p,x.o,x.result,t);t+=KW_SIM_ACTION_MS;continue;
   }
   if(a.expedition){let o=kwSimExpChoice(p);if(o)kwSimStartFight(p,o,t);else t+=KW_SIM_ACTION_MS;continue}
   if(end-t<KW_SIM_ACTION_MS)break;
+  if(a.travel&&a.travel.ready<=t){let o=a.travel.o;a.travel=null;kwSimStartFight(p,o,t);continue}
+  // Continue event waves with retained HP only during one uninterrupted run.
+  if(a.eventRun&&q.level>=35&&end-t>10000&&Math.random()<.7){let n=q.eventTower,l=1+Math.floor(n*1.45);kwSimStartFight(p,{tower:true,event:true,floor:n+1,l,type:(n*17+5)%foeTypes.length,cost:0,g:Math.round((100+l*35)*(1+roomBonus(11,q.rooms[11]))),x:Math.round(35+l*8),variance:1.12},t);continue}
+  a.eventRun=false;a.eventHp=1;
   if(Math.random()<(p.style===2||p.style===5?.35:.15)){let side=kwSimSideOffer(p,t);if(side){kwSimStartFight(p,side,t);continue}}
   if(Math.random()<(p.style===4||p.style===5?.22:.08)){
    if(Math.random()<.35&&kwSimExpStart(p,t)){t+=KW_SIM_ACTION_MS;continue}
    let o=kwSimActivity(p,t);if(o){if(o.activity)kwSimStartFight(p,o,t);else t+=KW_SIM_ACTION_MS;continue}
   }
+  if(a.travel){t=Math.min(end,Math.max(t+KW_SIM_ACTION_MS,a.travel.ready));continue}
   if(q.shift){if(q.shift.end<=t){q.gold+=q.shift.pay;q.shift=null;kwSimCount(p,'shifts')}else break}
   let o=kwSimOfferMission(p,ride);if(!o||!kwSimSpend(p,o.cost,t))break;
-  a.eventHp=1;a.pending={kind:'travel',o,ready:t+o.duration+KW_SIM_ACTION_MS};kwSimCount(p,'travelStarted');
+  a.travel={kind:'travel',o,ready:t+o.duration+KW_SIM_ACTION_MS};t+=KW_SIM_ACTION_MS;kwSimCount(p,'travelStarted');
  }
- a.engagedMs+=Math.max(0,Math.min(end,t)-start);kwSimBoard(p,Math.floor((w.steps-1)/96));
+ a.engagedMs+=Math.max(0,Math.min(end,t)-start);kwSimBoard(p,Math.floor(start/KW_SIM_DAY));
  // The night shift occupies offline time and prevents starting an adventure.
- if(lastSlot&&!a.pending&&!a.expedition&&!q.shift){let hours=p.style===0?8:p.style===2?4:6,pay=Math.floor(hours*(65+q.level*12+3*Math.pow(Math.max(0,q.level-20),1.4))*(1+roomBonus(8,q.rooms[8])));q.shift={end:end+hours*3600000,pay}}
+ if(lastSlot&&!a.pending&&!a.travel&&!a.expedition&&!q.shift){let hours=p.style===0?8:p.style===2?4:6,pay=Math.floor(hours*(65+q.level*12+3*Math.pow(Math.max(0,q.level-20),1.4))*(1+roomBonus(8,q.rooms[8])));q.shift={end:end+hours*3600000,pay}}
  kwSimRegen(p,end);return true;
 }
 function kwSimStep(w){
- let start=w.clock;w.clock+=KW_SIM_STEP;w.steps++;let day=Math.floor((w.steps-1)/96),slot=(w.steps-1)%96,used=new Set(),n=w.players.length,offset=rand(n);
+ let start=w.clock;w.clock+=KW_SIM_STEP;w.steps++;let day=Math.floor(start/KW_SIM_DAY),slot=Math.floor(((start%KW_SIM_DAY)+KW_SIM_DAY)%KW_SIM_DAY/KW_SIM_STEP),used=new Set(),n=w.players.length,offset=rand(n);
  for(let i=0;i<n;i++){let p=w.players[(i+offset)%n],slots=kwSimSchedule(p,day);
   if(slots.includes(slot))kwSimSession(p,KW_SIM_TYPES[p.style]||KW_SIM_TYPES[0],start,w.clock,w,used,slot===slots.at(-1));
   else{kwSimRegen(p,w.clock);kwSimJobs(p,w.clock)}
