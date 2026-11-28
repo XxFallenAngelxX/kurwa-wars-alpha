@@ -36,7 +36,21 @@ const apply=core.split('\n').find(x=>x.startsWith('function kwApplyProgress('));
 const damage=read('src/engine/core/06-combat-world-ui.js').split('\n').find(x=>x.startsWith('function kwCombatDamage('));
 const itemCode=read('src/engine/core/02-content-items.js'),weaponData=itemCode.split('\n').find(x=>x.startsWith('const KW_WEAPON_AFFIXES='));
 const combatCode=read('src/engine/core/06-combat-world-ui.js'),weaponRuntime=combatCode.slice(combatCode.indexOf('function kwWeaponEffectsLabel('),combatCode.indexOf('function fightDecay('));
-const out=runInNewContext(setup+apply+'\n'+damage+'\n'+weaponData+'\n'+weaponRuntime+'\n'+sim+'\n'+inspect+`
+const gemCode=read('src/engine/core/09-gems.js'),specialCode=read('src/engine/features/03-special-loot.js'),activityCode=read('src/engine/features/08-activities.js');
+const line=(c,k)=>c.split('\n').find(x=>x.startsWith(k));
+const part=(c,a,b)=>c.slice(c.indexOf(a),c.indexOf(b,c.indexOf(a)+1));
+const extras=[
+ 'function materialPool(){return [{id:"scrap"},{id:"bolts"}]}function rarity(){return 0}function rarity47(i){return i.r}function regularBase(){return 0}',
+ line(combatCode,'function materialShopPrice('),
+ part(combatCode,'const SHRINE_SLOTS=','function shrineDuration('),
+ part(combatCode,'function shrineRecipe(','function sacrifice('),
+ part(gemCode,'const GEM_FAMILIES=','const GEM_CACHE='),
+ line(gemCode,'function gemId('),line(gemCode,'function gemData('),line(gemCode,'function fusionRecipe('),
+ part(specialCode,'const ENCHANT47=','function set47('),
+ part(specialCode,'function enchantCost47(','function enchantAffordable47('),
+ line(activityCode,'function kwMarketOffers('),line(combatCode,'function pfMultiplier('),'const pfMaxMoves=15;'
+].join('\n');
+const out=runInNewContext(setup+extras+'\n'+apply+'\n'+damage+'\n'+weaponData+'\n'+weaponRuntime+'\n'+sim+'\n'+inspect+`
 const results=[];
 function test(n,f){if(!f())throw Error(n);results.push(n)}
 const original=JSON.stringify(s),w=kwSimCreate(100,0);
@@ -68,6 +82,10 @@ test('travel time delays XP and mission completion',()=>{let q=kwSimCreate(1,0),
 test('mission difficulty responds to actual defeats',()=>{let p=kwSimCreate(1,0).players[0],a=kwSimModel(p);a.difficulty=2;kwSimFinishFight(p,{cost:15,tier:2},{won:false},0);return a.difficulty===1&&p.failed===1&&p.missions===1});
 test('daily attendance is bounded',()=>{let q=kwSimCreate(100,0);return q.players.every(p=>{let slots=kwSimSchedule(p,0),[lo,hi]=KW_SIM_ATTENDANCE[p.style];return slots.length>=lo&&slots.length<=hi&&new Set(slots).size===slots.length})});
 test('offline defense does not grant free rewards',()=>{let p=kwSimCreate(1,0).players[0],gold=p.state.gold,xp=p.state.xp;kwSimArenaResult(p,true,0,false);return p.state.gold===gold&&p.state.xp===xp&&p.state.arena.wins===1});
+test('recycling queue settles once and awards real recipe',()=>{let p=kwSimCreate(1,0).players[0],a=kwSimModel(p),q=p.state;q.level=10;a.recycle.push({id:'a',a:0,l:10,r:0,slot:0,v:[0,0,0,0,0]});kwSimShrine(p,0,true);if(q.shrine.jobs.length!==1||q.shrine.mana!==0||a.counters.sacrifices!==1)return false;kwSimShrine(p,13*60000-1,true);if(q.shrine.mana!==0)return false;kwSimShrine(p,13*60000,true);kwSimShrine(p,13*60000,true);return q.shrine.jobs.length===0&&q.shrine.mana===12&&a.material.scrap===2&&a.counters.recycled===1});
+test('fusion pays exact resources and waits for collection',()=>{let p=kwSimCreate(1,0).players[0],q=p.state,a=kwSimModel(p);q.level=20;q.gold=10000;Object.assign(a.material,{'gem:ruby:1':3,scrap:2,bolts:1});if(!kwSimFusion(p,0)||q.gold!==9750||a.material['gem:ruby:1']||a.material['gem:ruby:2'])return false;kwSimFusion(p,179999);if(a.material['gem:ruby:2'])return false;kwSimFusion(p,180000);return a.material['gem:ruby:2']===1&&a.counters.fusions===1&&!q.gemLab.job});
+test('market limits three trades per offer and resets daily',()=>{let p=kwSimCreate(1,0).players[0],q=p.state,a=kwSimModel(p);q.level=40;q.gold=10000;a.material.scrap=50;for(let i=0;i<5;i++)kwSimMarket(p,0);if(a.market.bought[0]!==3||a.material.oil!==3||q.gold!==9400||a.material.scrap!==41)return false;kwSimMarket(p,1);return a.market.day===1&&a.market.bought[3]===1});
+test('memory uses six pairs and bounded moves',()=>{for(let i=0;i<100;i++){let r=kwSimMemoryRound(.8);if(r.moves<6||r.moves>15||r.misses>r.moves||!r.complete&&r.moves!==15)return false}return true});
 test('GM factors and active save unchanged',()=>JSON.stringify(s)===original);
 const beforeRank=s;s=fresh();profileWrite('kwars_rank:real',{cp:1,level:1});
 test('active rank ignores stale snapshot and updates instantly',()=>{const a=kwRankLocalRecord(activeProfile).cp;s.stats[0]+=400000;return kwRankLocalRecord(activeProfile).cp-a===400000});

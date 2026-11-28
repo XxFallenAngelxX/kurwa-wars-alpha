@@ -14,7 +14,7 @@ function kwSimCreate(count=KW_SIM_COUNT,now=Date.now()){
  count=Math.max(1,Math.min(1000,Math.floor(count)||KW_SIM_COUNT));
  return {version:1,paceRevision:3,modelStartStep:0,recoverySteps:0,wall:now,clock:now,steps:0,players:Array.from({length:count},(_,i)=>{
   let q=Math.floor(i*100/count),t=KW_SIM_TYPES.findIndex((x,j)=>q<KW_SIM_TYPES.slice(0,j+1).reduce((a,v)=>a+v[1],0));
-  let state=fresh();state.last=now;state.training=[0,0,0,0,0];state.codex={items:{},foes:{}};
+  let state=fresh();if(state.fleet){state.fleet.until=state.fleet.until.map((t,i)=>i===0?now+3*KW_SIM_DAY:0);state.vehicle=0;state.vehiclesOwned=state.fleet.until.map(t=>t>now)}state.last=now;state.training=[0,0,0,0,0];state.codex={items:{},foes:{}};
   for(const it of state.eq.filter(Boolean))state.codex.items[catalog[it.a][0]]=true;
   state.arena={wins:0,losses:0,rating:0,streak:0,until:0};
   return {id:'npc_'+i,name:kwSimName(i),avatar:i%PROFILE_AVATARS.length,simulated:true,style:t,state,missions:0,failed:0,actions:0};
@@ -157,7 +157,7 @@ function kwSimModel(p,now=0){
  let a=p.sim??={day:-1,slots:[],pending:null,travel:null,activeMs:0,engagedMs:0,material:{},reserve:[],
   counters:{},nextShop:0,shopLevel:0,nextBoss:0,board:null,lastEnergy:Number.isFinite(q.last)?q.last:now};
  if(a.pending?.kind==='travel'){a.travel=a.pending;a.pending=null}
- a.difficulty??=[0,1,1,1,0,0][p.style]??0;a.missionStreak??=0;
+ a.difficulty??=[0,1,1,1,0,0][p.style]??0;a.missionStreak??=0;a.recycle??=[];
  return a;
 }
 function kwSimCount(p,key,n=1){let a=kwSimModel(p).counters;a[key]=(a[key]||0)+n}
@@ -179,18 +179,25 @@ function kwSimRegen(p,now){
 function kwSimSpend(p,n,now){kwSimRegen(p,now);let q=p.state;if(q.energy<n)return false;if(q.energy===100)kwSimModel(p).lastEnergy=now;q.energy-=n;kwSimCount(p,'energySpent',n);return true}
 function kwSimMat(p,key,n){
  let q=p.state,a=kwSimModel(p),m=a.material,cap=18+(q.level>=12?48+12*(q.hq?.lv?.[4]||0):0);
- let used=Object.values(m).reduce((v,k)=>v+Math.ceil(k/999),0)+a.reserve.length;
+ let used=Object.values(m).reduce((v,k)=>v+Math.ceil(k/999),0)+a.reserve.length+a.recycle.length;
  let old=m[key]||0,space=Math.max(0,cap-used)*999+(old?Math.ceil(old/999)*999-old:0),add=Math.min(n,space);
  if(add>0)m[key]=old+add;return add;
 }
 function kwSimConsume(p,req){let m=kwSimModel(p).material;if(!Object.entries(req).every(([k,n])=>(m[k]||0)>=n))return false;for(const [k,n] of Object.entries(req)){m[k]-=n;if(!m[k])delete m[k]}return true}
+function kwSimInventorySlots(p){let a=kwSimModel(p);return Object.values(a.material).reduce((n,v)=>n+Math.ceil(v/999),0)+a.reserve.length+a.recycle.length}
+function kwSimInventoryCap(p){let q=p.state;return 18+(q.level>=12?48+12*(q.hq?.lv?.[4]||0):0)}
+function kwSimDispose(p,it){
+ if(!it)return;let q=p.state,a=kwSimModel(p);
+ if(q.level>=10&&typeof shrineRecipe==='function'&&a.recycle.length<5&&kwSimInventorySlots(p)<kwSimInventoryCap(p)&&Math.random()<(p.style===5?.85:p.style===4?.65:.45)){a.recycle.push(it);return}
+ q.gold+=price(it);kwSimCount(p,'gearSales');
+}
 function kwSimGear(p,it){
  let q=p.state,a=kwSimModel(p);if(!it)return;
  q.codex.items[catalog[it.a][0]]=true;let old=q.eq[it.slot],next=q.eq.slice();next[it.slot]=it;
- if(itemReq(it)<=q.level&&combatPower(totals(next,q),q.level)>kwSimCP(p)){q.eq=next;if(old)q.gold+=price(old);kwSimCount(p,'gearUpgrades');return}
+ if(itemReq(it)<=q.level&&combatPower(totals(next,q),q.level)>kwSimCP(p)){q.eq=next;if(old)kwSimDispose(p,old);kwSimCount(p,'gearUpgrades');return}
  // Keep at most one promising future item per slot, instead of permanently discarding it.
- if(itemReq(it)>q.level&&itemReq(it)<=q.level+5){let k=a.reserve.findIndex(x=>x.slot===it.slot),r=a.reserve[k];if(!r||r.l<it.l){if(r){q.gold+=price(r);a.reserve[k]=it}else a.reserve.push(it);return}}
- q.gold+=price(it);
+ if(itemReq(it)>q.level&&itemReq(it)<=q.level+5){let k=a.reserve.findIndex(x=>x.slot===it.slot),r=a.reserve[k];if(!r||r.l<it.l){if(r){a.reserve[k]=it;kwSimDispose(p,r);return}else if(kwSimInventorySlots(p)<kwSimInventoryCap(p)){a.reserve.push(it);return}}}
+ kwSimDispose(p,it);
 }
 function kwSimReserve(p){let a=kwSimModel(p),ready=a.reserve.filter(i=>itemReq(i)<=p.state.level);a.reserve=a.reserve.filter(i=>itemReq(i)>p.state.level);for(const i of ready)kwSimGear(p,i)}
 function kwSimShop(p,now){
@@ -230,13 +237,94 @@ function kwSimHQAccrue(p,now){
 }
 function kwSimJobs(p,now,manage=false){
  let q=p.state;if(q.roomJob&&q.roomJob.end<=now){q.rooms[q.roomJob.i]++;q.roomJob=null;kwSimCount(p,'rooms')}
- kwSimHQAccrue(p,now);let ride=kwSimFleet(p,now,manage);
+ kwSimHQAccrue(p,now);kwSimShrine(p,now,manage);let ride=kwSimFleet(p,now,manage);
  if(!manage)return ride;
  if(q.shift&&q.shift.end<=now){q.gold+=q.shift.pay;q.shift=null;kwSimCount(p,'shifts')}
  if(q.hq){for(const [k,v] of Object.entries(q.hq.stock)){let n=Math.floor(v);if(!n)continue;let used=k==='cash'?(q.gold+=n,n):k==='xp'?(kwSimAward(p,0,n),n):kwSimMat(p,k,n);q.hq.stock[k]-=used}
   if(!q.hq.job&&typeof hqRecipe==='function'){let order=[0,1,2,3,5,4].sort((i,j)=>q.hq.lv[i]-q.hq.lv[j]);for(const i of order){let r=hqRecipe(i,q.hq.lv,true);if(q.gold>=r.cash*2&&kwSimConsume(p,r.mats)){q.gold-=r.cash;q.hq.job={i,end:now+r.duration};break}}}}
  if(q.level>=3&&!q.roomJob&&typeof roomCost==='function'){let order=[0,2,3,5,6,1,4,7,8,10,11,9,12].sort((i,j)=>q.rooms[i]-q.rooms[j]);for(const i of order){if((i===9&&q.level<10)||(i===12&&q.level<20))continue;let cost=roomCost(i,q);if(q.gold>=cost*2&&kwSimConsume(p,roomMaterials(i,q))){q.gold-=cost;q.roomJob={i,end:now+roomDuration(i,q,true)};break}}}
  return ride;
+}
+
+/* Additional NPC systems: real recipes, costs, gates and delayed collections. */
+function kwSimShrine(p,now,manage=false){
+ let q=p.state,a=kwSimModel(p);if(q.level<10||typeof SHRINE_SLOTS==='undefined')return;
+ let sh=q.shrine??={mana:0,aura:0,last:0,jobs:[]};sh.jobs??=[];
+ for(const j of sh.jobs){if(!j.done&&j.end<=now){j.done=true;sh.mana+=j.mana;kwSimCount(p,'recycled')}}
+ if(!manage)return;
+ for(const j of sh.jobs.filter(j=>j.done))for(const [k,n] of Object.entries(j.materials))j.materials[k]-=kwSimMat(p,k,n);
+ sh.jobs=sh.jobs.filter(j=>Object.values(j.materials).some(n=>n>0)||!j.done);
+ while(a.recycle.length&&sh.jobs.length<SHRINE_SLOTS){
+  let it=a.recycle.shift(),tier=shrineRarity(it),start=Math.max(now,...sh.jobs.filter(j=>!j.done).map(j=>j.end));
+  sh.jobs.push({id:it.id,item:it,start,end:start+SHRINE_MINUTES[tier]*60000,materials:shrineRecipe(it),mana:Math.floor(SHRINE_MANA[tier]*(1+roomBonus(9,q.rooms[9]))),done:false});kwSimCount(p,'sacrifices');
+ }
+ let need=100+sh.aura*25;
+ if(sh.mana>=need&&kwSimInventorySlots(p)<kwSimInventoryCap(p)){
+  sh.mana-=need;sh.aura++;kwSimGear(p,make(typeof regularBase==='function'?regularBase():pick(REGULAR_POOL),Math.max(1,q.level),Math.max(3,rarity(q.level))));kwSimCount(p,'flushes');
+ }
+}
+function kwSimFusion(p,now){
+ let q=p.state,a=kwSimModel(p);if(q.level<20||typeof fusionRecipe!=='function')return false;
+ let lab=q.gemLab??={job:null};
+ if(lab.job){if(lab.job.end>now||kwSimMat(p,lab.job.out,1)!==1)return false;lab.job=null;kwSimCount(p,'fusions')}
+ let keys=Object.keys(a.material).filter(k=>a.material[k]>=3&&gemData(k)).sort((x,y)=>gemData(y).tier-gemData(x).tier);
+ for(const k of keys){let r=fusionRecipe(k,q,true);if(!r||q.gold<r.cash*2||!kwSimConsume(p,r.req))continue;
+  q.gold-=r.cash;lab.job={out:r.out,start:now,end:now+r.duration};kwSimCount(p,'fusionStarts');kwSimCount(p,'fusionCash',r.cash);return true}
+ return false;
+}
+function kwSimEnchant(p){
+ let q=p.state;if(q.level<10||typeof ENCHANT47==='undefined'||typeof enchantCost47!=='function')return false;
+ let cp=kwSimCP(p),best=null;
+ for(const it of q.eq.filter(Boolean)){
+  if(it.locked||Number.isInteger(it.enchant47)||it.l<q.level*.70)continue;
+  for(let k=0;k<ENCHANT47.length;k++){let e=ENCHANT47[k];if(e.slot!==it.slot)continue;let c=enchantCost47(it,e),m=kwSimModel(p).material;
+   if(q.gold<c.cash*3||!Object.entries(c.mats).every(([key,n])=>(m[key]||0)>=n))continue;
+   let next=q.eq.slice();next[it.slot]={...it,enchant47:k};let score=combatPower(totals(next,q),q.level)-cp;
+   if(e.trait)score+=cp*(e.trait==='shrineTravel'?.025:.015);
+   if(score>0&&(!best||score/c.cash>best.score/best.c.cash))best={it,k,c,score};
+  }
+ }
+ if(!best||!kwSimConsume(p,best.c.mats))return false;
+ q.gold-=best.c.cash;best.it.enchant47=best.k;kwSimCount(p,'enchants');kwSimCount(p,'enchantCash',best.c.cash);return true;
+}
+function kwSimMarket(p,day){
+ let q=p.state,a=kwSimModel(p);if(q.level<40||typeof kwMarketOffers!=='function')return false;
+ if(a.market?.day!==day)a.market={day,bought:{}};
+ let offers=kwMarketOffers(day);for(let i=0;i<offers.length;i++){let o=offers[i];
+  if((a.market.bought[i]||0)>=3||q.gold<o.gold*2||(a.material[o.key]||0)>=6||(a.material[o.source]||0)<o.qty+2)continue;
+  if(kwSimInventorySlots(p)>=kwSimInventoryCap(p)&&!(a.material[o.key]>0&&a.material[o.key]%999))continue;
+  if(!kwSimConsume(p,{[o.source]:o.qty}))continue;
+  if(kwSimMat(p,o.key,1)!==1){kwSimMat(p,o.source,o.qty);continue}
+  q.gold-=o.gold;a.market.bought[i]=(a.market.bought[i]||0)+1;kwSimCount(p,'marketTrades');kwSimCount(p,'marketCash',o.gold);return true;
+ }
+ return false;
+}
+function kwSimMemoryRound(recall,random=Math.random){
+ let cards=[0,1,2,3,4,5,0,1,2,3,4,5];for(let i=cards.length-1;i>0;i--){let j=Math.floor(random()*(i+1));[cards[i],cards[j]]=[cards[j],cards[i]]}
+ let known=new Map(),matched=new Set(),moves=0,misses=0,limit=typeof pfMaxMoves==='number'?pfMaxMoves:15;
+ const choose=a=>a[Math.floor(random()*a.length)];
+ while(moves<limit&&matched.size<12){
+  for(const k of known.keys())if(random()>recall)known.delete(k);
+  let free=cards.map((_,i)=>i).filter(i=>!matched.has(i)),pair=null;
+  for(const [i,v] of known){let j=[...known].find(([j,w])=>j!==i&&w===v)?.[0];if(j!==undefined){pair=[i,j];break}}
+  let unknown=free.filter(i=>!known.has(i)),i=pair?pair[0]:choose(unknown.length?unknown:free);
+  known.set(i,cards[i]);let j=pair?pair[1]:[...known].find(([j,v])=>j!==i&&v===cards[i])?.[0];
+  if(j===undefined){let rest=free.filter(k=>k!==i),unseen=rest.filter(k=>!known.has(k));j=choose(unseen.length?unseen:rest)}
+  known.set(j,cards[j]);moves++;
+  if(cards[i]===cards[j]){matched.add(i);matched.add(j);known.delete(i);known.delete(j)}else misses++;
+ }
+ return {moves,misses,complete:matched.size===12};
+}
+function kwSimMemory(p,day,available){
+ let q=p.state,a=kwSimModel(p);if(typeof pfMultiplier!=='function'||available<55000||a.memoryDay===day)return 0;
+ if(Math.random()>[.25,.22,.17,.12,.18,.38][p.style])return 0;
+ a.memoryDay=day;let f=q.pf??={wins:0,losses:0,played:0,best:null,netCash:0,netGems:0,earned:0};
+ let cash=Math.random()<.45?Math.min(q.gold,100+q.level*100,Math.floor(q.gold*.01)):0,gems=Math.random()<.12?Math.min(q.premium,2+Math.floor(q.level/5),1):0;
+ let r=kwSimMemoryRound([.78,.87,.93,.86,.84,.91][p.style]??.85),factor=r.complete?pfMultiplier(r.moves,16):0,prize=Math.floor(cash*factor),gemPrize=Math.floor(gems*factor);
+ q.gold+=prize-cash;q.premium+=gemPrize-gems;f.played++;f.earned+=prize;f.netCash+=prize-cash;f.netGems+=gemPrize-gems;
+ if(r.complete){f.wins++;f.best=f.best===null?r.moves:Math.min(f.best,r.moves)}if(!r.complete||factor<1)f.losses++;
+ kwSimCount(p,'memoryRounds');kwSimCount(p,'memory',r.complete?1:0);kwSimCount(p,'memoryNetCash',prize-cash);kwSimCount(p,'memoryNetGems',gemPrize-gems);
+ return r.moves*2200+r.misses*850+KW_SIM_ACTION_MS;
 }
 function kwSimGemSocket(p){
  let q=p.state;if(q.level<20||typeof gemData!=='function'||typeof socketList!=='function')return;
@@ -313,7 +401,7 @@ function kwSimExpChoice(p){
 }
 function kwSimBoard(p,day){
  let q=p.state,a=kwSimModel(p);if(q.level<5||typeof kwBoardSelect!=='function')return;
- let counts={...a.counters,wins:q.wins||0,arena:q.arena.wins,arenaPlayed:q.arena.wins+q.arena.losses,training:q.training.reduce((n,v)=>n+v,0),tower:q.tower||0};
+ let counts={...a.counters,wins:q.wins||0,arena:q.arena.wins,arenaPlayed:q.arena.wins+q.arena.losses,training:q.training.reduce((n,v)=>n+v,0),tower:q.tower||0,memory:q.pf?.wins||0};
  if(a.board?.day!==day)a.board={day,level:q.level,base:counts,claimed:{}};
  let b=a.board;for(const task of kwBoardSelect(day,b.level)){if(!b.claimed[task.id]&&(counts[task.counter]||0)-(b.base[task.counter]||0)>=task.target){b.claimed[task.id]=true;let r=kwBoardReward(b);kwSimAward(p,r.gold,r.xp);kwSimCount(p,'boardClaims')}}
 }
@@ -339,7 +427,8 @@ function kwSimFinishFight(p,o,r,now){
 function kwSimStartFight(p,o,now){let a=kwSimModel(p);if(!o.event){a.eventRun=false;a.eventHp=1}let r=kwSimBattle(p,o,o.expedition?o.hpRatio:o.event&&a.eventRun?(a.eventHp||1):1);a.pending={kind:'fight',o,result:r,ready:now+KW_SIM_ACTION_MS+r.turns*KW_SIM_COMBAT_MS};return a.pending.ready}
 function kwSimSession(p,style,start,end,w,used,lastSlot=false){
  let q=p.state,a=kwSimModel(p,start),t=start;p.actions++;a.activeMs+=end-start;
- kwSimRegen(p,t);let ride=kwSimJobs(p,t,true);kwSimBoard(p,Math.floor(start/KW_SIM_DAY));kwSimReserve(p);kwSimShop(p,t);kwSimGemSocket(p);
+ kwSimRegen(p,t);let ride=kwSimJobs(p,t,!a.pending);kwSimBoard(p,Math.floor(start/KW_SIM_DAY));
+ if(!a.pending){kwSimReserve(p);kwSimShop(p,t);kwSimMarket(p,Math.floor(t/KW_SIM_DAY));kwSimFusion(p,t);kwSimEnchant(p);kwSimGemSocket(p);t+=kwSimMemory(p,Math.floor(t/KW_SIM_DAY),end-t)}
  let primary=weaponClass(q.eq[0])==='ranged'?2:0,attr=Math.random()<.55?primary:pick(style[4]),cost=trainCost(attr,q);
  if(q.gold>=cost){q.gold-=cost;q.stats[attr]++;q.training[attr]++}t+=20000;
  // Arena requires an active challenger, a free time slot and a real cooldown.
@@ -422,7 +511,7 @@ function kwSimGMMarkup(){
  const wins=ps.reduce((a,p)=>a+p.state.arena.wins,0),losses=ps.reduce((a,p)=>a+p.state.arena.losses,0),missions=ps.reduce((a,p)=>a+p.missions,0),failed=ps.reduce((a,p)=>a+p.failed,0);
  const L=hubLabel,decimal=v=>Number(v).toLocaleString(s.lang==='en'?'en-US':s.lang==='ru'?'ru-RU':'de-DE',{maximumFractionDigits:2});
  const stats=[[L('Spieler','Players','Игроки'),fmt(n)],[L('Ø Level','Avg. level','Ср. уровень'),decimal(avg)],[L('Missionen','Missions','Задания'),fmt(missions)],[L('PvE-Siegquote','PvE win rate','Победы PvE'),missions?fmt(100*(missions-failed)/missions)+'%':'–'],[L('Arena-Siege','Arena wins','Победы арены'),fmt(wins)],[L('Arena-Niederlagen','Arena losses','Поражения арены'),fmt(losses)]];
- const totalCounter=k=>ps.reduce((n,p)=>n+(p.sim?.counters?.[k]||0),0),modelDays=Math.max(0,((w?.steps||0)-(w?.modelStartStep||0))/96);stats.push([L('Ø aktive Minuten/Tag','Avg. active min/day','Ср. активных мин/день'),modelDays&&n?decimal(ps.reduce((t,p)=>t+(p.sim?.activeMs||0),0)/60000/n/modelDays):'–'],[L('Dungeon-Bosse','Dungeon bosses','Боссы'),fmt(totalCounter('bosses'))],[L('Expeditionen','Expeditions','Экспедиции'),fmt(totalCounter('expeditions'))],[L('Ausbau abgeschlossen','Completed upgrades','Улучшения'),fmt(totalCounter('rooms')+totalCounter('hqUpgrades')+totalCounter('fleetUpgrades'))],[L('Tagesaufträge','Daily tasks','Задания'),fmt(totalCounter('boardClaims'))],[L('Ausrüstungswechsel','Gear upgrades','Смена экипировки'),fmt(totalCounter('gearUpgrades'))]);
+ const totalCounter=k=>ps.reduce((n,p)=>n+(p.sim?.counters?.[k]||0),0),modelDays=Math.max(0,((w?.steps||0)-(w?.modelStartStep||0))/96);stats.push([L('Ø aktive Minuten/Tag','Avg. active min/day','Ср. активных мин/день'),modelDays&&n?decimal(ps.reduce((t,p)=>t+(p.sim?.activeMs||0),0)/60000/n/modelDays):'–'],[L('Dungeon-Bosse','Dungeon bosses','Боссы'),fmt(totalCounter('bosses'))],[L('Expeditionen','Expeditions','Экспедиции'),fmt(totalCounter('expeditions'))],[L('Ausbau abgeschlossen','Completed upgrades','Улучшения'),fmt(totalCounter('rooms')+totalCounter('hqUpgrades')+totalCounter('fleetUpgrades'))],[L('Tagesaufträge','Daily tasks','Задания'),fmt(totalCounter('boardClaims'))],[L('Ausrüstungswechsel','Gear upgrades','Смена экипировки'),fmt(totalCounter('gearUpgrades'))],[L('Recycling','Recycling','Переработка'),fmt(totalCounter('recycled'))],[L('Spülungen','Flushes','Смывы'),fmt(totalCounter('flushes'))],[L('Verzauberungen','Enchantments','Чары'),fmt(totalCounter('enchants'))],[L('Fusionen','Gem fusions','Слияния'),fmt(totalCounter('fusions'))],[L('Schwarzmarkt','Market trades','Сделки'),fmt(totalCounter('marketTrades'))],[L('Pfandspiel-Runden','Memory rounds','Раунды'),fmt(totalCounter('memoryRounds'))]);
  const byStyle=KW_SIM_TYPES.map((style,i)=>{let group=ps.filter(p=>p.style===i);if(!group.length)return '';let lv=group.reduce((a,p)=>a+p.state.level,0)/group.length;let won=group.reduce((a,p)=>a+p.state.arena.wins,0),lost=group.reduce((a,p)=>a+p.state.arena.losses,0);return '<div class="kwSimStyleRow" role="row"><b role="cell">'+profileEscape(style[0])+'</b><span role="cell">'+fmt(group.length)+'</span><span role="cell">'+decimal(lv)+'</span><span role="cell">'+(won+lost?fmt(100*won/(won+lost))+'%':'–')+'</span></div>'}).join('');
  const disabled=kwSimBusy||battle?.running?'disabled':'';
  const status=kwSimLastError||kwSimStatus||L('Bereit','Ready','Готово');
