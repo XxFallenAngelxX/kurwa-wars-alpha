@@ -41,6 +41,58 @@ let kwVictoryActive=false,kwVictoryLastLine=-1;
 const kwVictoryArt={closed:'./assets/codex/book-closed.webp',open:'./assets/codex/book-open.webp',page:'./assets/codex/page.webp',soul:'./assets/codex/soul.webp'};
 for(const src of Object.values(kwVictoryArt)){const img=new Image();img.src=src}
 // Fly the closed codex in viewport coordinates, not in the scaled combat scene.
+
+// Animated local fel-fire aura. The original book sprites are never modified.
+const KW_CODEX_FIRE_VERTEX='attribute vec2 aPosition; void main(){gl_Position=vec4(aPosition,0.0,1.0);}';
+const KW_CODEX_FIRE_FRAGMENT=
+'precision mediump float;\n'+
+'uniform vec2 uResolution; uniform float uTime; uniform float uOpen; uniform float uAppear;\n'+
+'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}\n'+
+'float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}\n'+
+'float fbm(vec2 p){return .55*noise2(p)+.28*noise2(p*2.13+3.1)+.12*noise2(p*4.21-4.7);}\n'+
+'float boxDist(vec2 p,vec2 halfSize,float r){vec2 q=abs(p)-halfSize+r;return length(max(q,0.0))+min(max(q.x,q.y),0.0)-r;}\n'+
+'void main(){\n'+
+' vec2 p=gl_FragCoord.xy/uResolution*vec2(340.,270.)-vec2(170.,133.);\n'+
+' p.y+=mix(0.,-7.,uOpen); vec2 h=mix(vec2(64.,81.),vec2(119.,82.),uOpen); h*=mix(.69,1.,uAppear);\n'+
+' float d=boxDist(p,h,9.); float t=uTime; vec2 flow=vec2(p.x*.062,p.y*.046-t*2.5);\n'+
+' float n=fbm(flow+vec2(noise2(flow*.7+t*.18)*2.,0.)); float detail=noise2(flow*2.7+vec2(t*.3,-t));\n'+
+' float upward=smoothstep(-.45,.92,p.y/max(h.y,1.)); float reach=7.+(12.+30.*upward)*pow(n,1.5);\n'+
+' float tongue=1.-smoothstep(reach*.43,reach,d+(detail-.5)*5.); float outside=smoothstep(-4.,1.5,d);\n'+
+' float glow=exp(-max(d,0.)*.105)*(.33+.45*n); float core=(1.-smoothstep(2.,12.,d))*outside;\n'+
+' float a=outside*clamp(tongue*(.7+.3*detail)+glow*.45,0.,1.)*uAppear;\n'+
+' vec3 ember=mix(vec3(.54,.055,.68),vec3(1.,.12,.025),smoothstep(.23,.72,n));\n'+
+' vec3 fire=mix(ember,vec3(1.,.52,.065),clamp(tongue*.64+core*.32,0.,1.));\n'+
+' fire=mix(fire,vec3(1.,.92,.55),core*.7); gl_FragColor=vec4(fire,a);\n'+
+'}';
+function kwCreateCodexFire(reduced=false){
+ const layer=document.createElement('div');layer.className='kwCodexFire';layer.setAttribute('aria-hidden','true');
+ const canvas=document.createElement('canvas');canvas.width=272;canvas.height=216;layer.append(canvas);
+ let gl=null,program=null,buffer=null,frame=0,stopped=false,flying=false,origin=null,last=-Infinity;
+ const fallback=()=>{layer.classList.add('kwCodexFireFallback');canvas.style.display='none'};
+ const dispose=()=>{cancelAnimationFrame(frame);if(gl){if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();}gl=null;program=null;buffer=null;};
+ const stop=()=>{if(stopped)return;stopped=true;dispose();layer.remove()};
+ if(reduced){fallback();return {layer,fly(){flying=true;layer.classList.add('isFlying')},stop}}
+ try{
+  gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false});
+  if(!gl)throw Error('WebGL unavailable');
+  const compile=(type,source)=>{let s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){let err=gl.getShaderInfoLog(s);gl.deleteShader(s);throw Error(err||'Codex shader compile failed')}return s};
+  let vs,fs;try{vs=compile(gl.VERTEX_SHADER,KW_CODEX_FIRE_VERTEX);fs=compile(gl.FRAGMENT_SHADER,KW_CODEX_FIRE_FRAGMENT);program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program)||'Codex shader link failed')}finally{if(vs)gl.deleteShader(vs);if(fs)gl.deleteShader(fs)}
+  buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  gl.useProgram(program);let pos=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  let resolution=gl.getUniformLocation(program,'uResolution'),time=gl.getUniformLocation(program,'uTime'),open=gl.getUniformLocation(program,'uOpen'),appear=gl.getUniformLocation(program,'uAppear');
+  gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(resolution,canvas.width,canvas.height);gl.clearColor(0,0,0,0);
+  const ease=(a,b,x)=>{let n=Math.max(0,Math.min(1,(x-a)/(b-a)));return n*n*(3-2*n)};
+  function draw(now){if(stopped||!gl)return;if(origin===null)origin=now;
+   if(now-last>=32){let t=(now-origin)/1000,lastOpen=flying?0:ease(.748,1.012,t)*(1-ease(3.608,3.828,t)),visible=flying?1:ease(0,.352,t);
+    gl.uniform1f(time,t);gl.uniform1f(open,lastOpen);gl.uniform1f(appear,visible);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);last=now}
+   frame=requestAnimationFrame(draw)
+  }
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();if(stopped)return;cancelAnimationFrame(frame);gl=null;fallback()},{once:true});
+  frame=requestAnimationFrame(draw);
+ }catch(e){dispose();fallback()}
+ return {layer,fly(){flying=true;layer.classList.add('isFlying')},stop};
+}
+
 function kwCodexFlightGeometry(book,hero){
  const x=book.left+book.width/2,y=book.top+book.height/2;
  const dx=hero.left+hero.width/2-x,dy=hero.top+hero.height/2-y;
@@ -67,7 +119,7 @@ function kwShowVictory(discovery){
   const x=vs?vs.left+vs.width/2:arena?arena.left+arena.width/2:innerWidth/2;
   const portraitTop=Math.min(player?.top??arena?.top??0,foe?.top??arena?.top??0);
   const y=item&&arena?Math.max(8,arena.top+3,portraitTop-136*scale):vs?Math.max(arena?.top??8,vs.top-24):arena?arena.top+Math.min(32,arena.height*.1):Math.max(12,innerHeight*.14);
-  const layer=document.createElement('div'),scene=document.createElement('div');
+  const layer=document.createElement('div'),scene=document.createElement('div');let fire=null;
   layer.className='kwVictoryOverlay'+(item?' hasDiscovery':'');layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
   scene.className='kwVictoryScene'+(item?' hasDiscovery':'');
   if(item){layer.style.left=x+'px';layer.style.top=y+'px';scene.style.setProperty('--kw-local-scale',scale);scene.style.left='0';scene.style.top='0';}
@@ -87,7 +139,7 @@ function kwShowVictory(discovery){
    page.className='kwCodexPage';page.setAttribute('aria-hidden','true');page.style.setProperty('--leaf',0);
    soul.className='kwCodexSoul';ghost.src=kwVictoryArt.soul;ghost.alt='';soul.append(ghost);
    const portrait=item.portrait;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
-   visual.append(closed,open,page,soul);
+   visual.append(closed,open,page,soul);fire=kwCreateCodexFire(matchMedia('(prefers-reduced-motion: reduce)').matches);visual.prepend(fire.layer);
    for(let n=1;n<4;n++){const leaf=page.cloneNode(false);leaf.style.setProperty('--leaf',n);visual.append(leaf)}
    const rays=document.createElement('div');rays.className='kwCodexRays';visual.prepend(rays);
    for(let n=0;n<24;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--angle',(n*15)+'deg');spark.style.setProperty('--reach',(35+(n%5)*10)+'px');spark.style.setProperty('--hue',[42,184,286,325,15,215][n%6]);visual.append(spark)}
@@ -110,7 +162,7 @@ function kwShowVictory(discovery){
   }
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let timer,launchTimer,finished=false,flight;
-  function finish(){if(finished)return;finished=true;clearTimeout(timer);clearTimeout(launchTimer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);flight?.remove();layer.remove();play()}
+  function finish(){if(finished)return;finished=true;clearTimeout(timer);clearTimeout(launchTimer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);fire?.stop();flight?.remove();layer.remove();play()}
   function dismiss(e){if(e.type==='click'&&!e.target.closest?.('button,[role="button"]'))return;kwVictoryQueue.length=0;finish()}
   function launchBook(){
    if(finished)return;
@@ -119,11 +171,11 @@ function kwShowVictory(discovery){
    const book=closed.getBoundingClientRect(),button=target.getBoundingClientRect();
    if(!book.width||!button.width){finish();return}
    const g=kwCodexFlightGeometry(book,button);
-   flight=document.createElement('img');flight.className='kwCodexFlight';flight.src=closed.src;flight.alt='';flight.setAttribute('aria-hidden','true');
+   flight=document.createElement('div');flight.className='kwCodexFlight';flight.setAttribute('aria-hidden','true');const cover=document.createElement('img');cover.src=closed.src;cover.alt='';if(fire){fire.fly();flight.append(fire.layer)}flight.append(cover);
    flight.style.left=g.x+'px';flight.style.top=g.y+'px';flight.style.width=book.width+'px';flight.style.height=book.height+'px';
    flight.style.setProperty('--kw-flight-x',g.dx+'px');flight.style.setProperty('--kw-flight-y',g.dy+'px');flight.style.setProperty('--kw-flight-bend',g.bend+'px');
    document.body.append(flight);layer.remove();
-   flight.addEventListener('animationend',finish,{once:true});timer=setTimeout(finish,1000);
+   flight.addEventListener('animationend',e=>{if(e.target===flight)finish()});timer=setTimeout(finish,1000);
   }
   if(item&&!reduced){
    // Navigation must not interrupt a collected entry's final flight.
