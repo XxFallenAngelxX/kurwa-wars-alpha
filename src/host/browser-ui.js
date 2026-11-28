@@ -48,106 +48,124 @@ for(const src of Object.values(kwVictoryArt)){const img=new Image();img.src=src}
 const KW_CODEX_FIRE_VERTEX='attribute vec2 aPosition;void main(){gl_Position=vec4(aPosition,0.,1.);}';
 const KW_CODEX_FIRE_FRAGMENT=[
 'precision mediump float;',
-'uniform sampler2D uMask; uniform vec2 uResolution; uniform float uTime; uniform float uAppear;',
+'uniform sampler2D uMask; uniform vec2 uResolution; uniform float uTime; uniform vec4 uBook;',
 'float hash(vec2 p){return fract(sin(dot(p,vec2(41.73,29.17)))*4375.13);}',
 'float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}',
 'float fbm(vec2 p){return .57*noise2(p)+.29*noise2(p*2.03+5.2)+.14*noise2(p*4.1+9.7);}',
-'float maskAt(vec2 p){vec2 uv=p/vec2(340.,300.);if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return 0.;return smoothstep(.15,.65,texture2D(uMask,uv).a);}',
+'float sampleBook(vec2 p,vec2 center,vec2 scale,float slot){vec2 q=(p-center)/scale+center;vec2 uv=q/vec2(340.,300.);if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return 0.;return smoothstep(.15,.65,texture2D(uMask,vec2((uv.x+slot)*.5,uv.y)).a);}',
+'float maskAt(vec2 p){float a=0.;if(uBook.x>.001)a=sampleBook(p,vec2(170.,152.),vec2(uBook.z),0.)*uBook.x;if(uBook.y>.001)a=max(a,sampleBook(p,vec2(170.,164.),vec2(uBook.w,1.),1.)*uBook.y);return a;}',
 'void main(){',
 ' vec2 uv=gl_FragCoord.xy/uResolution; vec2 p=vec2(uv.x,1.-uv.y)*vec2(340.,300.);',
 ' float t=uTime;float n=fbm(vec2(p.x*.091,p.y*.034+t*3.1));float curl=fbm(vec2(p.x*.045+t*.7,p.y*.052+t*2.1));',
-' float wave=.5+.5*sin(p.x*.16+curl*6.5+t*2.8);float reach=15.+63.*pow(wave,.95)*(.45+.55*n);',
+' float wave=.5+.5*sin(p.x*.16+curl*6.5+t*2.8);float reach=16.+60.*pow(wave,.95)*(.45+.55*n);',
 ' float heat=0.;',
-' for(int j=1;j<=9;j++){float s=float(j)/9.;float rise=s*reach;float drift=(curl-.5)*rise*.65+sin(p.y*.07+t*4.+p.x*.04)*s*8.;',
+' for(int j=1;j<=6;j++){float s=float(j)/6.;float rise=s*reach;float drift=(curl-.5)*rise*.65+sin(p.y*.07+t*4.+p.x*.04)*s*8.;',
 '  float m=maskAt(p+vec2(drift,rise));heat=max(heat,m*(1.-s*.78));}',
 ' float side=max(maskAt(p+vec2(11.+n*9.,6.)),maskAt(p-vec2(11.+n*9.,-6.)));',
 ' float under=maskAt(p-vec2(0.,7.));heat=max(heat,side*(.24+.33*n));heat=max(heat,under*.25);',
 ' float outside=1.-maskAt(p);float filament=clamp((n-.28)*2.2+heat*.46,0.,1.);',
-' float alpha=outside*smoothstep(.09,.50,heat)*filament*uAppear;',
+' float alpha=outside*smoothstep(.07,.42,heat)*filament; ',
 ' float h=clamp(heat*(.7+.3*n),0.,1.);',
 ' vec3 col=mix(vec3(.51,.035,.52),vec3(1.,.075,.014),smoothstep(.11,.39,h));',
 ' col=mix(col,vec3(1.,.46,.018),smoothstep(.29,.65,h));col=mix(col,vec3(1.,.95,.48),smoothstep(.64,.91,h));',
 ' gl_FragColor=vec4(col,alpha);',
 '}'].join('\n');
-function kwCodexFirePhase(t,flying=false){const ease=(a,b)=>{const x=Math.max(0,Math.min(1,(t-a)/(b-a)));return x*x*(3-2*x)};return {open:flying?0:ease(.748,1.012)*(1-ease(3.608,3.828)),appear:flying?1:ease(0,.352)}}
+// One coordinate system shared by CSS, alpha masks, and the flight.
+const KW_CODEX_FIRE_BOXES=[{x:76,y:58,w:188,cx:170,cy:152},{x:40,y:34,w:260,cx:170,cy:164}];
+function kwCodexFirePhase(t,flying=false,reduced=false){
+ if(flying)return {closed:1,open:0,closedScale:1,openScale:.15};
+ if(reduced)return {closed:0,open:1,closedScale:1,openScale:1};
+ const p=t/4.4,lerp=(a,b)=>Math.max(0,Math.min(1,(p-a)/(b-a)));
+ const open=lerp(.17,.23)*(1-lerp(.82,.87));
+ return {closed:lerp(0,.08)*(1-open),open,closedScale:.65+.35*lerp(0,.08),openScale:.15+.85*open};
+}
 function kwCreateCodexFire(closed,open,reduced=false){
  const layer=document.createElement('div');layer.className='kwCodexFire';layer.setAttribute('aria-hidden','true');
  const gpu=document.createElement('canvas'),fx=document.createElement('canvas'),mask=document.createElement('canvas');
- gpu.width=fx.width=mask.width=340;gpu.height=fx.height=mask.height=300;
+ // At the actual combat scale these pixels already exceed the displayed CSS size.
+ gpu.width=240;gpu.height=212;fx.width=340;fx.height=300;mask.width=680;mask.height=300;
  layer.append(gpu,fx);gpu.className='kwCodexFireGpu';fx.className='kwCodexFireTongues';
- const ctx=fx.getContext('2d'),mc=mask.getContext('2d',{willReadFrequently:true});
- let gl=null,program=null,buffer=null,texture=null,frame=0,stopped=false,flying=false,origin=null,last=-Infinity,lastMask=-10,mode='canvas',anchors=[];
- function dispose(){if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext()}gl=null;program=null;buffer=null;texture=null;gpu.style.display='none'}
- function stop(){if(stopped)return;stopped=true;cancelAnimationFrame(frame);dispose();layer.remove()}
- // Use the exact sprite layout, including the transparent padding. Read top/side
- // contour anchors for a second procedural flame pass; this also works without WebGL.
- function updateMask(f){
-  if(!mc)return;mc.clearRect(0,0,340,300);
-  const draw=(img,x,y,w,a)=>{if(a<=0||!img?.complete||!img.naturalWidth)return;mc.globalAlpha=a;mc.drawImage(img,x,y,w,w)};
-  draw(closed,76,58,188,1-f);draw(open,40,34,260,f);mc.globalAlpha=1;
+ const ctx=fx.getContext('2d'),mc=mask.getContext('2d',{willReadFrequently:true}),images=[closed,open],contours=[null,null];
+ let gl=null,program=null,buffer=null,texture=null,frame=0,stopped=false,flying=false,origin=null,last=-Infinity,mode='canvas',clock=null,uniforms=null,dirty=true;
+ const listeners=[];
+ function selectMode(next){mode=next;gpu.style.display=next==='webgl'?'block':'none';fx.style.display=next==='webgl'?'none':'block'}
+ function dispose(){if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program)}gl=null;program=null;buffer=null;texture=null}
+ function stop(){if(stopped)return;stopped=true;cancelAnimationFrame(frame);for(const [img,fn] of listeners)img.removeEventListener('load',fn);dispose();layer.remove()}
+ function prepare(slot){
+  const img=images[slot],b=KW_CODEX_FIRE_BOXES[slot];if(!mc||!img.complete||!img.naturalWidth||contours[slot])return;
+  mc.clearRect(slot*340,0,340,300);mc.drawImage(img,b.x+slot*340,b.y,b.w,b.w);
+  // CPU readback happens ONCE per image, never in the animation loop.
   try{
-   const a=mc.getImageData(0,0,340,300).data,solid=(x,y)=>a[(y*340+x)*4+3]>100;let next=[];
-   for(let x=16;x<324;x+=12){for(let y=12;y<288;y++){if(solid(x,y)){next.push({x,y:y+3,side:0});break}}}
-   for(let y=45;y<260;y+=16){
-    for(let x=12;x<170;x++){if(solid(x,y)){next.push({x:x+2,y,side:-1});break}}
-    for(let x=328;x>170;x--){if(solid(x,y)){next.push({x:x-2,y,side:1});break}}
+   const a=mc.getImageData(slot*340,0,340,300).data,solid=(x,y)=>a[(y*340+x)*4+3]>100;
+   const points=[];
+   for(let x=20;x<320;x+=16){for(let y=12;y<288;y++){if(solid(x,y)){points.push({x,y:y+3,side:0});break}}}
+   for(let y=60;y<253;y+=24){
+    for(let x=12;x<170;x++){if(solid(x,y)){points.push({x:x+2,y,side:-1});break}}
+    for(let x=328;x>170;x--){if(solid(x,y)){points.push({x:x-2,y,side:1});break}}
    }
-   if(next.length)anchors=next;
-  }catch{}
-  if(gl&&texture){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,mask)}
+   contours[slot]=points;
+  }catch{contours[slot]=[]}
+  dirty=true;
  }
- // Explicit curved flame tongues and embers: not a CSS border fallback.
- // Deterministic oscillation keeps the shapes flowing at 30+ fps without random flicker.
- function paint(t,f,appearance){
-  if(!ctx)return;ctx.clearRect(0,0,340,300);if(!appearance)return;
-  const points=anchors.length?anchors:Array.from({length:17},(_,i)=>({x:170+(i-8)*(f>.5?14:8),y:f>.5?80:68,side:0}));
-  ctx.globalCompositeOperation='source-over';
-  for(let i=0;i<points.length;i++){
-   const a=points[i],phase=i*2.399963,beat=.5+.5*Math.sin(t*5.3+phase),beat2=.5+.5*Math.sin(t*3.1+phase*2);
-   const h=(a.side?20:34)+(a.side?24:42)*beat, w=(a.side?9:13)+8*beat2;
-   const bend=Math.sin(t*4.1+phase)*h*.28+a.side*12;
-   const x=a.x,y=a.y,tx=x+bend,ty=y-h;
-   const grad=ctx.createLinearGradient(x,y,tx,ty);
-   grad.addColorStop(0,'rgba(255,229,110,.98)');grad.addColorStop(.26,'rgba(255,152,26,.97)');grad.addColorStop(.64,'rgba(252,51,17,.85)');grad.addColorStop(1,'rgba(164,30,179,0)');
-   ctx.globalAlpha=appearance*(mode==='webgl'?.80:1);
-   ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(x-w*.62,y+5);
-   ctx.bezierCurveTo(x-w*.78+a.side*7,y-h*.22,tx-w*.5,ty+h*.35,tx,ty);
-   ctx.bezierCurveTo(tx+w*.13,ty+h*.42,x+w*.9+a.side*8,y-h*.24,x+w*.54,y+5);
-   ctx.closePath();ctx.fill();
-   // The brighter inner flame moves separately from the outer tongue.
-   ctx.globalAlpha=appearance*.78;ctx.fillStyle='#ffe18a';ctx.beginPath();ctx.moveTo(x-w*.18,y+4);
-   ctx.quadraticCurveTo(x-w*.22,y-h*.24,x+bend*.45,y-h*.48);ctx.quadraticCurveTo(x+w*.26,y-h*.19,x+w*.20,y+4);ctx.closePath();ctx.fill();
+ for(let i=0;i<2;i++){const fn=()=>{if(!stopped)prepare(i)};images[i].addEventListener('load',fn);listeners.push([images[i],fn]);prepare(i)}
+ function paint(t,phase){
+  if(!ctx)return;ctx.clearRect(0,0,340,300);
+  for(let slot=0;slot<2;slot++){
+   const points=contours[slot],b=KW_CODEX_FIRE_BOXES[slot],opacity=slot?phase.open:phase.closed,sx=slot?phase.openScale:phase.closedScale,sy=slot?1:sx;
+   if(!points?.length||opacity<.005)continue;
+   ctx.save();ctx.translate(b.cx,b.cy);ctx.scale(sx,sy);ctx.translate(-b.cx,-b.cy);
+   for(let i=0;i<points.length;i++){
+    const a=points[i],p=i*2.399963,beat=.5+.5*Math.sin(t*5.3+p),beat2=.5+.5*Math.sin(t*3.1+p*2);
+    const h=(a.side?19:33)+(a.side?22:40)*beat,w=(a.side?10:14)+7*beat2,bend=Math.sin(t*4.1+p)*h*.28+a.side*10;
+    const x=a.x,y=a.y,tx=x+bend,ty=y-h;
+    const grad=ctx.createLinearGradient(x,y,tx,ty);
+    grad.addColorStop(0,'rgba(255,223,105,.98)');grad.addColorStop(.28,'rgba(255,145,24,.96)');grad.addColorStop(.67,'rgba(251,49,16,.80)');grad.addColorStop(1,'rgba(161,29,168,0)');
+    ctx.globalAlpha=opacity;ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(x-w*.62,y+5);
+    ctx.bezierCurveTo(x-w*.78+a.side*6,y-h*.22,tx-w*.5,ty+h*.35,tx,ty);
+    ctx.bezierCurveTo(tx+w*.13,ty+h*.42,x+w*.9+a.side*7,y-h*.24,x+w*.54,y+5);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=opacity*.66;ctx.fillStyle='#ffe18a';ctx.beginPath();ctx.moveTo(x-w*.18,y+4);
+    ctx.quadraticCurveTo(x-w*.22,y-h*.24,x+bend*.45,y-h*.48);ctx.quadraticCurveTo(x+w*.26,y-h*.19,x+w*.20,y+4);ctx.closePath();ctx.fill();
+   }
+   ctx.globalCompositeOperation='lighter';
+   for(let i=0;i<12;i++){const a=points[(i*7)%points.length],p=(t*(.55+(i%4)*.12)+i*.618)%1;
+    ctx.globalAlpha=opacity*Math.sin(p*Math.PI)*.8;ctx.fillStyle=i%4===0?'#f4a4ff':'#ffd46d';ctx.beginPath();ctx.arc(a.x+Math.sin(p*4+i)*12+a.side*p*12,a.y-p*(54+i%5*7),1.2+(i%3)*.4,0,Math.PI*2);ctx.fill()}
+   ctx.restore();
   }
-  // A few floating embers, always moving upwards and fading.
-  ctx.globalCompositeOperation='lighter';
-  for(let i=0;i<20;i++){const a=points[(i*7)%points.length],p=(t*(.55+(i%4)*.12)+i*.618)%1;
-   const x=a.x+Math.sin(p*4+i)*12+a.side*p*12,y=a.y-p*(58+i%5*7);ctx.globalAlpha=appearance*Math.sin(p*Math.PI)*.85;ctx.fillStyle=i%4===0?'#f4a4ff':'#ffd46d';ctx.beginPath();ctx.arc(x,y,1.2+(i%3)*.45,0,Math.PI*2);ctx.fill()}
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
  }
+ selectMode('canvas');
  try{
   if(reduced)throw Error('Reduced motion');
-  gl=gpu.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false});
+  gl=gpu.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false,powerPreference:'low-power'});
   if(!gl||!mc)throw Error('WebGL unavailable');
   const compile=(type,src)=>{let sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){let err=gl.getShaderInfoLog(sh);gl.deleteShader(sh);throw Error(err||'Shader compile failed')}return sh};
   let v,g;try{v=compile(gl.VERTEX_SHADER,KW_CODEX_FIRE_VERTEX);g=compile(gl.FRAGMENT_SHADER,KW_CODEX_FIRE_FRAGMENT);program=gl.createProgram();gl.attachShader(program,v);gl.attachShader(program,g);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program)||'Shader link failed')}finally{if(v)gl.deleteShader(v);if(g)gl.deleteShader(g)}
   buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);gl.useProgram(program);
   const pos=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
-  texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.uniform1i(gl.getUniformLocation(program,'uMask'),0);
-  gl.viewport(0,0,340,300);gl.uniform2f(gl.getUniformLocation(program,'uResolution'),340,300);gl.clearColor(0,0,0,0);mode='webgl';
- }catch(err){if(!reduced)console.warn('Codex fire: using animated Canvas2D',err);dispose()}
- gpu.addEventListener('webglcontextlost',e=>{e.preventDefault();if(stopped)return;gl=null;mode='canvas';gpu.style.display='none'},{once:true});
+  texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  uniforms={time:gl.getUniformLocation(program,'uTime'),book:gl.getUniformLocation(program,'uBook')};
+  gl.uniform1i(gl.getUniformLocation(program,'uMask'),0);gl.viewport(0,0,gpu.width,gpu.height);gl.uniform2f(gl.getUniformLocation(program,'uResolution'),gpu.width,gpu.height);gl.clearColor(0,0,0,0);selectMode('webgl');
+ }catch(err){if(!reduced)console.warn('Codex fire: animated Canvas2D',err);dispose();selectMode('canvas')}
+ gpu.addEventListener('webglcontextlost',e=>{e.preventDefault();if(stopped)return;gl=null;selectMode('canvas')},{once:true});
  function draw(now){
-  if(stopped)return;if(origin===null)origin=now;
-  if(now-last>=30){const t=reduced?1.5:(now-origin)/1000,f=kwCodexFirePhase(t,flying);
-   // Refresh mask while opening/closing or until both images load; steady state is cached.
-   if(Math.abs(f.open-lastMask)>.015||!anchors.length||(!flying&&t<.55)){updateMask(f.open);lastMask=f.open}
-   if(gl&&program){gl.uniform1f(gl.getUniformLocation(program,'uTime'),t);gl.uniform1f(gl.getUniformLocation(program,'uAppear'),f.appear);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
-   paint(t,f.open,f.appear);last=now;
+  if(stopped)return;if(origin===null){origin=now;clock=closed.getAnimations?.().find(a=>a.animationName==='kwLocalClosed')}
+  // The CSS book and the effect share its actual animation clock, including delayed frames.
+  const t=(now-origin)/1000,bookTime=typeof clock?.currentTime==='number'?clock.currentTime/1000:t;
+  const interval=mode==='webgl'?15:31;
+  if(now-last>=interval){
+   const p=kwCodexFirePhase(bookTime,flying,reduced);
+   if(mode==='webgl'&&gl){
+    try{
+     if(dirty){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,mask);dirty=false}
+     gl.uniform1f(uniforms.time,t);gl.uniform4f(uniforms.book,p.closed,p.open,p.closedScale,p.openScale);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    }catch(e){dispose();selectMode('canvas');paint(t,p)}
+   }else paint(reduced?1.5:t,p);
+   last=now;
   }
-  if(!reduced)frame=requestAnimationFrame(draw);
+  if(!reduced||!contours[1])frame=requestAnimationFrame(draw);
  }
  frame=requestAnimationFrame(draw);
- return {layer,fly(){flying=true;lastMask=-10;layer.classList.add('isFlying')},stop};
+ return {layer,fly(){flying=true;clock=null;layer.classList.add('isFlying')},stop};
 }
 
 function kwCodexFlightGeometry(book,hero){

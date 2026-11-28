@@ -262,7 +262,7 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 @media(prefers-reduced-motion:reduce){.kwCodexFlight{animation:none!important;display:none}}
 
 
-/* Two procedural flame passes, registered to the actual book sprite alpha. */
+/* One active flame renderer, aligned to immutable book alpha masks. */
 .kwCodexVisual { isolation:isolate; overflow:visible; }
 .kwCodexFire {
  position:absolute; z-index:1; pointer-events:none; left:-30px; top:-60px;
@@ -270,9 +270,9 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 }
 .kwCodexFire>canvas { position:absolute; inset:0; display:block; width:100%; height:100%; border:0; background:transparent; }
 .kwCodexFireGpu { opacity:.9; }
-.kwCodexFireTongues { filter:drop-shadow(0 0 4px #ff692c88); }
+.kwCodexFireTongues { filter:none; }
 .kwVictoryScene.hasDiscovery .kwCodexHalo { display:none; }
 .kwVictoryScene.hasDiscovery .kwCodexOpen,.kwVictoryScene.hasDiscovery .kwCodexClosed { z-index:2; filter:none; }
 .kwCodexFlight { isolation:isolate; overflow:visible; filter:none; }
 .kwCodexFlight>img { position:relative; z-index:2; display:block; width:100%; height:100%; object-fit:contain; }
-.kwCodexFlight>.kwCodexFire { left:50%; top:calc(50% + 2px); width:180.851%; height:159.574%; transform:translate(-50%,-50%); }
+.kwCodexFlight>.kwCodexFire { left:50%; top:48.93617%; width:180.851064%; height:159.574468%; transform:translate(-50%,-50%); }
