@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const ui=read('src/host/browser-ui.js'),combat=read('src/engine/core/06-combat-world-ui.js'),prog=read('src/engine/core/04-progression.js'),css=read('src/styles/shell.css');
+const part=(c,a,b)=>c.slice(c.indexOf(a),c.indexOf(b,c.indexOf(a)+1));
+const {kwVictoryTiming:t,kwCollectCelebrations:collect}=new Function(part(ui,'function kwVictoryTiming(','function kwShowVictory(')+'return {kwVictoryTiming,kwCollectCelebrations}')();
+const mode=new Function('skippingBattle','fast',part(combat,'function kwBattleCelebrationMode(','function skipBattle(')+'return kwBattleCelebrationMode()');
+assert.equal(mode(false,false),'normal');assert.equal(mode(false,true),'fast');assert.equal(mode(true,true),'skip');assert.equal(mode(true,false),'skip');
+assert.equal(t('normal').launch,3980);assert.equal(t('normal').flight,820);assert.equal(t('fast').rate,3);
+assert.ok(Math.abs(t('fast').launch*3-3980)<1e-6);assert.ok(Math.abs(t('fast').flight*3-820)<1e-6);
+assert.equal(t('skip').launch,0);assert.equal(t('skip').flight,260);assert.equal(t('skip').ordinary,0);assert.equal(t('skip',true).reducedHold,0);
+for(const m of ['normal','fast','skip']){let entry={name:'Boss',mode:m};assert.deepEqual(collect([['victory',{mode:m}],['fx','win'],['codexDiscovery',entry]]),[{mode:m,discovery:entry}]);assert.deepEqual(collect([['codexDiscovery',entry]]),[{mode:m,discovery:entry}])}
+assert.deepEqual(collect([['victory',{mode:'skip'}],['codexDiscovery',{name:'A',mode:'skip'}],['victory',{mode:'fast'}],['codexDiscovery',{name:'B',mode:'fast'}]]).map(x=>x.mode),['skip','fast']);
+assert.equal(collect([['codexPreview',{name:'Preview'}]])[0].mode,'normal');
+assert.match(combat,/\['victory',\{mode:kwBattleCelebrationMode\(\)\}\]/);
+assert.match(prog,/mode:kwBattleCelebrationMode\(\)/);
+assert.match(ui,/bookTime=\(typeof clock\?\.currentTime==='number'\?clock\.currentTime\/1000:t\)\*rate/);
+assert.match(css,/animation-duration:calc\(4\.4s \* var\(--kw-victory-time\)\)/);
+assert.match(ui,/if\(timing\.skip\)launchBook\(\)/);
+assert.ok(!ui.includes('kwVictoryQueue.length=0'));
+console.log('OK codex speed: event modes, 3x timing, skip flight, preview, queue and shader clock');

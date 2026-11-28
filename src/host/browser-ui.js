@@ -37,7 +37,7 @@ const mount=document.getElementById('mount'), status=document.getElementById('co
 function err(t){status.hidden=!t;status.textContent=t||''}
 async function api(path,data){return localApi(path,data)}
 const kwVictoryQueue=[];
-let kwVictoryActive=false,kwVictoryLastLine=-1;
+let kwVictoryActive=false,kwVictoryLastLine=-1,kwVictoryInterrupt=null;
 const kwVictoryArt={closed:'./assets/codex/book-closed.webp',open:'./assets/codex/book-open.webp',page:'./assets/codex/page.webp',soul:'./assets/codex/soul.webp'};
 for(const src of Object.values(kwVictoryArt)){const img=new Image();img.src=src}
 // Fly the closed codex in viewport coordinates, not in the scaled combat scene.
@@ -79,7 +79,7 @@ function kwCodexFirePhase(t,flying=false,reduced=false){
  const open=lerp(.17,.23)*(1-lerp(.82,.87));
  return {closed:lerp(0,.08)*(1-open),open,closedScale:.65+.35*lerp(0,.08),openScale:.15+.85*open};
 }
-function kwCreateCodexFire(closed,open,reduced=false){
+function kwCreateCodexFire(closed,open,reduced=false,rate=1){
  const layer=document.createElement('div');layer.className='kwCodexFire';layer.setAttribute('aria-hidden','true');
  const gpu=document.createElement('canvas'),fx=document.createElement('canvas'),mask=document.createElement('canvas');
  // At the actual combat scale these pixels already exceed the displayed CSS size.
@@ -150,7 +150,7 @@ function kwCreateCodexFire(closed,open,reduced=false){
  function draw(now){
   if(stopped)return;if(origin===null){origin=now;clock=closed.getAnimations?.().find(a=>a.animationName==='kwLocalClosed')}
   // The CSS book and the effect share its actual animation clock, including delayed frames.
-  const t=(now-origin)/1000,bookTime=typeof clock?.currentTime==='number'?clock.currentTime/1000:t;
+  const t=(now-origin)/1000,bookTime=(typeof clock?.currentTime==='number'?clock.currentTime/1000:t)*rate;
   const interval=mode==='webgl'?15:31;
   if(now-last>=interval){
    const p=kwCodexFirePhase(bookTime,flying,reduced);
@@ -173,16 +173,33 @@ function kwCodexFlightGeometry(book,hero){
  const dx=hero.left+hero.width/2-x,dy=hero.top+hero.height/2-y;
  return {x,y,dx,dy,bend:Math.min(42,Math.abs(dy)*.12+8)};
 }
-function kwShowVictory(discovery){
- if(kwVictoryActive&&!discovery)return;
+function kwVictoryTiming(mode,reduced=false){
+ const skip=mode==='skip',rate=mode==='fast'?3:1,scale=1/rate;
+ return {skip,rate,scale,launch:skip?0:3980*scale,flight:skip?260:820*scale,ordinary:skip?0:(reduced?2000:2600)*scale,reducedHold:skip?0:2000*scale};
+}
+function kwCollectCelebrations(events){
+ const out=[];
+ for(const [k,v] of events||[]){
+  if(k==='victory')out.push({mode:v?.mode||'normal'});
+  else if(k==='codexPreview')out.push({mode:'normal',discovery:v});
+  else if(k==='codexDiscovery'){
+   const last=out.at(-1);
+   if(last&&!last.discovery){last.discovery=v;last.mode=v?.mode||last.mode}
+   else out.push({mode:v?.mode||'normal',discovery:v});
+  }
+ }
+ return out;
+}
+function kwShowVictory(discovery,mode='normal'){
+ if(!discovery&&(kwVictoryActive||mode==='skip'))return;
  const foeImg=mount.querySelector('.fighter.foe .fightart img');
  const portrait=discovery&&typeof discovery.portrait==='string'&&!discovery.portrait.includes('#kwasset-')?discovery.portrait:foeImg?.src;
- kwVictoryQueue.push(discovery?{...discovery,portrait}:null);
- if(kwVictoryActive)return;
+ kwVictoryQueue.push({discovery:discovery?{...discovery,portrait}:null,mode});
+ if(kwVictoryActive){if(discovery)kwVictoryInterrupt?.();return}
  function play(){
   if(!kwVictoryQueue.length){kwVictoryActive=false;return}
   kwVictoryActive=true;
-  const item=kwVictoryQueue.shift(),lang=document.documentElement.lang;
+  const entry=kwVictoryQueue.shift(),item=entry.discovery,lang=document.documentElement.lang,reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,timing=kwVictoryTiming(entry.mode,reduced);
   const phrases=lang==='en'?['The yard is yours.','Another story for the garage.','Victory, officially approved.','The house rules have spoken.']:lang==='ru'?['Двор теперь твой.','Ещё одна история для гаража.','Победа официально одобрена.','Домовой порядок решён.']:['Der Hof gehört dir.','Eine Geschichte mehr für die Garage.','Sieg mit amtlichem Stempel.','Die Hausordnung ist zufrieden.','Der Pfand gehört dem Sieger.'];
   let next=Math.floor(Math.random()*phrases.length);
   if(next===kwVictoryLastLine)next=(next+1)%phrases.length;
@@ -196,7 +213,7 @@ function kwShowVictory(discovery){
   const y=item&&arena?Math.max(8,arena.top+3,portraitTop-136*scale):vs?Math.max(arena?.top??8,vs.top-24):arena?arena.top+Math.min(32,arena.height*.1):Math.max(12,innerHeight*.14);
   const layer=document.createElement('div'),scene=document.createElement('div');let fire=null;
   layer.className='kwVictoryOverlay'+(item?' hasDiscovery':'');layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
-  scene.className='kwVictoryScene'+(item?' hasDiscovery':'');
+  scene.className='kwVictoryScene'+(item?' hasDiscovery':'')+(timing.skip?' kwCodexSkipped':'');scene.style.setProperty('--kw-victory-time',String(timing.scale));
   if(item){layer.style.left=x+'px';layer.style.top=y+'px';scene.style.setProperty('--kw-local-scale',scale);scene.style.left='0';scene.style.top='0';}
   else {scene.style.left=x+'px';scene.style.top=y+'px';}
   scene.style.setProperty('--kw-book-x',((hero?hero.left+hero.width/2:x)-x)+'px');
@@ -214,7 +231,7 @@ function kwShowVictory(discovery){
    page.className='kwCodexPage';page.setAttribute('aria-hidden','true');page.style.setProperty('--leaf',0);
    soul.className='kwCodexSoul';ghost.src=kwVictoryArt.soul;ghost.alt='';soul.append(ghost);
    const portrait=item.portrait;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
-   visual.append(closed,open,page,soul);fire=kwCreateCodexFire(closed,open,matchMedia('(prefers-reduced-motion: reduce)').matches);visual.prepend(fire.layer);
+   visual.append(closed,open,page,soul);if(!timing.skip){fire=kwCreateCodexFire(closed,open,reduced,timing.rate);visual.prepend(fire.layer)}
    for(let n=1;n<4;n++){const leaf=page.cloneNode(false);leaf.style.setProperty('--leaf',n);visual.append(leaf)}
    const rays=document.createElement('div');rays.className='kwCodexRays';visual.prepend(rays);
    for(let n=0;n<24;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--angle',(n*15)+'deg');spark.style.setProperty('--reach',(35+(n%5)*10)+'px');spark.style.setProperty('--hue',[42,184,286,325,15,215][n%6]);visual.append(spark)}
@@ -235,29 +252,30 @@ function kwShowVictory(discovery){
    scene.style.setProperty('--kw-soul-x',((foe?foe.left+foe.width/2:x+70)-cx)/scale+'px');
    scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+60)-cy)/scale+'px');
   }
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let timer,launchTimer,finished=false,flight;
-  function finish(){if(finished)return;finished=true;clearTimeout(timer);clearTimeout(launchTimer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);fire?.stop();flight?.remove();layer.remove();play()}
-  function dismiss(e){if(e.type==='click'&&!e.target.closest?.('button,[role="button"]'))return;kwVictoryQueue.length=0;finish()}
+  function finish(){if(finished)return;finished=true;if(kwVictoryInterrupt===finish)kwVictoryInterrupt=null;clearTimeout(timer);clearTimeout(launchTimer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);fire?.stop();flight?.remove();layer.remove();play()}
+  function dismiss(e){if(e.type==='click'&&!e.target.closest?.('button,[role="button"]'))return;finish()}
   function launchBook(){
    if(finished)return;
    const closed=scene.querySelector('.kwCodexClosed'),target=mount.querySelector('#nav button:first-child');
    if(!closed||!target){finish();return}
+   // Measure the closed pose, even after a delayed animation frame.
+   closed.style.animation='none';closed.style.opacity='1';closed.style.transform='none';
    const book=closed.getBoundingClientRect(),button=target.getBoundingClientRect();
    if(!book.width||!button.width){finish();return}
    const g=kwCodexFlightGeometry(book,button);
    flight=document.createElement('div');flight.className='kwCodexFlight';flight.setAttribute('aria-hidden','true');const cover=document.createElement('img');cover.src=closed.src;cover.alt='';if(fire){fire.fly();flight.append(fire.layer)}flight.append(cover);
-   flight.style.left=g.x+'px';flight.style.top=g.y+'px';flight.style.width=book.width+'px';flight.style.height=book.height+'px';
+   flight.style.setProperty('--kw-flight-duration',timing.flight+'ms');flight.style.left=g.x+'px';flight.style.top=g.y+'px';flight.style.width=book.width+'px';flight.style.height=book.height+'px';
    flight.style.setProperty('--kw-flight-x',g.dx+'px');flight.style.setProperty('--kw-flight-y',g.dy+'px');flight.style.setProperty('--kw-flight-bend',g.bend+'px');
    document.body.append(flight);layer.remove();
-   flight.addEventListener('animationend',e=>{if(e.target===flight)finish()});timer=setTimeout(finish,1000);
+   flight.addEventListener('animationend',e=>{if(e.target===flight)finish()});timer=setTimeout(finish,timing.flight+120);
   }
   if(item&&!reduced){
-   // Navigation must not interrupt a collected entry's final flight.
-   launchTimer=setTimeout(launchBook,3980);
+   // A skipped fight only deposits the already-collected entry; no page sequence.
+   if(timing.skip)launchBook();else launchTimer=setTimeout(launchBook,timing.launch);
   }else{
-   if(!item){mount.addEventListener('click',dismiss,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true)}
-   timer=setTimeout(finish,reduced?2000:2600);
+   if(!item){kwVictoryInterrupt=finish;mount.addEventListener('click',dismiss,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true)}
+   timer=setTimeout(finish,item?timing.reducedHold:timing.ordinary);
   }
  }
  play();
@@ -280,7 +298,7 @@ function kwSyncPortraitBreathing(){
 function apply(x){if(x.styles)document.getElementById('gameStyles').textContent=x.styles;if(x.lang)document.documentElement.lang=x.lang;
  if(x.markup!==undefined){let oldScreen=mount.querySelector('main'),oldHeading=oldScreen?.querySelector('h2')?.textContent;let scrolls=[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].map(e=>e.scrollTop);let details=[...mount.querySelectorAll('details')].map(e=>e.open);let worldOld=mount.querySelector('.worldViewport');if(worldOld)kwWorldScroll=worldOld.scrollLeft;if(!mount.firstElementChild||mount.firstElementChild.id!=='app'){mount.innerHTML=x.markup}else{let tmp=document.createElement('template');tmp.innerHTML=x.markup;let next=tmp.content.firstElementChild,cur=mount.firstElementChild;if(!next||next.id!=='app'){mount.innerHTML=x.markup}else{let parts=[...next.children],old=[...cur.children];if(parts.length!==old.length||parts.some((el,i)=>el.tagName!==old[i].tagName||el.id!==old[i].id)){mount.innerHTML=x.markup}else{for(let i=0;i<parts.length;i++){if(kwComparableMarkup(old[i],parts[i])!==parts[i].outerHTML&&!kwPatchWorldScreen(old[i],parts[i]))old[i].replaceWith(parts[i])}}}}let worldNew=mount.querySelector('.worldViewport');if(worldNew)worldNew.scrollLeft=kwWorldScroll;[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].forEach((e,i)=>e.scrollTop=e.matches('main,.kwAchievementList,.kwRankList')&&e.closest('main')?.querySelector('h2')?.textContent!==oldHeading?0:scrolls[i]||0);[...mount.querySelectorAll('details')].forEach((e,i)=>e.open=!!details[i]);}etag=x.etag||etag;
  kwSyncPortraitBreathing();
- try{AudioGame.scene(x.scene);const celebrations=[];for(let [k,v] of x.events||[]){if(k==='fx'||k==='voice')AudioGame[k](v);else if(k==='victory')celebrations.push({});else if(k==='codexPreview')celebrations.push({discovery:v});else if(k==='codexDiscovery'){if(celebrations.length&&!celebrations[celebrations.length-1].discovery)celebrations[celebrations.length-1].discovery=v;else celebrations.push({discovery:v});}}for(const celebration of celebrations)kwShowVictory(celebration.discovery);}catch(e){console.error('Game event error',e)}if(x.result?.portal){location.href='/';return}err(!kwStorageOK?'Browser blockiert lokale Speicherung. Spielstand bleibt nur bis zum Schließen erhalten.':x.result?.ok===false?x.result.reason:'');}
+ try{AudioGame.scene(x.scene);for(const [k,v] of x.events||[]){if(k==='fx'||k==='voice')AudioGame[k](v)}for(const celebration of kwCollectCelebrations(x.events))kwShowVictory(celebration.discovery,celebration.mode);}catch(e){console.error('Game event error',e)}if(x.result?.portal){location.href='/';return}err(!kwStorageOK?'Browser blockiert lokale Speicherung. Spielstand bleibt nur bis zum Schließen erhalten.':x.result?.ok===false?x.result.reason:'');}
 window.kwPlayCombatAttack=hit=>AudioGame.combatAttack(hit);
 window.kwCombatFx=(sound,delay)=>setTimeout(()=>AudioGame.fx(sound),delay*1000);
 let kwCombatViewPending=false;

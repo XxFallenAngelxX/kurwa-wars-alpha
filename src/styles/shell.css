@@ -276,3 +276,22 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 .kwCodexFlight { isolation:isolate; overflow:visible; filter:none; }
 .kwCodexFlight>img { position:relative; z-index:2; display:block; width:100%; height:100%; object-fit:contain; }
 .kwCodexFlight>.kwCodexFire { left:50%; top:48.93617%; width:180.851064%; height:159.574468%; transform:translate(-50%,-50%); }
+
+/* Combat speed is inherited by every part of the local codex sequence. */
+.kwVictoryScene { --kw-victory-time:1; }
+.kwVictoryScene:not(.hasDiscovery) { animation-duration:calc(2.2s * var(--kw-victory-time)); }
+.kwVictoryScene .kwVictoryTitle { animation-duration:calc(.7s * var(--kw-victory-time)); }
+.kwVictoryScene .kwVictoryTitle::before { animation-duration:calc(.45s * var(--kw-victory-time)); }
+.kwVictoryScene.hasDiscovery .kwCodexClosed,.kwVictoryScene.hasDiscovery .kwCodexOpen,
+.kwVictoryScene.hasDiscovery .kwCodexSoul,.kwVictoryScene.hasDiscovery .kwCodexPageSticker,
+.kwVictoryScene.hasDiscovery .kwCodexImpact,.kwVictoryScene.hasDiscovery .kwCodexSpark,
+.kwVictoryScene.hasDiscovery .kwCodexRays,.kwVictoryScene.hasDiscovery .kwCodexDiscovery {
+ animation-duration:calc(4.4s * var(--kw-victory-time));
+}
+.kwVictoryScene.hasDiscovery .kwCodexPage {
+ animation-duration:calc(.44s * var(--kw-victory-time));
+ animation-delay:calc((.95s + var(--leaf,0)*.19s) * var(--kw-victory-time));
+}
+.kwVictoryScene.kwCodexSkipped { visibility:hidden; }
+.kwVictoryScene.kwCodexSkipped .kwCodexClosed { animation:none!important;opacity:1;transform:none; }
+.kwCodexFlight { animation-duration:var(--kw-flight-duration,.82s); }

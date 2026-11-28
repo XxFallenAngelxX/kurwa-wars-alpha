@@ -17,7 +17,7 @@ function rememberFoe(o){
  const entry=foeCatalog.find(x=>x.key===key);
  if(!entry)return;
  const count=codexCount();
- window.__events.push(['codexDiscovery',{name:entry.name,foes:count.foes,total:foeCatalog.length,percent:Math.floor(count.ratio*1000)/10,portrait:battlePortrait(o)}]);
+ window.__events.push(['codexDiscovery',{name:entry.name,foes:count.foes,total:foeCatalog.length,percent:Math.floor(count.ratio*1000)/10,portrait:battlePortrait(o),mode:kwBattleCelebrationMode()}]);
 }
 function foeKey(o){return o.d!==undefined?'boss:'+zones[o.d][0]+':'+o.enemy:(o.event||o.fairy)?'mob:'+foeTypes[o.type]?.[0]:o.tower?'tower:'+towerNames[((o.floor||o.l)-1)%4]:'mob:'+foeTypes[o.type]?.[0]}
 function codexCount(state=s){let items=catalog.filter(c=>state.codex?.items?.[c[0]]).length,foes=foeCatalog.filter(c=>state.codex?.foes?.[c.key]).length,total=catalog.length+foeCatalog.length;return {items,foes,total,found:items+foes,ratio:(items+foes)/total}}
