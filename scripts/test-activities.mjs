@@ -7,7 +7,7 @@ const core=read('src/engine/core/04-progression.js');
 const gate=core.split('// Central character-level gates; vehicle contracts deliberately remain currency-only.')[1].split('function kwCombatFeature')[0];
 const setup=`
 let s={level:7,energy:100,gold:10000,premium:0,wins:0,arena:{wins:0}},page='Schrottplatz',battle=null,onboard52=false,inventory={},capacity=true;
-let rng=.99; Math.random=()=>rng;let forceEncounter=false,started=0;const foeTypes=Array.from({length:100},(_,i)=>['Foe '+i]);function bagFull(){return !capacity}function start(mode){if(mode==='activity'){let o=kwActivityEnemy();if(o){started++;kwActivityState().encounter.status='fighting'}}}function battleLog(){}
+let rng=.99; Math.random=()=>rng;let forceEncounter=false,started=0;const foeTypes=Array.from({length:100},(_,i)=>['Foe '+i]);function bagFull(){return !capacity}function start(mode){if(mode==='activity'){let o=kwActivityEnemy();if(o){started++;kwActivityState().encounter.status='fighting'}}}let activityLogCount=0;function battleLog(){activityLogCount++}
 function setInterval(){}
 function save(){} function render(){} function hubLabel(de){return de}
 function rand(n){return Math.floor(rng*n)} function fmt(n){return String(n)} function logEscape(t){return t} const parent={location:{href:'https://example.test/game/index.html'}};
@@ -84,7 +84,7 @@ test('encounter probability boundary 30%',()=>{rng=.2999;let a=originalEncounter
 s.level=30;page='Schrottplatz';s.energy=100;rng=0;forceEncounter=true;let prevScrap=inventory.scrap||0;
 test('scrap encounter spends only gathering energy and delays loot',()=>kwScrapSearch(0)&&s.energy===95&&started===1&&kwActivityState().encounter.status==='fighting'&&(inventory.scrap||0)===prevScrap);
 test('pending encounter prevents more rolls',()=>!kwScrapSearch(0)&&s.energy===95);
-let b={o:kwActivityState().encounter.enemy,win:true};test('victory pays activity fund once',()=>kwActivityCompleteEncounter(b)&&inventory.scrap===prevScrap+2&&!kwActivityCompleteEncounter(b));
+let b={o:kwActivityState().encounter.enemy,win:true};test('victory pays activity fund once',()=>kwActivityCompleteEncounter(b)&&inventory.scrap===prevScrap+2&&!!b.activityReward&&activityLogCount===0&&!kwActivityCompleteEncounter(b));
 page='Kristallmine';let premium=s.premium;test('mine encounter holds crystals',()=>kwMineDig(0)&&s.energy===85&&s.premium===premium&&started===2);let lost={o:kwActivityState().encounter.enemy,win:false};test('defeat forfeits crystals',()=>kwActivityCompleteEncounter(lost)&&s.premium===premium);
 capacity=false;page='Schrottplatz';test('full bag preserves encounter',()=>kwScrapSearch(0)&&kwActivityState().encounter.status==='ready'&&started===2);capacity=true;start('activity');test('saved encounter starts once after bag cleared',()=>started===3&&kwActivityState().encounter.status==='fighting'&&!kwActivityEnemy());kwActivityRecoverEncounter();test('reload during fight discards fund',()=>!kwActivityState().encounter);
 results;

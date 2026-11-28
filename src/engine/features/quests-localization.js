@@ -84,7 +84,7 @@
   UNIQUES.forEach(u=>add(u[0],u[6],u[7]));REGULAR_EXTRA.forEach(r=>add(r[1],r[2],r[3]));ITEM_TITLE_VARIANTS.forEach(r=>add(r[0],r[1],r[2]));
   foeTranslations.forEach((a,i)=>add(foeTypes[i][0],...a));
   MEME_FOES.forEach(m=>add(m[0],m[1],m[2]));NEW_FOE_NAMES.forEach(n=>add(...n));KW47_FOES.forEach(n=>add(...n.slice(0,3)));RETRO_MEMES.forEach(r=>{add(...r[0]);r[3].forEach(n=>add(...n))});
-  zones.flatMap(z=>z[2]).forEach((b,i)=>add(b[1],...(bossTranslations[i]||[])));
+  DUNGEON_ORIGINAL_BOSSES.flat().forEach((b,i)=>add(b[1],...(bossTranslations[i]||[])));
   ENDGAME_ZONES.forEach(z=>{add(z[0],z[1],z[2]);z[4].forEach(b=>add(b[0],b[1],b[2]));});
   Object.values(NPC_LINES).forEach((n,i)=>add(n.text,...npcTranslations[i]));
   MEME_FOES.flatMap(m=>m.slice(10,13)).forEach((n,i)=>add(n,...(speechTranslations[i]||[])));

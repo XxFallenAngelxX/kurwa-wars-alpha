@@ -342,3 +342,11 @@
  line-height:1.15; white-space:nowrap; text-shadow:0 1px 3px #140b15,0 0 6px #140b15;
  pointer-events:none;
 }
+
+/* Story dungeons: compact progress cells for 15–25 fights, no additional scrolling. */
+#app .dungeonStoryScene { min-height:0; gap:5px; }
+#app .dungeonStoryScene>img { flex:0 1 auto; min-height:0; max-height:48%; }
+#app .dungeonStoryScene>h3,#app .dungeonStoryScene>p,#app .dungeonStoryScene>small { flex:0 0 auto; margin:0; }
+#app .dungeonStorySteps { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); width:min(100%,300px); gap:3px; flex:0 0 auto; }
+#app .dungeonStorySteps>span { width:auto; height:22px; min-width:0; font-size:10px; }
+@media(max-height:570px){#app .dungeonStorySteps {grid-template-columns:repeat(9,minmax(0,1fr));gap:2px} #app .dungeonStorySteps>span {height:17px;font-size:9px} #app .dungeonStoryScene>img {max-height:39%} #app .dungeonStoryScene {gap:3px} }

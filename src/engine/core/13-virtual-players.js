@@ -377,7 +377,7 @@ function kwSimDrops(p,o,result){
  if(q.level>=20&&typeof GEM_FAMILIES!=='undefined'&&roll(o.d!==undefined?.25:o.tower?.10:o.cost===15?.16:o.cost===10?.10:.06)){let k=gemId(pick(GEM_FAMILIES).id,gemDropTier(Math.min(o.l,result.level)));kwSimCount(p,'gemDrops',kwSimMat(p,k,1))}
 }
 function kwSimNextKey(p){
- if(typeof zones==='undefined')return;let q=p.state,k=zones.findIndex((z,i)=>!q.keys[i]&&q.level>=z[1]&&(i===0||q.d[i-1]>=zones[i-1][2].length));
+ if(typeof zones==='undefined')return;let q=p.state,k=zones.findIndex((z,i)=>dungeonKeyEligible(q,i));
  if(k>=0&&(++q.keyPity>=3||Math.random()<.30)){q.keys[k]=true;q.keyPity=0;kwSimCount(p,'keys')}
 }
 function kwSimOfferMission(p,ride){
@@ -393,7 +393,7 @@ function kwSimOfferMission(p,ride){
 }
 function kwSimSideOffer(p,now){
  let q=p.state,a=kwSimModel(p);if(typeof zones==='undefined'||a.nextBoss>now)return null;
- let i=zones.findIndex((z,k)=>q.keys[k]&&q.level>=z[1]&&q.d[k]<z[2].length&&(k===0||q.d[k-1]>=zones[k-1][2].length));
+ let i=zones.findIndex((z,k)=>dungeonUnlocked(q,k)&&q.d[k]<z[2].length);
  if(i>=0&&Math.random()<.6){let k=q.d[i],z=zones[i],l=storyBossLevel(i,k);return {enemy:z[2][k][1],type:z[2][k][0],l,cost:0,g:Math.round(150+l*45),x:Math.round(80+l*18),d:i,bossIndex:k,variance:1.15}}
  if(q.level>=50&&q.fairyTower<100&&Math.random()<.25){let floor=q.fairyTower+1,l=fairyLevel(floor);return {fairy:true,tower:true,event:false,floor,l,type:((floor-1)*37+7)%foeTypes.length,cost:0,g:Math.round(180+l*65),x:Math.round(90+l*22),variance:1.18+.002*floor}}
  if(q.level>=25){let event=q.level>=35&&Math.random()<.25,n=event?q.eventTower:q.tower,l=1+Math.floor(n*1.45);return {tower:true,event,floor:n+1,l,type:event?(n*17+5)%foeTypes.length:(n%4*7+15)%foeTypes.length,cost:0,g:Math.round((100+l*35)*(1+roomBonus(11,q.rooms[11]))),x:Math.round(35+l*8),variance:1.12}}
