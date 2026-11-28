@@ -161,7 +161,7 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
  width:280px; height:184px; perspective:none; transform-style:flat;
  --kw-imprint-x:190px; --kw-imprint-y:94px; --kw-soul-origin-x:140px; --kw-soul-origin-y:94px;
  --kw-dx:calc(var(--kw-imprint-x) - var(--kw-soul-origin-x)); --kw-dy:calc(var(--kw-imprint-y) - var(--kw-soul-origin-y));
- animation:kwLocalBookExit 4.4s ease-in forwards;
+ animation:none;
 }
 .kwVictoryScene.hasDiscovery .kwCodexOpen { left:10px; top:-26px; width:260px; height:260px; object-fit:contain; animation:kwLocalOpen 4.4s linear both; }
 .kwVictoryScene.hasDiscovery .kwCodexClosed { left:46px; top:-2px; width:188px; height:188px; object-fit:contain; animation:kwLocalClosed 4.4s linear both; }
@@ -245,3 +245,18 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 .kwVictoryScene:not(.hasDiscovery) { width:max-content; max-width:min(220px,80vw); pointer-events:none; }
 .kwVictoryScene:not(.hasDiscovery) .kwVictoryTitle { font-size:clamp(20px,5vw,30px); }
 .kwVictoryScene:not(.hasDiscovery) .kwVictoryQuote { display:none; }
+
+/* The closed codex leaves the combat scene and lands on the hero navigation button. */
+.kwCodexFlight {
+ position:fixed; z-index:901; pointer-events:none; display:block; object-fit:contain;
+ margin:0; padding:0; transform-origin:center;
+ filter:drop-shadow(0 0 7px #ffce71) drop-shadow(0 0 12px #ad60eb);
+ animation:kwCodexFlyToHero .82s cubic-bezier(.36,.12,.56,1) both;
+}
+@keyframes kwCodexFlyToHero {
+ 0% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0); }
+ 24% { opacity:1; transform:translate(-50%,-50%) translate(calc(var(--kw-flight-x)*.18),calc(var(--kw-flight-y)*.12 - var(--kw-flight-bend))) scale(.90) rotate(-8deg); }
+ 86% { opacity:1; transform:translate(-50%,-50%) translate(var(--kw-flight-x),var(--kw-flight-y)) scale(.30) rotate(-14deg); }
+ 100% { opacity:0; transform:translate(-50%,-50%) translate(var(--kw-flight-x),var(--kw-flight-y)) scale(.04) rotate(-14deg); }
+}
+@media(prefers-reduced-motion:reduce){.kwCodexFlight{animation:none!important;display:none}}

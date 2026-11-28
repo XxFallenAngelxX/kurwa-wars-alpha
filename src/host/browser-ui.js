@@ -40,6 +40,12 @@ const kwVictoryQueue=[];
 let kwVictoryActive=false,kwVictoryLastLine=-1;
 const kwVictoryArt={closed:'./assets/codex/book-closed.webp',open:'./assets/codex/book-open.webp',page:'./assets/codex/page.webp',soul:'./assets/codex/soul.webp'};
 for(const src of Object.values(kwVictoryArt)){const img=new Image();img.src=src}
+// Fly the closed codex in viewport coordinates, not in the scaled combat scene.
+function kwCodexFlightGeometry(book,hero){
+ const x=book.left+book.width/2,y=book.top+book.height/2;
+ const dx=hero.left+hero.width/2-x,dy=hero.top+hero.height/2-y;
+ return {x,y,dx,dy,bend:Math.min(42,Math.abs(dy)*.12+8)};
+}
 function kwShowVictory(discovery){
  if(kwVictoryActive&&!discovery)return;
  const foeImg=mount.querySelector('.fighter.foe .fightart img');
@@ -103,11 +109,29 @@ function kwShowVictory(discovery){
    scene.style.setProperty('--kw-soul-y',((foe?foe.top+foe.height/2:y+60)-cy)/scale+'px');
   }
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let timer,finished=false;
-  function finish(){if(finished)return;finished=true;clearTimeout(timer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);layer.remove();play()}
+  let timer,launchTimer,finished=false,flight;
+  function finish(){if(finished)return;finished=true;clearTimeout(timer);clearTimeout(launchTimer);mount.removeEventListener('click',dismiss,true);window.removeEventListener('resize',dismiss);document.removeEventListener('scroll',dismiss,true);flight?.remove();layer.remove();play()}
   function dismiss(e){if(e.type==='click'&&!e.target.closest?.('button,[role="button"]'))return;kwVictoryQueue.length=0;finish()}
-  mount.addEventListener('click',dismiss,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true);
-  timer=setTimeout(finish,reduced?2000:item?4400:2600);
+  function launchBook(){
+   if(finished)return;
+   const closed=scene.querySelector('.kwCodexClosed'),target=mount.querySelector('#nav button:first-child');
+   if(!closed||!target){finish();return}
+   const book=closed.getBoundingClientRect(),button=target.getBoundingClientRect();
+   if(!book.width||!button.width){finish();return}
+   const g=kwCodexFlightGeometry(book,button);
+   flight=document.createElement('img');flight.className='kwCodexFlight';flight.src=closed.src;flight.alt='';flight.setAttribute('aria-hidden','true');
+   flight.style.left=g.x+'px';flight.style.top=g.y+'px';flight.style.width=book.width+'px';flight.style.height=book.height+'px';
+   flight.style.setProperty('--kw-flight-x',g.dx+'px');flight.style.setProperty('--kw-flight-y',g.dy+'px');flight.style.setProperty('--kw-flight-bend',g.bend+'px');
+   document.body.append(flight);layer.remove();
+   flight.addEventListener('animationend',finish,{once:true});timer=setTimeout(finish,1000);
+  }
+  if(item&&!reduced){
+   // Navigation must not interrupt a collected entry's final flight.
+   launchTimer=setTimeout(launchBook,3980);
+  }else{
+   if(!item){mount.addEventListener('click',dismiss,true);window.addEventListener('resize',dismiss);document.addEventListener('scroll',dismiss,true)}
+   timer=setTimeout(finish,reduced?2000:2600);
+  }
  }
  play();
 }
