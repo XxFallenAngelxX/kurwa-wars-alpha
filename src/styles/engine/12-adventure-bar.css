@@ -343,10 +343,15 @@
  pointer-events:none;
 }
 
-/* Story dungeons: compact progress cells for 15–25 fights, no additional scrolling. */
+/* Story dungeon portraits: compact square thumbnails, with room for 25 stages. */
 #app .dungeonStoryScene { min-height:0; gap:5px; }
-#app .dungeonStoryScene>img { flex:0 1 auto; min-height:0; max-height:48%; }
+#app .dungeonStoryScene>img { flex:0 1 auto; min-height:0; max-height:44%; }
 #app .dungeonStoryScene>h3,#app .dungeonStoryScene>p,#app .dungeonStoryScene>small { flex:0 0 auto; margin:0; }
-#app .dungeonStorySteps { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); width:min(100%,300px); gap:3px; flex:0 0 auto; }
-#app .dungeonStorySteps>span { width:auto; height:22px; min-width:0; font-size:10px; }
-@media(max-height:570px){#app .dungeonStorySteps {grid-template-columns:repeat(9,minmax(0,1fr));gap:2px} #app .dungeonStorySteps>span {height:17px;font-size:9px} #app .dungeonStoryScene>img {max-height:39%} #app .dungeonStoryScene {gap:3px} }
+#app .dungeonStorySteps { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); width:min(100%,300px,48dvh); gap:3px; flex:0 0 auto; }
+#app .dungeonStorySteps>.dungeonStep { display:block; width:100%; height:auto; aspect-ratio:1; min-width:0; min-height:0; border:1px solid #776074; border-radius:4px; overflow:hidden; background:#211a26; box-sizing:border-box; }
+#app .dungeonStorySteps>.dungeonStep>img { display:block; width:100%; height:100%; max-width:none; max-height:none; object-fit:cover; border:0; border-radius:0; }
+#app .dungeonStorySteps>.done>img,#app .dungeonClearedPortrait { filter:grayscale(1) brightness(.62); }
+#app .dungeonStorySteps>.current { border-color:#ffce75; box-shadow:0 0 6px #e7ac5277; }
+#app .dungeonStorySteps>.next { border-color:#9f7047; }
+#app .dungeonStorySteps>.unknown { border-color:#584b5a; }
+@media(max-height:570px){#app .dungeonStorySteps {grid-template-columns:repeat(9,minmax(0,1fr));width:min(100%,290px,53dvh);gap:2px} #app .dungeonStoryScene>img {max-height:39%} #app .dungeonStoryScene {gap:3px} }

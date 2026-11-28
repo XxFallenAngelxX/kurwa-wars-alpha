@@ -16,3 +16,10 @@ assert.ok(unlocked(s,4));assert.equal(eligible(s,5),false);s.d[4]=zones[4][2].le
 assert.match(combat,/DUNGEON_ORIGINAL_BOSSES\.slice\(ENDGAME_START\)/);
 assert.match(combat,/b\.activityReward\?/);
 console.log('OK expanded dungeon content:',zones.map(z=>z[2].length).join(', '));
+
+// Fog of war is checked across every progression state, including the final fight.
+const ui=read('src/engine/core/12-milestones-profiles.js');
+const fog=new Function('zones','storyBossLevel','bossPortrait','logEscape',ui.slice(ui.indexOf('const DUNGEON_UNKNOWN_ART='),ui.indexOf('function render(){'))+'return {DUNGEON_UNKNOWN_ART,dungeonVisibleMaxLevel,dungeonBossStepState,dungeonBossStepArt,dungeonBossStepTitle,dungeonBossSteps}')(zones,level,b=>'portrait:'+b[1],x=>String(x).replaceAll('"','&quot;'));
+for(let i=0;i<zones.length;i++){let z=zones[i];for(let k=0;k<=z[2].length;k++){let state={d:[]};state.d[i]=k;assert.equal(fog.dungeonVisibleMaxLevel(i,state),k===z[2].length?level(i,k-1):'???');for(let j=0;j<z[2].length;j++){let expected=j<k?'done':j===k?'current':j===k+1?'next':'unknown';assert.equal(fog.dungeonBossStepState(i,j,state),expected);assert.equal(fog.dungeonBossStepArt(i,j,state),expected==='unknown'?fog.DUNGEON_UNKNOWN_ART:'portrait:'+z[2][j][1]);assert.equal(fog.dungeonBossStepTitle(i,j,state),expected==='unknown'?'???':z[2][j][1]);}let markup=fog.dungeonBossSteps(i,state);assert.equal((markup.match(/class="dungeonStep /g)||[]).length,z[2].length)}}
+assert.match(ui,/dungeonVisibleMaxLevel\(i\)/);assert.match(ui,/dungeonBossSteps\(dp\)/);
+console.log('OK dungeon fog of war: all progression states');
