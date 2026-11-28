@@ -37,14 +37,44 @@ function chat46Finish(b){if(b.win){chat46Add('system','',hubLabel('Kampf gewonne
  let n=(Number(s.chat46Battles)||0)+1;s.chat46Battles=n;
  if(n%4===0&&Date.now()-(s.chat46LastPM||0)>=180000){let row=CHAT46_PM[(Math.floor(n/4)-1)%CHAT46_PM.length];chat46Add('private',row[0],hubLabel(...row.slice(1)));s.chat46LastPM=Date.now();s.chat46Unread=(s.chat46Unread||0)+1;}
 }
-function chat46Open(){chat46FilterKey='all';s.chat46Unread=0;chat46Stamp='';$('modal').hidden=false;$('modal').innerHTML='<div class="sheet kwChatSheet" id="kwChatSheet"></div>';chat46Draw();save();}
-function chat46Filter(k){if(!['all','dialogue','combat','loot','system','private'].includes(k))return;chat46FilterKey=k;chat46Stamp='';chat46Draw();}
-function chat46Draw(){let el=$('kwChatSheet');if(!el||$('modal').hidden)return;let a=chat46Entries(),stamp=chat46FilterKey+'|'+s.lang+'|'+a.length+'|'+(a.at(-1)?.at||0)+'|'+(a.at(-1)?.t||'');if(stamp===chat46Stamp)return;chat46Stamp=stamp;
- let opts=[['all',hubLabel('Alles','All','Всё')],['dialogue',hubLabel('Dialoge','Dialogue','Диалоги')],['combat',hubLabel('Kampf','Combat','Бой')],['loot',hubLabel('Loot','Loot','Добыча')],['system',hubLabel('System','System','Система')],['private',hubLabel('Privat','Private','Личные')]];
- let filtered=a.filter(r=>chat46FilterKey==='all'||r.kind===chat46FilterKey||(chat46FilterKey==='combat'&&r.kind==='dialogue'&&r.scope==='combat')).slice(-150).reverse();let lang=s.lang==='ru'?'ru-RU':s.lang==='en'?'en-GB':'de-DE';
- el.innerHTML=`<div class="row"><h3>${hubLabel('Hinterhof-Funk','Backyard chat','Дворовой чат')}</h3><button class="close" onclick="closeItem()">×</button></div><small>${hubLabel('Lokales Spielprotokoll · NPC-Nachrichten','Local game log · NPC messages','Локальный журнал · сообщения NPC')}</small><div class="kwChatFilters">${opts.map(([k,n])=>`<button class="${k===chat46FilterKey?'active':''}" onclick="chat46Filter('${k}')">${n}</button>`).join('')}</div><div class="kwChatHistory">${filtered.map(r=>{let who=r.who||opts.find(o=>o[0]===r.kind)?.[1]||'';return `<div class="kwChatLine ${['combat','loot','system','dialogue','private'].includes(r.kind)?r.kind:'system'}"><div><b>${logEscape(who)}${r.kind==='private'?' · '+hubLabel('Privat','Private','Личные'):''}</b><small>${new Date(r.at).toLocaleTimeString(lang,{hour:'2-digit',minute:'2-digit'})}</small></div><span>${logEscape(r.t)}</span></div>`}).join('')||`<p class="muted">${hubLabel('Noch keine Nachrichten.','No messages yet.','Сообщений пока нет.')}</p>`}</div><small>${hubLabel('Neueste zuerst · letzte 150 pro Ansicht','Newest first · last 150 per view','Сначала новые · последние 150 в разделе')}</small><button onclick="closeItem()">${hubLabel('Schließen','Close','Закрыть')}</button>`;
+
+/* Independent MMO chat dock; the old toast and inventory modal are not used. */
+let chat46Expanded=false;
+function chat46Open(){chat46Expanded=true;chat46Stamp='';if(s.chat46Unread){s.chat46Unread=0;save()}chat46Draw()}
+function chat46Toggle(){if(chat46Expanded){chat46Expanded=false;chat46Stamp='';chat46Draw()}else chat46Open()}
+function chat46Filter(k){if(!chat46Expanded||!['all','dialogue','combat','loot','system','private'].includes(k))return;chat46FilterKey=k;chat46Stamp='';chat46Draw()}
+function chat46Filtered(a,k){return a.filter(r=>k==='all'||r.kind===k||(k==='combat'&&r.kind==='dialogue'&&r.scope==='combat')).slice(-150)}
+function chat46Dock(){
+ let el=$('kwChatDock');if(el)return el;
+ el=document.createElement('aside');el.id='kwChatDock';el.className='kwChatDock';el.innerHTML='<div class="kwChatPanel" id="kwChatPanel"><div class="kwChatFilters"></div><div class="kwChatHistory" role="log" aria-live="off"></div></div><button id="kwChatToggle" class="kwChatToggle" onclick="chat46Toggle()" aria-controls="kwChatPanel"></button>';
+ $('app').append(el);chat46Stamp='';return el;
 }
-function chat46Sync(){if(chat46SeenState!==s){chat46SeenState=s;chat46SeenMsg=String(msg||'')}else if(String(msg||'')!==chat46SeenMsg){chat46SeenMsg=String(msg||'');if(msg)chat46Add('system','',chat46Translate(msg))}let a=chat46Entries(),last=a.at(-1),toast=document.querySelector('#screen .toast');if(toast){let button=toast.querySelector('.kwChatButton');if(!button){toast.innerHTML='<button class="kwChatButton" onclick="chat46Open()"><b></b><span></span></button>';button=toast.firstElementChild;}let title=hubLabel('Chat','Chat','Чат')+(s.chat46Unread?' ('+s.chat46Unread+')':'')+' ›',text=last?((last.who?last.who+': ':'')+last.t):hubLabel('Spielprotokoll öffnen','Open game log','Открыть журнал');if(button.firstElementChild.textContent!==title)button.firstElementChild.textContent=title;if(button.lastElementChild.textContent!==text)button.lastElementChild.textContent=text;}chat46Draw();}
+function chat46Draw(){
+ let el=chat46Dock(),panel=$('kwChatPanel'),toggle=$('kwChatToggle'),hidden=!!onboard52||page==='Profile'||!$('modal').hidden;
+ el.hidden=hidden;el.classList.toggle('isOpen',chat46Expanded);panel.setAttribute('aria-hidden',String(!chat46Expanded));panel.inert=!chat46Expanded;
+ toggle.setAttribute('aria-expanded',String(chat46Expanded));let label=chat46Expanded?hubLabel('Chat einklappen','Collapse chat','Свернуть чат'):hubLabel('Chat öffnen','Open chat','Открыть чат');
+ toggle.title=label;toggle.setAttribute('aria-label',label+(s.chat46Unread?' · '+s.chat46Unread:''));
+ const toggleMarkup='<span class="kwChatGlyph">'+(chat46Expanded?'‹':'›')+'</span><span>'+hubLabel('Chat','Chat','Чат')+'</span>'+(s.chat46Unread&&!chat46Expanded?'<b class="kwChatUnread">'+Math.min(99,s.chat46Unread)+'</b>':'');
+ if(toggle.innerHTML!==toggleMarkup)toggle.innerHTML=toggleMarkup;
+ const opts=[['all',hubLabel('Allgemein','General','Общий')],['dialogue',hubLabel('Dialoge','Dialogue','Диалоги')],['combat',hubLabel('Kampf','Combat','Бой')],['loot',hubLabel('Loot','Loot','Добыча')],['system',hubLabel('System','System','Система')],['private',hubLabel('Privat','Private','Личные')]];
+ const filters=panel.querySelector('.kwChatFilters'),tabMarkup=opts.map(([k,n])=>'<button '+(!chat46Expanded?'disabled ':'')+'class="'+(k===chat46FilterKey?'active':'')+'" onclick="chat46Filter(\''+k+'\')" aria-pressed="'+(k===chat46FilterKey)+'">'+logEscape(n)+'</button>').join('');
+ if(filters.innerHTML!==tabMarkup)filters.innerHTML=tabMarkup;
+ if(!chat46Expanded||hidden)return;
+ let a=chat46Entries(),last=a.at(-1),stamp=chat46FilterKey+'|'+s.lang+'|'+a.length+'|'+(last?.at||0)+'|'+(last?.t||'');
+ if(stamp===chat46Stamp)return;chat46Stamp=stamp;
+ let lang=s.lang==='ru'?'ru-RU':s.lang==='en'?'en-GB':'de-DE',history=panel.querySelector('.kwChatHistory');
+ history.dataset.chatFilter=chat46FilterKey;
+ history.innerHTML=chat46Filtered(a,chat46FilterKey).map(r=>{
+  let kind=['combat','loot','system','dialogue','private'].includes(r.kind)?r.kind:'system',who=r.who||opts.find(o=>o[0]===kind)?.[1]||'';
+  return '<div class="kwChatLine '+kind+'"><time>'+new Date(r.at).toLocaleTimeString(lang,{hour:'2-digit',minute:'2-digit'})+'</time> <b>['+logEscape(who)+']</b> <span>'+logEscape(r.t)+'</span></div>';
+ }).join('')||'<p class="muted">'+hubLabel('Noch keine Nachrichten.','No messages yet.','Сообщений пока нет.')+'</p>';
+}
+function chat46Sync(){
+ if(chat46SeenState!==s){chat46SeenState=s;chat46SeenMsg=String(msg||'');chat46Stamp='';chat46Expanded=false;chat46FilterKey='all';let h=$('kwChatPanel')?.querySelector('.kwChatHistory');if(h)h.innerHTML=''}
+ else if(String(msg||'')!==chat46SeenMsg){chat46SeenMsg=String(msg||'');if(msg)chat46Add('system','',chat46Translate(msg))}
+ if(chat46Expanded&&$('modal').hidden&&s.chat46Unread){s.chat46Unread=0;save()}
+ chat46Draw();
+}
 
 const world45BattleLog=battleLog;
 // Suppress 3 of every 10 visual bubbles; keep complete combat and chat logs.

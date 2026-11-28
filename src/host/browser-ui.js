@@ -295,8 +295,27 @@ function kwSyncPortraitBreathing(){
   }
  }
 }
+
+function kwChatScrollTarget(before,after,top,oldHeight,oldClient){
+ if(!before||!after||before!==after||oldHeight-oldClient-top<=20)return Infinity;
+ return top;
+}
+function kwPatchChatDock(old,next){
+ if(old.id!=='kwChatDock'||next.id!=='kwChatDock')return false;
+ const prev=old.querySelector('.kwChatHistory'),fresh=next.querySelector('.kwChatHistory'),wasOpen=old.classList.contains('isOpen'),open=next.classList.contains('isOpen');
+ const top=prev?.scrollTop||0,oldHeight=prev?.scrollHeight||0,oldClient=prev?.clientHeight||0,oldFilter=prev?.dataset.chatFilter;
+ const sync=(a,b)=>{for(const attr of [...a.attributes])if(!b.hasAttribute(attr.name))a.removeAttribute(attr.name);for(const attr of [...b.attributes])if(a.getAttribute(attr.name)!==attr.value)a.setAttribute(attr.name,attr.value)};
+ sync(old,next);
+ const panel=old.querySelector('#kwChatPanel'),newPanel=next.querySelector('#kwChatPanel');
+ if(panel&&newPanel){sync(panel,newPanel);const tabs=panel.querySelector('.kwChatFilters'),newTabs=newPanel.querySelector('.kwChatFilters');if(tabs&&newTabs&&tabs.outerHTML!==newTabs.outerHTML)tabs.replaceWith(newTabs)}
+ if(prev&&fresh&&prev.outerHTML!==fresh.outerHTML){sync(prev,fresh);prev.innerHTML=fresh.innerHTML}
+ const toggle=old.querySelector('#kwChatToggle'),newToggle=next.querySelector('#kwChatToggle');if(toggle&&newToggle){sync(toggle,newToggle);if(toggle.innerHTML!==newToggle.innerHTML)toggle.innerHTML=newToggle.innerHTML}
+ if(open&&prev){const target=kwChatScrollTarget(wasOpen?oldFilter:null,prev.dataset.chatFilter,top,oldHeight,oldClient);prev.scrollTop=Number.isFinite(target)?target:prev.scrollHeight}
+ return true;
+}
+
 function apply(x){if(x.styles)document.getElementById('gameStyles').textContent=x.styles;if(x.lang)document.documentElement.lang=x.lang;
- if(x.markup!==undefined){let oldScreen=mount.querySelector('main'),oldHeading=oldScreen?.querySelector('h2')?.textContent;let scrolls=[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].map(e=>e.scrollTop);let details=[...mount.querySelectorAll('details')].map(e=>e.open);let worldOld=mount.querySelector('.worldViewport');if(worldOld)kwWorldScroll=worldOld.scrollLeft;if(!mount.firstElementChild||mount.firstElementChild.id!=='app'){mount.innerHTML=x.markup}else{let tmp=document.createElement('template');tmp.innerHTML=x.markup;let next=tmp.content.firstElementChild,cur=mount.firstElementChild;if(!next||next.id!=='app'){mount.innerHTML=x.markup}else{let parts=[...next.children],old=[...cur.children];if(parts.length!==old.length||parts.some((el,i)=>el.tagName!==old[i].tagName||el.id!==old[i].id)){mount.innerHTML=x.markup}else{for(let i=0;i<parts.length;i++){if(kwComparableMarkup(old[i],parts[i])!==parts[i].outerHTML&&!kwPatchWorldScreen(old[i],parts[i]))old[i].replaceWith(parts[i])}}}}let worldNew=mount.querySelector('.worldViewport');if(worldNew)worldNew.scrollLeft=kwWorldScroll;[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwChatHistory,.kwAchievementList,.kwRankList,.baggrid')].forEach((e,i)=>e.scrollTop=e.matches('main,.kwAchievementList,.kwRankList')&&e.closest('main')?.querySelector('h2')?.textContent!==oldHeading?0:scrolls[i]||0);[...mount.querySelectorAll('details')].forEach((e,i)=>e.open=!!details[i]);}etag=x.etag||etag;
+ if(x.markup!==undefined){let oldScreen=mount.querySelector('main'),oldHeading=oldScreen?.querySelector('h2')?.textContent;let scrolls=[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwAchievementList,.kwRankList,.baggrid')].map(e=>e.scrollTop);let details=[...mount.querySelectorAll('details')].map(e=>e.open);let worldOld=mount.querySelector('.worldViewport');if(worldOld)kwWorldScroll=worldOld.scrollLeft;if(!mount.firstElementChild||mount.firstElementChild.id!=='app'){mount.innerHTML=x.markup}else{let tmp=document.createElement('template');tmp.innerHTML=x.markup;let next=tmp.content.firstElementChild,cur=mount.firstElementChild;if(!next||next.id!=='app'){mount.innerHTML=x.markup}else{let parts=[...next.children],old=[...cur.children];if(parts.length!==old.length||parts.some((el,i)=>el.tagName!==old[i].tagName||el.id!==old[i].id)){mount.innerHTML=x.markup}else{for(let i=0;i<parts.length;i++){if(kwComparableMarkup(old[i],parts[i])!==parts[i].outerHTML&&!kwPatchWorldScreen(old[i],parts[i])&&!kwPatchChatDock(old[i],parts[i]))old[i].replaceWith(parts[i])}}}}let worldNew=mount.querySelector('.worldViewport');if(worldNew)worldNew.scrollLeft=kwWorldScroll;[...mount.querySelectorAll('.sheet,main,.raidArchive,.gmTimePanel,.hqInventory,.kwAchievementList,.kwRankList,.baggrid')].forEach((e,i)=>e.scrollTop=e.matches('main,.kwAchievementList,.kwRankList')&&e.closest('main')?.querySelector('h2')?.textContent!==oldHeading?0:scrolls[i]||0);[...mount.querySelectorAll('details')].forEach((e,i)=>e.open=!!details[i]);}etag=x.etag||etag;
  kwSyncPortraitBreathing();
  try{AudioGame.scene(x.scene);for(const [k,v] of x.events||[]){if(k==='fx'||k==='voice')AudioGame[k](v)}for(const celebration of kwCollectCelebrations(x.events))kwShowVictory(celebration.discovery,celebration.mode);}catch(e){console.error('Game event error',e)}if(x.result?.portal){location.href='/';return}err(!kwStorageOK?'Browser blockiert lokale Speicherung. Spielstand bleibt nur bis zum Schließen erhalten.':x.result?.ok===false?x.result.reason:'');}
 window.kwPlayCombatAttack=hit=>AudioGame.combatAttack(hit);
