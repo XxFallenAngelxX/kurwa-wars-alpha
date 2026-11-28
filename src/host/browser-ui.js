@@ -43,54 +43,111 @@ for(const src of Object.values(kwVictoryArt)){const img=new Image();img.src=src}
 // Fly the closed codex in viewport coordinates, not in the scaled combat scene.
 
 // Animated local fel-fire aura. The original book sprites are never modified.
-const KW_CODEX_FIRE_VERTEX='attribute vec2 aPosition; void main(){gl_Position=vec4(aPosition,0.0,1.0);}';
-const KW_CODEX_FIRE_FRAGMENT=
-'precision mediump float;\n'+
-'uniform vec2 uResolution; uniform float uTime; uniform float uOpen; uniform float uAppear;\n'+
-'float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}\n'+
-'float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}\n'+
-'float fbm(vec2 p){return .55*noise2(p)+.28*noise2(p*2.13+3.1)+.12*noise2(p*4.21-4.7);}\n'+
-'float boxDist(vec2 p,vec2 halfSize,float r){vec2 q=abs(p)-halfSize+r;return length(max(q,0.0))+min(max(q.x,q.y),0.0)-r;}\n'+
-'void main(){\n'+
-' vec2 p=gl_FragCoord.xy/uResolution*vec2(340.,270.)-vec2(170.,133.);\n'+
-' p.y+=mix(0.,-7.,uOpen); vec2 h=mix(vec2(64.,81.),vec2(119.,82.),uOpen); h*=mix(.69,1.,uAppear);\n'+
-' float d=boxDist(p,h,9.); float t=uTime; vec2 flow=vec2(p.x*.062,p.y*.046-t*2.5);\n'+
-' float n=fbm(flow+vec2(noise2(flow*.7+t*.18)*2.,0.)); float detail=noise2(flow*2.7+vec2(t*.3,-t));\n'+
-' float upward=smoothstep(-.45,.92,p.y/max(h.y,1.)); float reach=7.+(12.+30.*upward)*pow(n,1.5);\n'+
-' float tongue=1.-smoothstep(reach*.43,reach,d+(detail-.5)*5.); float outside=smoothstep(-4.,1.5,d);\n'+
-' float glow=exp(-max(d,0.)*.105)*(.33+.45*n); float core=(1.-smoothstep(2.,12.,d))*outside;\n'+
-' float a=outside*clamp(tongue*(.7+.3*detail)+glow*.45,0.,1.)*uAppear;\n'+
-' vec3 ember=mix(vec3(.54,.055,.68),vec3(1.,.12,.025),smoothstep(.23,.72,n));\n'+
-' vec3 fire=mix(ember,vec3(1.,.52,.065),clamp(tongue*.64+core*.32,0.,1.));\n'+
-' fire=mix(fire,vec3(1.,.92,.55),core*.7); gl_FragColor=vec4(fire,a);\n'+
-'}';
-function kwCreateCodexFire(reduced=false){
+// Silhouette-driven rising fire. Sample the real alpha channel of both book sprites.
+// Each tongue is advected upward; no rectangular SDF, border, or glow frame.
+const KW_CODEX_FIRE_VERTEX='attribute vec2 aPosition;void main(){gl_Position=vec4(aPosition,0.,1.);}';
+const KW_CODEX_FIRE_FRAGMENT=[
+'precision mediump float;',
+'uniform sampler2D uMask; uniform vec2 uResolution; uniform float uTime; uniform float uAppear;',
+'float hash(vec2 p){return fract(sin(dot(p,vec2(41.73,29.17)))*4375.13);}',
+'float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}',
+'float fbm(vec2 p){return .57*noise2(p)+.29*noise2(p*2.03+5.2)+.14*noise2(p*4.1+9.7);}',
+'float maskAt(vec2 p){vec2 uv=p/vec2(340.,300.);if(uv.x<0.||uv.x>1.||uv.y<0.||uv.y>1.)return 0.;return smoothstep(.15,.65,texture2D(uMask,uv).a);}',
+'void main(){',
+' vec2 uv=gl_FragCoord.xy/uResolution; vec2 p=vec2(uv.x,1.-uv.y)*vec2(340.,300.);',
+' float t=uTime;float n=fbm(vec2(p.x*.091,p.y*.034+t*3.1));float curl=fbm(vec2(p.x*.045+t*.7,p.y*.052+t*2.1));',
+' float wave=.5+.5*sin(p.x*.16+curl*6.5+t*2.8);float reach=15.+63.*pow(wave,.95)*(.45+.55*n);',
+' float heat=0.;',
+' for(int j=1;j<=9;j++){float s=float(j)/9.;float rise=s*reach;float drift=(curl-.5)*rise*.65+sin(p.y*.07+t*4.+p.x*.04)*s*8.;',
+'  float m=maskAt(p+vec2(drift,rise));heat=max(heat,m*(1.-s*.78));}',
+' float side=max(maskAt(p+vec2(11.+n*9.,6.)),maskAt(p-vec2(11.+n*9.,-6.)));',
+' float under=maskAt(p-vec2(0.,7.));heat=max(heat,side*(.24+.33*n));heat=max(heat,under*.25);',
+' float outside=1.-maskAt(p);float filament=clamp((n-.28)*2.2+heat*.46,0.,1.);',
+' float alpha=outside*smoothstep(.09,.50,heat)*filament*uAppear;',
+' float h=clamp(heat*(.7+.3*n),0.,1.);',
+' vec3 col=mix(vec3(.51,.035,.52),vec3(1.,.075,.014),smoothstep(.11,.39,h));',
+' col=mix(col,vec3(1.,.46,.018),smoothstep(.29,.65,h));col=mix(col,vec3(1.,.95,.48),smoothstep(.64,.91,h));',
+' gl_FragColor=vec4(col,alpha);',
+'}'].join('\n');
+function kwCodexFirePhase(t,flying=false){const ease=(a,b)=>{const x=Math.max(0,Math.min(1,(t-a)/(b-a)));return x*x*(3-2*x)};return {open:flying?0:ease(.748,1.012)*(1-ease(3.608,3.828)),appear:flying?1:ease(0,.352)}}
+function kwCreateCodexFire(closed,open,reduced=false){
  const layer=document.createElement('div');layer.className='kwCodexFire';layer.setAttribute('aria-hidden','true');
- const canvas=document.createElement('canvas');canvas.width=272;canvas.height=216;layer.append(canvas);
- let gl=null,program=null,buffer=null,frame=0,stopped=false,flying=false,origin=null,last=-Infinity;
- const fallback=()=>{layer.classList.add('kwCodexFireFallback');canvas.style.display='none'};
- const dispose=()=>{cancelAnimationFrame(frame);if(gl){if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext();}gl=null;program=null;buffer=null;};
- const stop=()=>{if(stopped)return;stopped=true;dispose();layer.remove()};
- if(reduced){fallback();return {layer,fly(){flying=true;layer.classList.add('isFlying')},stop}}
- try{
-  gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false});
-  if(!gl)throw Error('WebGL unavailable');
-  const compile=(type,source)=>{let s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){let err=gl.getShaderInfoLog(s);gl.deleteShader(s);throw Error(err||'Codex shader compile failed')}return s};
-  let vs,fs;try{vs=compile(gl.VERTEX_SHADER,KW_CODEX_FIRE_VERTEX);fs=compile(gl.FRAGMENT_SHADER,KW_CODEX_FIRE_FRAGMENT);program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program)||'Codex shader link failed')}finally{if(vs)gl.deleteShader(vs);if(fs)gl.deleteShader(fs)}
-  buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  gl.useProgram(program);let pos=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
-  let resolution=gl.getUniformLocation(program,'uResolution'),time=gl.getUniformLocation(program,'uTime'),open=gl.getUniformLocation(program,'uOpen'),appear=gl.getUniformLocation(program,'uAppear');
-  gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(resolution,canvas.width,canvas.height);gl.clearColor(0,0,0,0);
-  const ease=(a,b,x)=>{let n=Math.max(0,Math.min(1,(x-a)/(b-a)));return n*n*(3-2*n)};
-  function draw(now){if(stopped||!gl)return;if(origin===null)origin=now;
-   if(now-last>=32){let t=(now-origin)/1000,lastOpen=flying?0:ease(.748,1.012,t)*(1-ease(3.608,3.828,t)),visible=flying?1:ease(0,.352,t);
-    gl.uniform1f(time,t);gl.uniform1f(open,lastOpen);gl.uniform1f(appear,visible);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);last=now}
-   frame=requestAnimationFrame(draw)
+ const gpu=document.createElement('canvas'),fx=document.createElement('canvas'),mask=document.createElement('canvas');
+ gpu.width=fx.width=mask.width=340;gpu.height=fx.height=mask.height=300;
+ layer.append(gpu,fx);gpu.className='kwCodexFireGpu';fx.className='kwCodexFireTongues';
+ const ctx=fx.getContext('2d'),mc=mask.getContext('2d',{willReadFrequently:true});
+ let gl=null,program=null,buffer=null,texture=null,frame=0,stopped=false,flying=false,origin=null,last=-Infinity,lastMask=-10,mode='canvas',anchors=[];
+ function dispose(){if(gl){if(texture)gl.deleteTexture(texture);if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext()}gl=null;program=null;buffer=null;texture=null;gpu.style.display='none'}
+ function stop(){if(stopped)return;stopped=true;cancelAnimationFrame(frame);dispose();layer.remove()}
+ // Use the exact sprite layout, including the transparent padding. Read top/side
+ // contour anchors for a second procedural flame pass; this also works without WebGL.
+ function updateMask(f){
+  if(!mc)return;mc.clearRect(0,0,340,300);
+  const draw=(img,x,y,w,a)=>{if(a<=0||!img?.complete||!img.naturalWidth)return;mc.globalAlpha=a;mc.drawImage(img,x,y,w,w)};
+  draw(closed,76,58,188,1-f);draw(open,40,34,260,f);mc.globalAlpha=1;
+  try{
+   const a=mc.getImageData(0,0,340,300).data,solid=(x,y)=>a[(y*340+x)*4+3]>100;let next=[];
+   for(let x=16;x<324;x+=12){for(let y=12;y<288;y++){if(solid(x,y)){next.push({x,y:y+3,side:0});break}}}
+   for(let y=45;y<260;y+=16){
+    for(let x=12;x<170;x++){if(solid(x,y)){next.push({x:x+2,y,side:-1});break}}
+    for(let x=328;x>170;x--){if(solid(x,y)){next.push({x:x-2,y,side:1});break}}
+   }
+   if(next.length)anchors=next;
+  }catch{}
+  if(gl&&texture){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,mask)}
+ }
+ // Explicit curved flame tongues and embers: not a CSS border fallback.
+ // Deterministic oscillation keeps the shapes flowing at 30+ fps without random flicker.
+ function paint(t,f,appearance){
+  if(!ctx)return;ctx.clearRect(0,0,340,300);if(!appearance)return;
+  const points=anchors.length?anchors:Array.from({length:17},(_,i)=>({x:170+(i-8)*(f>.5?14:8),y:f>.5?80:68,side:0}));
+  ctx.globalCompositeOperation='source-over';
+  for(let i=0;i<points.length;i++){
+   const a=points[i],phase=i*2.399963,beat=.5+.5*Math.sin(t*5.3+phase),beat2=.5+.5*Math.sin(t*3.1+phase*2);
+   const h=(a.side?20:34)+(a.side?24:42)*beat, w=(a.side?9:13)+8*beat2;
+   const bend=Math.sin(t*4.1+phase)*h*.28+a.side*12;
+   const x=a.x,y=a.y,tx=x+bend,ty=y-h;
+   const grad=ctx.createLinearGradient(x,y,tx,ty);
+   grad.addColorStop(0,'rgba(255,229,110,.98)');grad.addColorStop(.26,'rgba(255,152,26,.97)');grad.addColorStop(.64,'rgba(252,51,17,.85)');grad.addColorStop(1,'rgba(164,30,179,0)');
+   ctx.globalAlpha=appearance*(mode==='webgl'?.80:1);
+   ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(x-w*.62,y+5);
+   ctx.bezierCurveTo(x-w*.78+a.side*7,y-h*.22,tx-w*.5,ty+h*.35,tx,ty);
+   ctx.bezierCurveTo(tx+w*.13,ty+h*.42,x+w*.9+a.side*8,y-h*.24,x+w*.54,y+5);
+   ctx.closePath();ctx.fill();
+   // The brighter inner flame moves separately from the outer tongue.
+   ctx.globalAlpha=appearance*.78;ctx.fillStyle='#ffe18a';ctx.beginPath();ctx.moveTo(x-w*.18,y+4);
+   ctx.quadraticCurveTo(x-w*.22,y-h*.24,x+bend*.45,y-h*.48);ctx.quadraticCurveTo(x+w*.26,y-h*.19,x+w*.20,y+4);ctx.closePath();ctx.fill();
   }
-  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();if(stopped)return;cancelAnimationFrame(frame);gl=null;fallback()},{once:true});
-  frame=requestAnimationFrame(draw);
- }catch(e){dispose();fallback()}
- return {layer,fly(){flying=true;layer.classList.add('isFlying')},stop};
+  // A few floating embers, always moving upwards and fading.
+  ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<20;i++){const a=points[(i*7)%points.length],p=(t*(.55+(i%4)*.12)+i*.618)%1;
+   const x=a.x+Math.sin(p*4+i)*12+a.side*p*12,y=a.y-p*(58+i%5*7);ctx.globalAlpha=appearance*Math.sin(p*Math.PI)*.85;ctx.fillStyle=i%4===0?'#f4a4ff':'#ffd46d';ctx.beginPath();ctx.arc(x,y,1.2+(i%3)*.45,0,Math.PI*2);ctx.fill()}
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+ }
+ try{
+  if(reduced)throw Error('Reduced motion');
+  gl=gpu.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false});
+  if(!gl||!mc)throw Error('WebGL unavailable');
+  const compile=(type,src)=>{let sh=gl.createShader(type);gl.shaderSource(sh,src);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){let err=gl.getShaderInfoLog(sh);gl.deleteShader(sh);throw Error(err||'Shader compile failed')}return sh};
+  let v,g;try{v=compile(gl.VERTEX_SHADER,KW_CODEX_FIRE_VERTEX);g=compile(gl.FRAGMENT_SHADER,KW_CODEX_FIRE_FRAGMENT);program=gl.createProgram();gl.attachShader(program,v);gl.attachShader(program,g);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program)||'Shader link failed')}finally{if(v)gl.deleteShader(v);if(g)gl.deleteShader(g)}
+  buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);gl.useProgram(program);
+  const pos=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.uniform1i(gl.getUniformLocation(program,'uMask'),0);
+  gl.viewport(0,0,340,300);gl.uniform2f(gl.getUniformLocation(program,'uResolution'),340,300);gl.clearColor(0,0,0,0);mode='webgl';
+ }catch(err){if(!reduced)console.warn('Codex fire: using animated Canvas2D',err);dispose()}
+ gpu.addEventListener('webglcontextlost',e=>{e.preventDefault();if(stopped)return;gl=null;mode='canvas';gpu.style.display='none'},{once:true});
+ function draw(now){
+  if(stopped)return;if(origin===null)origin=now;
+  if(now-last>=30){const t=reduced?1.5:(now-origin)/1000,f=kwCodexFirePhase(t,flying);
+   // Refresh mask while opening/closing or until both images load; steady state is cached.
+   if(Math.abs(f.open-lastMask)>.015||!anchors.length||(!flying&&t<.55)){updateMask(f.open);lastMask=f.open}
+   if(gl&&program){gl.uniform1f(gl.getUniformLocation(program,'uTime'),t);gl.uniform1f(gl.getUniformLocation(program,'uAppear'),f.appear);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
+   paint(t,f.open,f.appear);last=now;
+  }
+  if(!reduced)frame=requestAnimationFrame(draw);
+ }
+ frame=requestAnimationFrame(draw);
+ return {layer,fly(){flying=true;lastMask=-10;layer.classList.add('isFlying')},stop};
 }
 
 function kwCodexFlightGeometry(book,hero){
@@ -139,7 +196,7 @@ function kwShowVictory(discovery){
    page.className='kwCodexPage';page.setAttribute('aria-hidden','true');page.style.setProperty('--leaf',0);
    soul.className='kwCodexSoul';ghost.src=kwVictoryArt.soul;ghost.alt='';soul.append(ghost);
    const portrait=item.portrait;if(portrait&&!portrait.includes('#kwasset-')){const sticker=document.createElement('img'),placed=document.createElement('img');sticker.className='kwCodexSticker';sticker.src=portrait;sticker.alt='';soul.append(sticker);placed.className='kwCodexPageSticker';placed.src=portrait;placed.alt='';visual.append(placed)}
-   visual.append(closed,open,page,soul);fire=kwCreateCodexFire(matchMedia('(prefers-reduced-motion: reduce)').matches);visual.prepend(fire.layer);
+   visual.append(closed,open,page,soul);fire=kwCreateCodexFire(closed,open,matchMedia('(prefers-reduced-motion: reduce)').matches);visual.prepend(fire.layer);
    for(let n=1;n<4;n++){const leaf=page.cloneNode(false);leaf.style.setProperty('--leaf',n);visual.append(leaf)}
    const rays=document.createElement('div');rays.className='kwCodexRays';visual.prepend(rays);
    for(let n=0;n<24;n++){const spark=document.createElement('i');spark.className='kwCodexSpark';spark.style.setProperty('--angle',(n*15)+'deg');spark.style.setProperty('--reach',(35+(n%5)*10)+'px');spark.style.setProperty('--hue',[42,184,286,325,15,215][n%6]);visual.append(spark)}

@@ -261,29 +261,18 @@ body{background:#15111a;color:#fff1d4;font:14px system-ui;margin:0}#connection{p
 }
 @media(prefers-reduced-motion:reduce){.kwCodexFlight{animation:none!important;display:none}}
 
-/* Time-driven WebGL fel fire behind the book. No opaque page overlays. */
-.kwCodexVisual { isolation:isolate; }
+
+/* Two procedural flame passes, registered to the actual book sprite alpha. */
+.kwCodexVisual { isolation:isolate; overflow:visible; }
 .kwCodexFire {
- position:absolute; z-index:1; pointer-events:none; left:-30px; top:-45px;
- width:340px; height:270px; overflow:visible;
+ position:absolute; z-index:1; pointer-events:none; left:-30px; top:-60px;
+ width:340px; height:300px; overflow:visible;
 }
-.kwCodexFire>canvas { display:block; width:100%; height:100%; }
+.kwCodexFire>canvas { position:absolute; inset:0; display:block; width:100%; height:100%; border:0; background:transparent; }
+.kwCodexFireGpu { opacity:.9; }
+.kwCodexFireTongues { filter:drop-shadow(0 0 4px #ff692c88); }
 .kwVictoryScene.hasDiscovery .kwCodexHalo { display:none; }
+.kwVictoryScene.hasDiscovery .kwCodexOpen,.kwVictoryScene.hasDiscovery .kwCodexClosed { z-index:2; filter:none; }
 .kwCodexFlight { isolation:isolate; overflow:visible; filter:none; }
 .kwCodexFlight>img { position:relative; z-index:2; display:block; width:100%; height:100%; object-fit:contain; }
-.kwCodexFlight>.kwCodexFire { left:50%; top:50%; width:180.851%; height:143.617%; transform:translate(-50%,-50%); }
-/* GPU unavailable: animated translucent border, not a replacement image. */
-.kwCodexFireFallback::before,.kwCodexFireFallback::after {
- content:""; position:absolute; left:50%; top:50%; width:38%; height:60%;
- transform:translate(-50%,-50%); border-radius:12%; border:5px solid #ff812f;
- box-shadow:0 -9px 15px #ff5629,0 0 12px #ffae37,inset 0 0 7px #ed682b;
- filter:blur(3px); animation:kwFelFallbackShape 4.4s linear both,kwFelFlicker .52s ease-in-out infinite alternate;
-}
-.kwCodexFireFallback::after {
- border-color:#b644ee; box-shadow:0 -12px 20px #c72c91,0 0 15px #a53de7;
- filter:blur(7px); opacity:.6; animation-delay:0s,-.23s;
-}
-.kwCodexFireFallback.isFlying::before,.kwCodexFireFallback.isFlying::after { width:38%; animation:kwFelFlicker .52s ease-in-out infinite alternate; }
-@keyframes kwFelFallbackShape {0%{width:27%;opacity:0}8%,17%{width:38%;opacity:1}23%,82%{width:70%;opacity:1}87%,100%{width:38%;opacity:1}}
-@keyframes kwFelFlicker {from{filter:blur(3px);box-shadow:0 -6px 12px #ff7a25,0 0 9px #b845db}to{filter:blur(5px);box-shadow:0 -15px 22px #f84c38,0 0 17px #bd39d3}}
-@media(prefers-reduced-motion:reduce){.kwCodexFireFallback::before,.kwCodexFireFallback::after{width:70%;animation:none!important}}
+.kwCodexFlight>.kwCodexFire { left:50%; top:calc(50% + 2px); width:180.851%; height:159.574%; transform:translate(-50%,-50%); }
