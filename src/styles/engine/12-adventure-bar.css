@@ -355,3 +355,12 @@
 #app .dungeonStorySteps>.next { border-color:#9f7047; }
 #app .dungeonStorySteps>.unknown { border-color:#584b5a; }
 @media(max-height:570px){#app .dungeonStorySteps {grid-template-columns:repeat(9,minmax(0,1fr));width:min(100%,290px,53dvh);gap:2px} #app .dungeonStoryScene>img {max-height:39%} #app .dungeonStoryScene {gap:3px} }
+
+/* Story dungeon overview: location art, independent of cleared/current boss state. */
+#app .dungeoncard>.dungeonLocationSprite {
+ display:block; width:100%; max-width:55px; aspect-ratio:1; min-width:0; min-height:0;
+ justify-self:center; align-self:center; border-radius:5px; overflow:hidden;
+ background-image:url("./assets/ui/dungeon-locations.webp?v=2fb05096");
+ background-size:400% 400%; background-repeat:no-repeat; background-color:#251c29;
+}
+@media(max-height:600px){#app .dungeoncard>.dungeonLocationSprite{max-width:38px}}

@@ -19,7 +19,7 @@ console.log('OK expanded dungeon content:',zones.map(z=>z[2].length).join(', '))
 
 // Fog of war is checked across every progression state, including the final fight.
 const ui=read('src/engine/core/12-milestones-profiles.js');
-const fog=new Function('zones','storyBossLevel','bossPortrait','logEscape',ui.slice(ui.indexOf('const DUNGEON_UNKNOWN_ART='),ui.indexOf('function render(){'))+'return {DUNGEON_UNKNOWN_ART,dungeonVisibleMaxLevel,dungeonBossStepState,dungeonBossStepArt,dungeonBossStepTitle,dungeonBossSteps}')(zones,level,b=>'portrait:'+b[1],x=>String(x).replaceAll('"','&quot;'));
+const fog=new Function('zones','storyBossLevel','bossPortrait','logEscape',ui.slice(ui.indexOf('const DUNGEON_UNKNOWN_ART='),ui.indexOf('function render(){'))+'return {DUNGEON_UNKNOWN_ART,dungeonVisibleMaxLevel,dungeonBossStepState,dungeonBossStepArt,dungeonBossStepTitle,dungeonBossSteps,dungeonLocationSprite}')(zones,level,b=>'portrait:'+b[1],x=>String(x).replaceAll('"','&quot;'));
 for(let i=0;i<zones.length;i++){let z=zones[i];for(let k=0;k<=z[2].length;k++){let state={d:[]};state.d[i]=k;assert.equal(fog.dungeonVisibleMaxLevel(i,state),k===z[2].length?level(i,k-1):'???');for(let j=0;j<z[2].length;j++){let expected=j<k?'done':j===k?'current':j===k+1?'next':'unknown';assert.equal(fog.dungeonBossStepState(i,j,state),expected);assert.equal(fog.dungeonBossStepArt(i,j,state),expected==='unknown'?fog.DUNGEON_UNKNOWN_ART:'portrait:'+z[2][j][1]);assert.equal(fog.dungeonBossStepTitle(i,j,state),expected==='unknown'?'???':z[2][j][1]);}let markup=fog.dungeonBossSteps(i,state);assert.equal((markup.match(/class="dungeonStep /g)||[]).length,z[2].length)}}
 assert.match(ui,/dungeonVisibleMaxLevel\(i\)/);assert.match(ui,/dungeonBossSteps\(dp\)/);
 console.log('OK dungeon fog of war: all progression states');
@@ -29,3 +29,16 @@ assert.equal(fog.DUNGEON_UNKNOWN_ART.split('?')[0],'./assets/ui/unknown-enemy.we
 const unknownArt=readFileSync(new URL('../assets/ui/unknown-enemy.webp',import.meta.url));
 assert.equal(unknownArt.toString('ascii',0,4),'RIFF');
 assert.equal(unknownArt.toString('ascii',8,12),'WEBP');
+
+const atlas=readFileSync(new URL('../assets/ui/dungeon-locations.webp',import.meta.url));
+assert.equal(atlas.toString('ascii',0,4),'RIFF');
+assert.equal(atlas.toString('ascii',8,12),'WEBP');
+assert.equal(atlas.readUInt16LE(26)&0x3fff,256);
+assert.equal(atlas.readUInt16LE(28)&0x3fff,256);
+const locationSprites=zones.map((_,i)=>fog.dungeonLocationSprite(i));
+assert.equal(new Set(locationSprites).size,14);
+for(let i=0;i<zones.length;i++)assert.ok(locationSprites[i].includes('background-position:'+(i%4*100/3)+'% '+(Math.floor(i/4)*100/3)+'%'));
+assert.match(ui,/dungeonLocationSprite\(i\)/);
+const listMarkup=ui.slice(ui.indexOf('else if(dungeonList)'),ui.indexOf('}else{let z=zones[dp]'));
+assert.ok(!listMarkup.includes('bossPortrait('));
+console.log('OK 14 distinct story dungeon locations');
