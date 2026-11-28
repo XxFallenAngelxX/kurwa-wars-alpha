@@ -25,6 +25,7 @@ jobs:
       - run: node scripts/test-dungeons.mjs
       - run: node scripts/test-codex-speed.mjs
       - run: node scripts/test-chat-dock.mjs
+      - run: node scripts/test-guide-art.mjs
       - run: npm run test:offline-audio
       - run: npm run test:update
       - run: npm run build
