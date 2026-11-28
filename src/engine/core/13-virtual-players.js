@@ -331,11 +331,37 @@ function kwSimGemSocket(p){
  let a=kwSimModel(p),keys=Object.keys(a.material).filter(k=>gemData(k)).sort((x,y)=>gemData(y).tier-gemData(x).tier);
  for(const i of q.eq.filter(Boolean)){let j=socketList(i).indexOf(null);if(j<0)continue;let primary=weaponClass(q.eq[0])==='ranged'?2:0,k=keys.find(k=>a.material[k]>0&&[primary,3,4].includes(gemData(k).family.stat));if(!k)continue;let g=gemData(k);if(kwSimConsume(p,{[k]:1})){i.sockets[j]=k;i.v[g.family.stat]+=gemPower(g.tier);kwSimCount(p,'sockets')}}
 }
+
+/* Headless PvE follows normal combat, including asymmetric dodge and healing curse.
+   Keep the arena duel engine separate; the live player combat UI is unchanged. */
+function kwSimPveTurn(b,random=Math.random){
+ const player=b.turn++%2===0,e=b.effects,p=b.p,f=b.foe,actor=player?p:f,fx=b.fx[player?0:1],target=b.fx[player?1:0],hpKey=player?'h':'e',otherKey=player?'e':'h';
+ const dec=k=>{e[k]=Math.max(0,(e[k]||0)-1)},effect=(k,n)=>{e[k]=Math.max(e[k]||0,n)};
+ const heal=n=>{if(b.h>0)b.h+=Math.max(0,Math.min(p.hp-b.h,Math.floor((n||0)*(e.wound?.65:1))))};
+ for(const [,v] of kwWeaponDot(fx))b[hpKey]-=Math.min(b[hpKey],v);
+ if(player)heal(p.hp*(p.pctRegen||0));else if(e.bleed&&b.e>0){b.e-=Math.min(b.e,b.bleedDamage);dec('bleed')}
+ if(b.e>0&&b.h>0){
+  if(!player&&random()<kwWeaponDodge(p.dodge,b.fx[0]))dec('weaken');
+  else{
+   let crit=random()<(actor.crit||0),rage=1+Math.min(4,Math.floor((b.turn-1)/2)*.045),armor=f.def*(b.phase===1?1.35:1);
+   let attack=player?p.atk*(e.fury?1.12:1):f.atk*(b.phase===2?1.25:1)*(e.weaken?.85:1);
+   let damage=Math.min(b[otherKey],kwWeaponIncoming(kwCombatDamage(kwWeaponAttack(attack,fx),player?armor:p.def,b.o.l,.85+random()*.3,crit,rage,actor.shrineCritical?.35:0),target,player?f:p));
+   if(!player&&p.shrineSurvival&&!target.shrineSurvivalUsed&&damage>=b.h){damage=Math.max(0,b.h-1);target.shrineSurvivalUsed=true}
+   b[otherKey]-=damage;dec(player?'fury':'weaken');
+   if(player){heal(damage*(p.pctLeech||0));if(b.e>0){if(random()<(p.pctBleed||0)){effect('bleed',2);b.bleedDamage=Math.max(1,Math.floor(damage*.15))}if(random()<(p.pctWeaken||0))effect('weaken',2)}if(crit&&random()<(p.pctFury||0))effect('fury',2)}
+   else if(b.h>0){heal(damage*(p.pctRecoup||0));if(b.e>0&&random()<(p.pctCounter||0)){let n=Math.min(b.e,Math.max(1,Math.round(p.atk*.5*(1-reduction(armor,b.o.l)))));b.e-=n;heal(n*(p.pctLeech||0))}}
+   if(b.h>0&&b.e>0){let a=p.myth47||[];if(player&&b.turn%6===5&&a[0])b.e-=Math.min(b.e,Math.round(damage*.18*a[0]));if(!player&&b.turn%6===0){if(a[1])heal(p.hp*.02*a[1]);if(a[2]&&b.e>0)b.e-=Math.min(b.e,Math.round(p.atk*.25*a[2]*(1-reduction(armor,b.o.l))))}}
+   if(b[hpKey]>0&&damage>0){let proc=kwWeaponProc(actor,damage,fx,target,random);b[otherKey]-=Math.min(b[otherKey],proc.extra);if(player)heal(proc.heal);else b.e=Math.min(b.eh,b.e+proc.heal);if(actor.shrineDouble&&random()<.20)b[otherKey]-=Math.min(b[otherKey],Math.max(1,Math.round(damage*.70)));b[otherKey]-=Math.min(b[otherKey],kwShrineStrike(actor,damage,fx))}
+  }
+ }
+ kwWeaponDecay(fx);if(player)dec('wound');else if(b.special&&b.turn%8===0&&b.h>0&&b.e>0)effect('wound',2);
+ if(b.special&&b.h>0&&b.e>0)b.phase=Math.max(b.phase,b.e/b.eh<=.25?2:b.e/b.eh<=.5?1:0);
+ return b.h<=0||b.e<=0;
+}
 function kwSimBattle(p,o,hpRatio=1){
- let q=p.state,stats=kwSimStats(p),f=enemyStats(o),d=kwSimDuel(stats,q.level,f,o.l,0);
- d.special=!!(o.d!==undefined||o.tower||(typeof MEME_FOES!=='undefined'&&MEME_FOES[o.type-MEME_START])||(typeof RETRO_MEMES!=='undefined'&&RETRO_MEMES[o.type-RETRO_FOE_START]));
- d.fighters[0].hp=Math.max(1,Math.round(stats.hp*hpRatio));while(d.winner===null)kwSimTurn(d);
- return {won:d.winner===0,turns:d.turn,hpRatio:d.fighters[0].hp/stats.hp,level:q.level,a:stats.a};
+ let q=p.state,stats=kwSimStats(p),f=enemyStats(o),b={p:stats,foe:f,o,turn:0,h:Math.max(1,Math.round(stats.hp*hpRatio)),e:f.hp,eh:f.hp,phase:0,effects:{},bleedDamage:0,fx:[{},{}],special:!!(o.d!==undefined||o.tower||(typeof MEME_FOES!=='undefined'&&MEME_FOES[o.type-MEME_START])||(typeof RETRO_MEMES!=='undefined'&&RETRO_MEMES[o.type-RETRO_FOE_START]))};
+ while(b.turn<400&&!kwSimPveTurn(b)){}
+ return {won:b.e<=0,turns:b.turn,hpRatio:Math.max(0,b.h/stats.hp),level:q.level,a:stats.a};
 }
 function kwSimDrops(p,o,result){
  let q=p.state,b={p:{a:result.a},playerLevel:result.level};
@@ -426,8 +452,8 @@ function kwSimFinishFight(p,o,r,now){
 }
 function kwSimStartFight(p,o,now){let a=kwSimModel(p);if(!o.event){a.eventRun=false;a.eventHp=1}let r=kwSimBattle(p,o,o.expedition?o.hpRatio:o.event&&a.eventRun?(a.eventHp||1):1);a.pending={kind:'fight',o,result:r,ready:now+KW_SIM_ACTION_MS+r.turns*KW_SIM_COMBAT_MS};return a.pending.ready}
 function kwSimSession(p,style,start,end,w,used,lastSlot=false){
- let q=p.state,a=kwSimModel(p,start),t=start;p.actions++;a.activeMs+=end-start;
- kwSimRegen(p,t);let ride=kwSimJobs(p,t,!a.pending);kwSimBoard(p,Math.floor(start/KW_SIM_DAY));
+ let q=p.state,a=kwSimModel(p,start),t=start;p.actions++;a.activeMs+=end-start;if(!a.pending&&a.lastSessionEnd!==start){a.eventRun=false;a.eventHp=1}a.lastSessionEnd=end;
+ kwSimRegen(p,t);let ride=kwSimJobs(p,t,!a.pending);if(!a.pending)kwSimBoard(p,Math.floor(start/KW_SIM_DAY));
  if(!a.pending){kwSimReserve(p);kwSimShop(p,t);kwSimMarket(p,Math.floor(t/KW_SIM_DAY));kwSimFusion(p,t);kwSimEnchant(p);kwSimGemSocket(p);t+=kwSimMemory(p,Math.floor(t/KW_SIM_DAY),end-t)}
  let primary=weaponClass(q.eq[0])==='ranged'?2:0,attr=Math.random()<.55?primary:pick(style[4]),cost=trainCost(attr,q);
  if(q.gold>=cost){q.gold-=cost;q.stats[attr]++;q.training[attr]++}t+=20000;
@@ -458,7 +484,7 @@ function kwSimSession(p,style,start,end,w,used,lastSlot=false){
   let o=kwSimOfferMission(p,ride);if(!o||!kwSimSpend(p,o.cost,t))break;
   a.travel={kind:'travel',o,ready:t+o.duration+KW_SIM_ACTION_MS};t+=KW_SIM_ACTION_MS;kwSimCount(p,'travelStarted');
  }
- a.engagedMs+=Math.max(0,Math.min(end,t)-start);kwSimBoard(p,Math.floor(start/KW_SIM_DAY));
+ a.engagedMs+=Math.max(0,Math.min(end,t)-start);if(!a.pending)kwSimBoard(p,Math.floor(start/KW_SIM_DAY));
  // The night shift occupies offline time and prevents starting an adventure.
  if(lastSlot&&!a.pending&&!a.travel&&!a.expedition&&!q.shift){let hours=p.style===0?8:p.style===2?4:6,pay=Math.floor(hours*(65+q.level*12+3*Math.pow(Math.max(0,q.level-20),1.4))*(1+roomBonus(8,q.rooms[8])));q.shift={end:end+hours*3600000,pay}}
  kwSimRegen(p,end);return true;
