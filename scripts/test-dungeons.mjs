@@ -23,3 +23,9 @@ const fog=new Function('zones','storyBossLevel','bossPortrait','logEscape',ui.sl
 for(let i=0;i<zones.length;i++){let z=zones[i];for(let k=0;k<=z[2].length;k++){let state={d:[]};state.d[i]=k;assert.equal(fog.dungeonVisibleMaxLevel(i,state),k===z[2].length?level(i,k-1):'???');for(let j=0;j<z[2].length;j++){let expected=j<k?'done':j===k?'current':j===k+1?'next':'unknown';assert.equal(fog.dungeonBossStepState(i,j,state),expected);assert.equal(fog.dungeonBossStepArt(i,j,state),expected==='unknown'?fog.DUNGEON_UNKNOWN_ART:'portrait:'+z[2][j][1]);assert.equal(fog.dungeonBossStepTitle(i,j,state),expected==='unknown'?'???':z[2][j][1]);}let markup=fog.dungeonBossSteps(i,state);assert.equal((markup.match(/class="dungeonStep /g)||[]).length,z[2].length)}}
 assert.match(ui,/dungeonVisibleMaxLevel\(i\)/);assert.match(ui,/dungeonBossSteps\(dp\)/);
 console.log('OK dungeon fog of war: all progression states');
+
+// Reusable mystery sprite is a real local WebP, not the former SVG placeholder.
+assert.equal(fog.DUNGEON_UNKNOWN_ART.split('?')[0],'./assets/ui/unknown-enemy.webp');
+const unknownArt=readFileSync(new URL('../assets/ui/unknown-enemy.webp',import.meta.url));
+assert.equal(unknownArt.toString('ascii',0,4),'RIFF');
+assert.equal(unknownArt.toString('ascii',8,12),'WEBP');
